@@ -97,7 +97,7 @@ async def register_username(username: str, password: str):
         local_dict_access_token_payload = {
             "user_id": local_str_user_id,
             "exp": datetime.now(timezone.utc)
-                   + timedelta(minutes=config_int_access_token_valid_minutes),
+            + timedelta(minutes=config_int_access_token_valid_minutes),
         }
         local_str_access_token = jwt.encode(
             local_dict_access_token_payload, config_str_secret_key_for_access_token
@@ -205,12 +205,12 @@ async def login_username(username: str, password: str):
         # ======================================================================================
         else:
             if not (
-                    bcrypt.checkpw(
-                        password.encode("utf-8"),
-                        local_list_authentication_user_response[0][
-                            UserCredential.user_credential_hashed_password.name
-                        ].encode("utf-8"),
-                    )
+                bcrypt.checkpw(
+                    password.encode("utf-8"),
+                    local_list_authentication_user_response[0][
+                        UserCredential.user_credential_hashed_password.name
+                    ].encode("utf-8"),
+                )
             ):
                 return JSONResponse(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -228,7 +228,7 @@ async def login_username(username: str, password: str):
                 local_dict_access_token_payload = {
                     "user_id": local_str_user_id,
                     "exp": datetime.now(timezone.utc)
-                           + timedelta(minutes=config_int_access_token_valid_minutes),
+                    + timedelta(minutes=config_int_access_token_valid_minutes),
                 }
                 local_str_access_token = jwt.encode(
                     local_dict_access_token_payload,
@@ -285,7 +285,7 @@ async def login_username(username: str, password: str):
 @router.get("/generate_access_token/")
 @global_object_square_logger.async_auto_logger
 async def generate_access_token(
-        user_id: str, refresh_token: Annotated[Union[str, None], Header()]
+    user_id: str, refresh_token: Annotated[Union[str, None], Header()]
 ):
     try:
         # ======================================================================================
@@ -324,7 +324,7 @@ async def generate_access_token(
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content=f"incorrect refresh token: {refresh_token} for user_id: {user_id}."
-                        f"for user_id: {user_id}.",
+                f"for user_id: {user_id}.",
             )
         # validating if the refresh token is valid, active and of the same user.
         try:
@@ -349,7 +349,7 @@ async def generate_access_token(
         local_dict_access_token_payload = {
             "user_id": user_id,
             "exp": datetime.now(timezone.utc)
-                   + timedelta(minutes=config_int_access_token_valid_minutes),
+            + timedelta(minutes=config_int_access_token_valid_minutes),
         }
         local_str_access_token = jwt.encode(
             local_dict_access_token_payload, config_str_secret_key_for_access_token
@@ -371,9 +371,9 @@ async def generate_access_token(
 @router.delete("/logout/")
 @global_object_square_logger.async_auto_logger
 async def logout(
-        user_id: str,
-        access_token: Annotated[Union[str, None], Header()],
-        refresh_token: Annotated[Union[str, None], Header()],
+    user_id: str,
+    access_token: Annotated[Union[str, None], Header()],
+    refresh_token: Annotated[Union[str, None], Header()],
 ):
     try:
         # ======================================================================================
@@ -412,7 +412,7 @@ async def logout(
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content=f"incorrect refresh token: {refresh_token} for user_id: {user_id}."
-                        f"for user_id: {user_id}.",
+                f"for user_id: {user_id}.",
             )
         # not validating if the refresh token is valid, active and of the same user.
         # ======================================================================================

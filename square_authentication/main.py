@@ -39,7 +39,7 @@ async def root():
 if __name__ == "__main__":
     try:
         if os.path.exists(config_str_ssl_key_file_path) and os.path.exists(
-                config_str_ssl_crt_file_path
+            config_str_ssl_crt_file_path
         ):
             run(
                 app,

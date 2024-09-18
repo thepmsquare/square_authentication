@@ -6,11 +6,11 @@ from square_logger.main import SquareLogger
 
 try:
     config_file_path = (
-            os.path.dirname(os.path.abspath(__file__))
-            + os.sep
-            + "data"
-            + os.sep
-            + "config.ini"
+        os.path.dirname(os.path.abspath(__file__))
+        + os.sep
+        + "data"
+        + os.sep
+        + "config.ini"
     )
     ldict_configuration = ConfigReader(config_file_path).read_configuration()
 
