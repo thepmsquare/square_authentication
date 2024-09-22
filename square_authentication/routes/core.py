@@ -143,7 +143,7 @@ async def get_user_app_ids(user_id: UUID):
         )
         if len(local_list_response_user) != 1:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"invalid user_id: {local_string_user_id}",
             )
         """
@@ -208,7 +208,7 @@ async def update_user_app_ids(
         )
         if len(local_list_response_user) != 1:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"invalid user_id: {local_string_user_id}",
             )
 
