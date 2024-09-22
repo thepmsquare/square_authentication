@@ -12,6 +12,7 @@ from square_database_structure.square.authentication.tables import (
     User,
     UserCredential,
     UserSession,
+    UserApp,
 )
 
 from square_authentication.configuration import (
@@ -114,6 +115,55 @@ async def register_username(username: str, password: str):
                 table_name=User.__tablename__,
                 filters={User.user_id.name: local_str_user_id},
             )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=str(e)
+        )
+
+
+@router.get("/get_user_app_ids")
+@global_object_square_logger.async_auto_logger
+async def get_user_app_ids(user_id: str):
+    try:
+        """
+        validation
+        """
+
+        local_list_response_user = global_object_square_database_helper.get_rows(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=User.__tablename__,
+            filters={User.user_id.name: user_id},
+        )
+        if len(local_list_response_user) != 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"invalid user_id: {user_id}",
+            )
+        """
+        main process
+        """
+        local_list_response_user_app = global_object_square_database_helper.get_rows(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserApp.__tablename__,
+            filters={UserApp.user_id.name: user_id},
+        )
+        """
+        return value
+        """
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=[x[UserApp.app_id.name] for x in local_list_response_user_app],
+        )
+    except HTTPException as http_exception:
+        return JSONResponse(
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
+        """
+        rollback logic
+        """
+        global_object_square_logger.logger.error(e, exc_info=True)
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=str(e)
         )
