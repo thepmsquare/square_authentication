@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
-from typing import Annotated, Union
+from typing import Annotated, Union, List
+from uuid import UUID
 
 import bcrypt
 import jwt
@@ -14,6 +15,10 @@ from square_database_structure.square.authentication.tables import (
     UserSession,
     UserApp,
 )
+from square_database_structure.square.public import (
+    global_string_schema_name as global_string_public_schema_name,
+)
+from square_database_structure.square.public.tables import App
 
 from square_authentication.configuration import (
     global_object_square_logger,
@@ -122,8 +127,9 @@ async def register_username(username: str, password: str):
 
 @router.get("/get_user_app_ids")
 @global_object_square_logger.async_auto_logger
-async def get_user_app_ids(user_id: str):
+async def get_user_app_ids(user_id: UUID):
     try:
+        local_string_user_id = str(user_id)
         """
         validation
         """
@@ -132,12 +138,12 @@ async def get_user_app_ids(user_id: str):
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=User.__tablename__,
-            filters={User.user_id.name: user_id},
+            filters={User.user_id.name: local_string_user_id},
         )
         if len(local_list_response_user) != 1:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"invalid user_id: {user_id}",
+                detail=f"invalid user_id: {local_string_user_id}",
             )
         """
         main process
@@ -146,11 +152,131 @@ async def get_user_app_ids(user_id: str):
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserApp.__tablename__,
-            filters={UserApp.user_id.name: user_id},
+            filters={UserApp.user_id.name: local_string_user_id},
         )
         """
         return value
         """
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=[x[UserApp.app_id.name] for x in local_list_response_user_app],
+        )
+    except HTTPException as http_exception:
+        return JSONResponse(
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
+        """
+        rollback logic
+        """
+        global_object_square_logger.logger.error(e, exc_info=True)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=str(e)
+        )
+
+
+@router.patch("/update_user_app_ids")
+@global_object_square_logger.async_auto_logger
+async def update_user_app_ids(
+        user_id: UUID,
+        app_ids_to_add: List[int],
+        app_ids_to_remove: List[int],
+):
+    try:
+        local_string_user_id = str(user_id)
+        """
+        validation
+        """
+
+        # check if app_ids_to_add and app_ids_to_remove don't have common ids.
+        local_list_common_app_ids = set(app_ids_to_add) & set(app_ids_to_remove)
+        if len(local_list_common_app_ids) > 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"invalid app_ids: {list(local_list_common_app_ids)}, present in both add list and remove list.",
+            )
+        # validate access token
+        # TBD
+
+        # check if user id is in user table
+        local_list_response_user = global_object_square_database_helper.get_rows(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=User.__tablename__,
+            filters={User.user_id.name: local_string_user_id},
+        )
+        if len(local_list_response_user) != 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"invalid user_id: {local_string_user_id}",
+            )
+
+        # check if all app_ids are valid
+        local_list_all_app_ids = [*app_ids_to_add, *app_ids_to_remove]
+        local_list_response_app = global_object_square_database_helper.get_rows(
+            database_name=global_string_database_name,
+            schema_name=global_string_public_schema_name,
+            table_name=App.__tablename__,
+            ignore_filters_and_get_all=True,
+            filters={},
+        )
+        local_list_invalid_ids = [
+            x
+            for x in local_list_all_app_ids
+            if x not in [y[App.app_id.name] for y in local_list_response_app]
+        ]
+        if len(local_list_invalid_ids) > 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"invalid app_ids: {local_list_invalid_ids}.",
+            )
+        """
+        main process
+        """
+        # logic for adding new app_ids
+        local_list_response_user_app = global_object_square_database_helper.get_rows(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserApp.__tablename__,
+            filters={UserApp.user_id.name: local_string_user_id},
+        )
+        local_list_new_app_ids = [
+            {
+                UserApp.user_id.name: local_string_user_id,
+                UserApp.app_id.name: x,
+            }
+            for x in app_ids_to_add
+            if x not in [y[UserApp.app_id.name] for y in local_list_response_user_app]
+        ]
+        global_object_square_database_helper.insert_rows(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserApp.__tablename__,
+            data=local_list_new_app_ids,
+        )
+
+        # logic for removing app_ids
+        for app_id in app_ids_to_remove:
+            global_object_square_database_helper.delete_rows(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserApp.__tablename__,
+                filters={
+                    UserApp.user_id.name: local_string_user_id,
+                    UserApp.app_id.name: app_id,
+                },
+            )
+
+        """
+        return value
+        """
+        # get latest app ids
+        local_list_response_user_app = global_object_square_database_helper.get_rows(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserApp.__tablename__,
+            filters={UserApp.user_id.name: local_string_user_id},
+        )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content=[x[UserApp.app_id.name] for x in local_list_response_user_app],
