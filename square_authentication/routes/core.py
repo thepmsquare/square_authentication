@@ -47,6 +47,7 @@ global_object_square_database_helper = SquareDatabaseHelper(
 @global_object_square_logger.async_auto_logger
 async def register_username(username: str, password: str):
     local_str_user_id = None
+    username = username.lower()
     try:
         """
         validation
@@ -298,6 +299,7 @@ async def update_user_app_ids(
 @router.get("/login_username/")
 @global_object_square_logger.async_auto_logger
 async def login_username(username: str, password: str):
+    username = username.lower()
     try:
         # ======================================================================================
         # get entry from authentication_username table
