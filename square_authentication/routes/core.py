@@ -37,7 +37,7 @@ global_object_square_database_helper = SquareDatabaseHelper(
 )
 
 
-@router.get("/register_username/")
+@router.post("/register_username/")
 @global_object_square_logger.async_auto_logger
 async def register_username(username: str, password: str):
     local_str_user_id = None
@@ -95,7 +95,7 @@ async def register_username(username: str, password: str):
         return value
         """
         return JSONResponse(
-            status_code=status.HTTP_200_OK,
+            status_code=status.HTTP_201_CREATED,
             content={"user_id": local_str_user_id, "username": username},
         )
     except HTTPException as http_exception:
