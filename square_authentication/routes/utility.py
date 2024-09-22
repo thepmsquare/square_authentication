@@ -1,3 +1,5 @@
 from fastapi import APIRouter
 
-router = APIRouter(tags=["utility"], )
+router = APIRouter(
+    tags=["utility"],
+)
