@@ -189,6 +189,9 @@ async def update_user_app_ids(
         validation
         """
 
+        app_ids_to_add = list(set(app_ids_to_add))
+        app_ids_to_remove = list(set(app_ids_to_remove))
+
         # check if app_ids_to_add and app_ids_to_remove don't have common ids.
         local_list_common_app_ids = set(app_ids_to_add) & set(app_ids_to_remove)
         if len(local_list_common_app_ids) > 0:
