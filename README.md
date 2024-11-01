@@ -24,12 +24,12 @@ pip install square_authentication
     - logout: added app_id as new parameter and validation for that.
     - generate_access_token: added app_id as new parameter and validation for that.
 - added 2 new endpoints
-    - get user app ids: **access token validation pending**
-    - change user app ids: **access token validation pending**
-- add versions for all endpoint paths
-- make it compatible with square_database_helper 2.x
-- username in database will always be lowercase
-- standardise output formats for all api
+    - get user app ids: **access token validation pending**.
+    - change user app ids: **access token validation pending**.
+- add versions for all endpoint paths.
+- make it compatible with square_database_helper 2.x.
+- username in database will always be lowercase.
+- standardise output formats for all api.
 
 ### v1.0.0
 
