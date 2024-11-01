@@ -395,9 +395,9 @@ async def update_user_app_ids_v0(
         )
 
 
-@router.get("/login_username/")
+@router.get("/login_username/v0")
 @global_object_square_logger.async_auto_logger
-async def login_username(username: str, password: str, app_id: int):
+async def login_username_v0(username: str, password: str, app_id: int):
     username = username.lower()
     try:
         """
