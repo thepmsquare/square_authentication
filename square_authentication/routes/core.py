@@ -340,6 +340,19 @@ async def update_user_app_ids_v0(
                     }
                 ),
             )
+            global_object_square_database_helper.delete_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserSession.__tablename__,
+                filters=FiltersV0(
+                    {
+                        UserSession.user_id.name: FilterConditionsV0(
+                            eq=local_string_user_id
+                        ),
+                        UserSession.app_id.name: FilterConditionsV0(eq=app_id),
+                    }
+                ),
+            )
 
         """
         return value
