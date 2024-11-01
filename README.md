@@ -20,7 +20,7 @@ pip install square_authentication
 
 - authentication module needs to be used across applications so
     - change logic of register username: will not create sessions and therefore will not auto login.
-    - login: tbd
+    - login: added validation if app is assigned to user before assigning it and added app_id in session row.
     - logout: tbd
     - generate_access_token: tbd
 - added 2 new endpoints
