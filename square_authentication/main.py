@@ -3,6 +3,7 @@ import os.path
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from square_commons import get_api_output_in_standard_format
 from uvicorn import run
 
 from square_authentication.configuration import (
@@ -31,9 +32,8 @@ app.include_router(utility.router)
 @app.get("/")
 @global_object_square_logger.async_auto_logger
 async def root():
-    return JSONResponse(
-        status_code=status.HTTP_200_OK, content={"text": config_str_module_name}
-    )
+    output_content = get_api_output_in_standard_format(log=config_str_module_name)
+    return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
 
 
 if __name__ == "__main__":

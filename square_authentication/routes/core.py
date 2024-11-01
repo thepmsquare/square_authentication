@@ -6,6 +6,11 @@ import bcrypt
 import jwt
 from fastapi import APIRouter, status, Header, HTTPException
 from fastapi.responses import JSONResponse
+from square_commons import get_api_output_in_standard_format
+from square_database.pydantic_models.pydantic_models import (
+    FiltersV0,
+    FilterConditionsV0,
+)
 from square_database_helper.main import SquareDatabaseHelper
 from square_database_structure.square import global_string_database_name
 from square_database_structure.square.authentication import global_string_schema_name
@@ -30,6 +35,7 @@ from square_authentication.configuration import (
     config_int_square_database_port,
     config_str_square_database_protocol,
 )
+from square_authentication.messages import messages
 from square_authentication.utils.token import get_jwt_payload
 
 router = APIRouter(
@@ -43,9 +49,9 @@ global_object_square_database_helper = SquareDatabaseHelper(
 )
 
 
-@router.post("/register_username/")
+@router.post("/register_username/v0")
 @global_object_square_logger.async_auto_logger
-async def register_username(username: str, password: str):
+async def register_username_v0(username: str, password: str):
     local_str_user_id = None
     username = username.lower()
     try:
@@ -54,28 +60,42 @@ async def register_username(username: str, password: str):
         """
 
         # validation for username
-        local_list_response_user_creds = global_object_square_database_helper.get_rows(
+        local_list_response_user_creds = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserCredential.__tablename__,
-            filters={UserCredential.user_credential_username.name: username},
-        )
+            filters=FiltersV0(
+                {
+                    UserCredential.user_credential_username.name: FilterConditionsV0(
+                        eq=username
+                    )
+                }
+            ),
+        )[
+            "data"
+        ][
+            "main"
+        ]
         if len(local_list_response_user_creds) > 0:
+            output_content = get_api_output_in_standard_format(
+                message=messages["USERNAME_ALREADY_EXISTS"],
+                log=f"an account with the username {username} already exists.",
+            )
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"an account with the username {username} already exists.",
+                detail=output_content,
             )
 
         """
         main process
         """
         # entry in user table
-        local_list_response_user = global_object_square_database_helper.insert_rows(
+        local_list_response_user = global_object_square_database_helper.insert_rows_v0(
             data=[{}],
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=User.__tablename__,
-        )
+        )["data"]["main"]
         local_str_user_id = local_list_response_user[0][User.user_id.name]
 
         # entry in credential table
@@ -85,7 +105,7 @@ async def register_username(username: str, password: str):
             password.encode("utf-8"), bcrypt.gensalt()
         ).decode("utf-8")
 
-        global_object_square_database_helper.insert_rows(
+        global_object_square_database_helper.insert_rows_v0(
             data=[
                 {
                     UserCredential.user_id.name: local_str_user_id,
@@ -101,9 +121,13 @@ async def register_username(username: str, password: str):
         """
         return value
         """
+        output_content = get_api_output_in_standard_format(
+            message=messages["REGISTRATION_SUCCESSFUL"],
+            data={"main": {"user_id": local_str_user_id, "username": username}},
+        )
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
-            content={"user_id": local_str_user_id, "username": username},
+            content=output_content,
         )
     except HTTPException as http_exception:
         return JSONResponse(
@@ -115,52 +139,72 @@ async def register_username(username: str, password: str):
         rollback logic
         """
         if local_str_user_id:
-            global_object_square_database_helper.delete_rows(
+            global_object_square_database_helper.delete_rows_v0(
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
                 table_name=User.__tablename__,
-                filters={User.user_id.name: local_str_user_id},
+                filters=FiltersV0(
+                    {User.user_id.name: FilterConditionsV0(eq=local_str_user_id)}
+                ),
             )
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
         )
 
 
-@router.get("/get_user_app_ids")
+@router.get("/get_user_app_ids/v0")
 @global_object_square_logger.async_auto_logger
-async def get_user_app_ids(user_id: UUID):
+async def get_user_app_ids_v0(user_id: UUID):
     try:
         local_string_user_id = str(user_id)
         """
         validation
         """
 
-        local_list_response_user = global_object_square_database_helper.get_rows(
+        local_list_response_user = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=User.__tablename__,
-            filters={User.user_id.name: local_string_user_id},
-        )
+            filters=FiltersV0(
+                {User.user_id.name: FilterConditionsV0(eq=local_string_user_id)}
+            ),
+        )["data"]["main"]
         if len(local_list_response_user) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_USER_ID"],
+                log=f"invalid user_id: {local_string_user_id}",
+            )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"invalid user_id: {local_string_user_id}",
+                detail=output_content,
             )
         """
         main process
         """
-        local_list_response_user_app = global_object_square_database_helper.get_rows(
+        local_list_response_user_app = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserApp.__tablename__,
-            filters={UserApp.user_id.name: local_string_user_id},
-        )
+            filters=FiltersV0(
+                {UserApp.user_id.name: FilterConditionsV0(eq=local_string_user_id)}
+            ),
+        )["data"]["main"]
         """
         return value
         """
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_READ_SUCCESSFUL"],
+            data={
+                "main": [x[UserApp.app_id.name] for x in local_list_response_user_app]
+            },
+        )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=[x[UserApp.app_id.name] for x in local_list_response_user_app],
+            content=output_content,
         )
     except HTTPException as http_exception:
         return JSONResponse(
@@ -171,17 +215,22 @@ async def get_user_app_ids(user_id: UUID):
         rollback logic
         """
         global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=output_content,
         )
 
 
-@router.patch("/update_user_app_ids")
+@router.patch("/update_user_app_ids/v0")
 @global_object_square_logger.async_auto_logger
-async def update_user_app_ids(
-        user_id: UUID,
-        app_ids_to_add: List[int],
-        app_ids_to_remove: List[int],
+async def update_user_app_ids_v0(
+    user_id: UUID,
+    app_ids_to_add: List[int],
+    app_ids_to_remove: List[int],
 ):
     try:
         local_string_user_id = str(user_id)
@@ -195,55 +244,71 @@ async def update_user_app_ids(
         # check if app_ids_to_add and app_ids_to_remove don't have common ids.
         local_list_common_app_ids = set(app_ids_to_add) & set(app_ids_to_remove)
         if len(local_list_common_app_ids) > 0:
+            output_content = get_api_output_in_standard_format(
+                message=messages["GENERIC_400"],
+                log=f"invalid app_ids: {list(local_list_common_app_ids)}, present in both add list and remove list.",
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"invalid app_ids: {list(local_list_common_app_ids)}, present in both add list and remove list.",
+                detail=output_content,
             )
         # validate access token
         # TBD
 
         # check if user id is in user table
-        local_list_response_user = global_object_square_database_helper.get_rows(
+        local_list_response_user = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=User.__tablename__,
-            filters={User.user_id.name: local_string_user_id},
-        )
+            filters=FiltersV0(
+                {User.user_id.name: FilterConditionsV0(eq=local_string_user_id)}
+            ),
+        )["data"]["main"]
         if len(local_list_response_user) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_USER_ID"],
+                log=f"invalid user_id: {local_string_user_id}",
+            )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"invalid user_id: {local_string_user_id}",
+                detail=output_content,
             )
 
         # check if all app_ids are valid
         local_list_all_app_ids = [*app_ids_to_add, *app_ids_to_remove]
-        local_list_response_app = global_object_square_database_helper.get_rows(
+        local_list_response_app = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_public_schema_name,
             table_name=App.__tablename__,
-            ignore_filters_and_get_all=True,
-            filters={},
-        )
+            apply_filters=False,
+            filters=FiltersV0({}),
+        )["data"]["main"]
         local_list_invalid_ids = [
             x
             for x in local_list_all_app_ids
             if x not in [y[App.app_id.name] for y in local_list_response_app]
         ]
         if len(local_list_invalid_ids) > 0:
+            output_content = get_api_output_in_standard_format(
+                message=messages["GENERIC_400"],
+                log=f"invalid app_ids: {local_list_invalid_ids}.",
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"invalid app_ids: {local_list_invalid_ids}.",
+                detail=output_content,
             )
         """
         main process
         """
         # logic for adding new app_ids
-        local_list_response_user_app = global_object_square_database_helper.get_rows(
+        local_list_response_user_app = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserApp.__tablename__,
-            filters={UserApp.user_id.name: local_string_user_id},
-        )
+            filters=FiltersV0(
+                {UserApp.user_id.name: FilterConditionsV0(eq=local_string_user_id)}
+            ),
+        )["data"]["main"]
         local_list_new_app_ids = [
             {
                 UserApp.user_id.name: local_string_user_id,
@@ -252,38 +317,51 @@ async def update_user_app_ids(
             for x in app_ids_to_add
             if x not in [y[UserApp.app_id.name] for y in local_list_response_user_app]
         ]
-        global_object_square_database_helper.insert_rows(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=UserApp.__tablename__,
-            data=local_list_new_app_ids,
-        )
-
-        # logic for removing app_ids
-        for app_id in app_ids_to_remove:
-            global_object_square_database_helper.delete_rows(
+        if len(local_list_new_app_ids) > 0:
+            global_object_square_database_helper.insert_rows_v0(
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
                 table_name=UserApp.__tablename__,
-                filters={
-                    UserApp.user_id.name: local_string_user_id,
-                    UserApp.app_id.name: app_id,
-                },
+                data=local_list_new_app_ids,
+            )
+
+        # logic for removing app_ids
+        for app_id in app_ids_to_remove:
+            global_object_square_database_helper.delete_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserApp.__tablename__,
+                filters=FiltersV0(
+                    {
+                        UserApp.user_id.name: FilterConditionsV0(
+                            eq=local_string_user_id
+                        ),
+                        UserApp.app_id.name: FilterConditionsV0(eq=app_id),
+                    }
+                ),
             )
 
         """
         return value
         """
         # get latest app ids
-        local_list_response_user_app = global_object_square_database_helper.get_rows(
+        local_list_response_user_app = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserApp.__tablename__,
-            filters={UserApp.user_id.name: local_string_user_id},
+            filters=FiltersV0(
+                {UserApp.user_id.name: FilterConditionsV0(eq=local_string_user_id)}
+            ),
+        )["data"]["main"]
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_UPDATE_SUCCESSFUL"],
+            data={
+                "main": [x[UserApp.app_id.name] for x in local_list_response_user_app]
+            },
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=[x[UserApp.app_id.name] for x in local_list_response_user_app],
+            content=output_content,
         )
     except HTTPException as http_exception:
         return JSONResponse(
@@ -294,8 +372,13 @@ async def update_user_app_ids(
         rollback logic
         """
         global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=output_content,
         )
 
 
@@ -306,14 +389,22 @@ async def login_username(username: str, password: str):
     try:
         # ======================================================================================
         # get entry from authentication_username table
-        local_list_authentication_user_response = (
-            global_object_square_database_helper.get_rows(
-                database_name=global_string_database_name,
-                schema_name=global_string_schema_name,
-                table_name=UserCredential.__tablename__,
-                filters={UserCredential.user_credential_username.name: username},
-            )
-        )
+        local_list_authentication_user_response = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserCredential.__tablename__,
+            filters=FiltersV0(
+                {
+                    UserCredential.user_credential_username.name: FilterConditionsV0(
+                        eq=username
+                    )
+                }
+            ),
+        )[
+            "data"
+        ][
+            "main"
+        ]
         # ======================================================================================
 
         # ======================================================================================
@@ -328,12 +419,12 @@ async def login_username(username: str, password: str):
         # ======================================================================================
         else:
             if not (
-                    bcrypt.checkpw(
-                        password.encode("utf-8"),
-                        local_list_authentication_user_response[0][
-                            UserCredential.user_credential_hashed_password.name
-                        ].encode("utf-8"),
-                    )
+                bcrypt.checkpw(
+                    password.encode("utf-8"),
+                    local_list_authentication_user_response[0][
+                        UserCredential.user_credential_hashed_password.name
+                    ].encode("utf-8"),
+                )
             ):
                 return JSONResponse(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -351,7 +442,7 @@ async def login_username(username: str, password: str):
                 local_dict_access_token_payload = {
                     "user_id": local_str_user_id,
                     "exp": datetime.now(timezone.utc)
-                           + timedelta(minutes=config_int_access_token_valid_minutes),
+                    + timedelta(minutes=config_int_access_token_valid_minutes),
                 }
                 local_str_access_token = jwt.encode(
                     local_dict_access_token_payload,
@@ -373,7 +464,7 @@ async def login_username(username: str, password: str):
                 )
                 # ======================================================================================
                 # entry in user session table
-                local_list_response_user_session = global_object_square_database_helper.insert_rows(
+                global_object_square_database_helper.insert_rows_v0(
                     data=[
                         {
                             UserSession.user_id.name: local_str_user_id,
@@ -408,17 +499,17 @@ async def login_username(username: str, password: str):
 @router.get("/generate_access_token/")
 @global_object_square_logger.async_auto_logger
 async def generate_access_token(
-        user_id: str, refresh_token: Annotated[Union[str, None], Header()]
+    user_id: str, refresh_token: Annotated[Union[str, None], Header()]
 ):
     try:
         # ======================================================================================
         # validate user_id
-        local_list_user_response = global_object_square_database_helper.get_rows(
+        local_list_user_response = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=User.__tablename__,
-            filters={User.user_id.name: user_id},
-        )
+            filters=FiltersV0({User.user_id.name: FilterConditionsV0(eq=user_id)}),
+        )["data"]["main"]
 
         if len(local_list_user_response) != 1:
             return JSONResponse(
@@ -432,22 +523,26 @@ async def generate_access_token(
 
         # validating if a session refresh token exists in the database.
         local_list_user_session_response = (
-            global_object_square_database_helper.get_rows(
+            global_object_square_database_helper.get_rows_v0(
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
                 table_name=UserSession.__tablename__,
-                filters={
-                    UserSession.user_id.name: user_id,
-                    UserSession.user_session_refresh_token.name: refresh_token,
-                },
-            )
+                filters=FiltersV0(
+                    {
+                        UserSession.user_id.name: FilterConditionsV0(eq=user_id),
+                        UserSession.user_session_refresh_token.name: FilterConditionsV0(
+                            eq=refresh_token
+                        ),
+                    }
+                ),
+            )["data"]["main"]
         )
 
         if len(local_list_user_session_response) != 1:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content=f"incorrect refresh token: {refresh_token} for user_id: {user_id}."
-                        f"for user_id: {user_id}.",
+                f"for user_id: {user_id}.",
             )
         # validating if the refresh token is valid, active and of the same user.
         try:
@@ -472,7 +567,7 @@ async def generate_access_token(
         local_dict_access_token_payload = {
             "user_id": user_id,
             "exp": datetime.now(timezone.utc)
-                   + timedelta(minutes=config_int_access_token_valid_minutes),
+            + timedelta(minutes=config_int_access_token_valid_minutes),
         }
         local_str_access_token = jwt.encode(
             local_dict_access_token_payload, config_str_secret_key_for_access_token
@@ -494,19 +589,23 @@ async def generate_access_token(
 @router.delete("/logout/")
 @global_object_square_logger.async_auto_logger
 async def logout(
-        user_id: str,
-        access_token: Annotated[Union[str, None], Header()],
-        refresh_token: Annotated[Union[str, None], Header()],
+    user_id: str,
+    access_token: Annotated[Union[str, None], Header()],
+    refresh_token: Annotated[Union[str, None], Header()],
 ):
     try:
         # ======================================================================================
         # validate user_id
-        local_list_user_response = global_object_square_database_helper.get_rows(
+        local_list_user_response = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=User.__tablename__,
-            filters={User.user_id.name: user_id},
-        )
+            filters=FiltersV0(
+                {
+                    User.user_id.name: FilterConditionsV0(eq=user_id),
+                }
+            ),
+        )["data"]["main"]
 
         if len(local_list_user_response) != 1:
             return JSONResponse(
@@ -520,22 +619,26 @@ async def logout(
 
         # validating if a session refresh token exists in the database.
         local_list_user_session_response = (
-            global_object_square_database_helper.get_rows(
+            global_object_square_database_helper.get_rows_v0(
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
                 table_name=UserSession.__tablename__,
-                filters={
-                    UserSession.user_id.name: user_id,
-                    UserSession.user_session_refresh_token.name: refresh_token,
-                },
-            )
+                filters=FiltersV0(
+                    {
+                        UserSession.user_id.name: FilterConditionsV0(eq=user_id),
+                        UserSession.user_session_refresh_token.name: FilterConditionsV0(
+                            eq=refresh_token
+                        ),
+                    }
+                ),
+            )["data"]["main"]
         )
 
         if len(local_list_user_session_response) != 1:
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content=f"incorrect refresh token: {refresh_token} for user_id: {user_id}."
-                        f"for user_id: {user_id}.",
+                f"for user_id: {user_id}.",
             )
         # not validating if the refresh token is valid, active and of the same user.
         # ======================================================================================
@@ -565,14 +668,18 @@ async def logout(
 
         # ======================================================================================
         # delete session for user
-        global_object_square_database_helper.delete_rows(
+        global_object_square_database_helper.delete_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserSession.__tablename__,
-            filters={
-                UserSession.user_id.name: user_id,
-                UserSession.user_session_refresh_token.name: refresh_token,
-            },
+            filters=FiltersV0(
+                {
+                    UserSession.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserSession.user_session_refresh_token.name: FilterConditionsV0(
+                        eq=refresh_token
+                    ),
+                }
+            ),
         )
 
         return JSONResponse(
