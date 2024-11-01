@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from typing import Annotated, Union, List
+from typing import Annotated, List
 from uuid import UUID
 
 import bcrypt
@@ -698,19 +698,22 @@ async def generate_access_token_v0(
             log=str(e),
         )
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=str(e)
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
         )
 
 
-@router.delete("/logout/")
+@router.delete("/logout/v0")
 @global_object_square_logger.async_auto_logger
-async def logout(
+async def logout_v0(
     user_id: str,
-    access_token: Annotated[Union[str, None], Header()],
-    refresh_token: Annotated[Union[str, None], Header()],
+    app_id: int,
+    access_token: Annotated[str, Header()],
+    refresh_token: Annotated[str, Header()],
 ):
     try:
-        # ======================================================================================
+        """
+        validation
+        """
         # validate user_id
         local_list_user_response = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
@@ -724,15 +727,40 @@ async def logout(
         )["data"]["main"]
 
         if len(local_list_user_response) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_USER_ID"],
+                log=f"incorrect user_id: {user_id}.",
+            )
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=f"incorrect user_id: {user_id}.",
+                content=output_content,
             )
-        # ======================================================================================
 
-        # ======================================================================================
+        # validate if app_id is assigned to user
+        # this will also validate if app_id is valid
+        local_dict_user = local_list_user_response[0]
+        local_str_user_id = local_dict_user[User.user_id.name]
+        local_list_user_app_response = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserApp.__tablename__,
+            filters=FiltersV0(
+                {
+                    UserApp.user_id.name: FilterConditionsV0(eq=local_str_user_id),
+                    UserApp.app_id.name: FilterConditionsV0(eq=app_id),
+                }
+            ),
+        )["data"]["main"]
+        if len(local_list_user_app_response) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["GENERIC_400"],
+                log=f"user_id {local_str_user_id} not assigned to app {app_id}.",
+            )
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST, content=output_content
+            )
+
         # validate refresh token
-
         # validating if a session refresh token exists in the database.
         local_list_user_session_response = (
             global_object_square_database_helper.get_rows_v0(
@@ -745,44 +773,64 @@ async def logout(
                         UserSession.user_session_refresh_token.name: FilterConditionsV0(
                             eq=refresh_token
                         ),
+                        UserSession.app_id.name: FilterConditionsV0(eq=app_id),
                     }
                 ),
             )["data"]["main"]
         )
 
         if len(local_list_user_session_response) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_REFRESH_TOKEN"],
+                log=f"incorrect refresh token: {refresh_token} for user_id: {user_id} for app_id: {app_id}.",
+            )
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=f"incorrect refresh token: {refresh_token} for user_id: {user_id}."
-                f"for user_id: {user_id}.",
+                content=output_content,
             )
-        # not validating if the refresh token is valid, active and of the same user.
-        # ======================================================================================
+        # **not validating if the refresh token is valid, active, of the same user and of the provided app id.**
 
-        # ======================================================================================
         # validate access token
-        # validating if the access token is valid, active and of the same user.
+        # validating if the access token is valid, active, of the same user and of the provided app.
         try:
             local_dict_access_token_payload = get_jwt_payload(
                 access_token, config_str_secret_key_for_access_token
             )
         except Exception as error:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
+            )
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=str(error),
+                content=output_content,
             )
         if local_dict_access_token_payload["user_id"] != user_id:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_ACCESS_TOKEN"],
+                log=f"access token and user_id mismatch.",
+            )
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=f"access token and user_id mismatch.",
+                content=output_content,
             )
-
+        if local_dict_access_token_payload["app_id"] != app_id:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_ACCESS_TOKEN"],
+                log=f"access token and app_id mismatch.",
+            )
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=output_content,
+            )
         # ======================================================================================
 
         # NOTE: if both access token and refresh token have expired for a user,
         # it can be assumed that user session only needs to be removed from the front end.
 
         # ======================================================================================
+        """
+        main process
+        """
         # delete session for user
         global_object_square_database_helper.delete_rows_v0(
             database_name=global_string_database_name,
@@ -794,17 +842,30 @@ async def logout(
                     UserSession.user_session_refresh_token.name: FilterConditionsV0(
                         eq=refresh_token
                     ),
+                    UserSession.app_id.name: FilterConditionsV0(eq=app_id),
                 }
             ),
         )
-
-        return JSONResponse(
-            status_code=status.HTTP_200_OK, content="Log out successful."
+        """
+        return value
+        """
+        output_content = get_api_output_in_standard_format(
+            message=messages["LOGOUT_SUCCESSFUL"],
         )
-        # ======================================================================================
-
-    except Exception as e:
-        global_object_square_logger.logger.error(e, exc_info=True)
+        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+    except HTTPException as http_exception:
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=str(e)
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
+        """
+        rollback logic
+        """
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
         )
