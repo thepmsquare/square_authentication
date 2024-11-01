@@ -19,7 +19,7 @@ setup(
         "cryptography>=42.0.7",
         "square_commons>=1.0.0",
         "square_logger>=1.0.0",
-        "square_database_helper>=1.0.0",
+        "square_database_helper>=2.0.0",
         "square_database_structure>=1.0.0",
     ],
     extras_require={},
