@@ -51,7 +51,10 @@ global_object_square_database_helper = SquareDatabaseHelper(
 
 @router.post("/register_username/v0")
 @global_object_square_logger.async_auto_logger
-async def register_username_v0(username: str, password: str):
+async def register_username_v0(
+    username: str,
+    password: str,
+):
     local_str_user_id = None
     username = username.lower()
     try:
@@ -158,7 +161,9 @@ async def register_username_v0(username: str, password: str):
 
 @router.get("/get_user_app_ids/v0")
 @global_object_square_logger.async_auto_logger
-async def get_user_app_ids_v0(user_id: UUID):
+async def get_user_app_ids_v0(
+    user_id: UUID,
+):
     try:
         local_string_user_id = str(user_id)
         """
@@ -397,7 +402,11 @@ async def update_user_app_ids_v0(
 
 @router.get("/login_username/v0")
 @global_object_square_logger.async_auto_logger
-async def login_username_v0(username: str, password: str, app_id: int):
+async def login_username_v0(
+    username: str,
+    password: str,
+    app_id: int,
+):
     username = username.lower()
     try:
         """
@@ -554,7 +563,9 @@ async def login_username_v0(username: str, password: str, app_id: int):
 @router.get("/generate_access_token/v0")
 @global_object_square_logger.async_auto_logger
 async def generate_access_token_v0(
-    user_id: str, app_id: int, refresh_token: Annotated[str, Header()]
+    user_id: str,
+    app_id: int,
+    refresh_token: Annotated[str, Header()],
 ):
     try:
         """
@@ -851,6 +862,123 @@ async def logout_v0(
         """
         output_content = get_api_output_in_standard_format(
             message=messages["LOGOUT_SUCCESSFUL"],
+        )
+        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+    except HTTPException as http_exception:
+        return JSONResponse(
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
+        """
+        rollback logic
+        """
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
+        )
+
+
+@router.patch("/update_username/v0")
+@global_object_square_logger.async_auto_logger
+async def update_username_v0(
+    new_username: str,
+    access_token: Annotated[str, Header()],
+):
+    try:
+        """
+        validation
+        """
+        # validate access token
+        # validating if the access token is valid, active, of the same user and of the provided app.
+        try:
+            local_dict_access_token_payload = get_jwt_payload(
+                access_token, config_str_secret_key_for_access_token
+            )
+        except Exception as error:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
+            )
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=output_content,
+            )
+        user_id = local_dict_access_token_payload["user_id"]
+
+        # validate user_id
+        local_list_user_response = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=User.__tablename__,
+            filters=FiltersV0(
+                {
+                    User.user_id.name: FilterConditionsV0(eq=user_id),
+                }
+            ),
+        )["data"]["main"]
+
+        if len(local_list_user_response) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_USER_ID"],
+                log=f"incorrect user_id: {user_id}.",
+            )
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=output_content,
+            )
+
+        # validate new username
+        local_list_user_credentials_response = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserCredential.__tablename__,
+            filters=FiltersV0(
+                {
+                    UserCredential.user_credential_username.name: FilterConditionsV0(
+                        eq=new_username
+                    ),
+                }
+            ),
+        )[
+            "data"
+        ][
+            "main"
+        ]
+        if len(local_list_user_credentials_response) != 0:
+            output_content = get_api_output_in_standard_format(
+                message=messages["USERNAME_ALREADY_EXISTS"],
+                log=f"{new_username} is taken.",
+            )
+            return JSONResponse(
+                status_code=status.HTTP_409_CONFLICT,
+                content=output_content,
+            )
+        """
+        main process
+        """
+        # edit the username
+        global_object_square_database_helper.edit_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserCredential.__tablename__,
+            filters=FiltersV0(
+                {
+                    UserCredential.user_id.name: FilterConditionsV0(eq=user_id),
+                }
+            ),
+            data={
+                UserCredential.user_credential_username.name: new_username,
+            },
+        )
+        """
+        return value
+        """
+        output_content = get_api_output_in_standard_format(
+            data={"main": {"user_id": user_id, "username": new_username}},
+            message=messages["GENERIC_UPDATE_SUCCESSFUL"],
         )
         return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
     except HTTPException as http_exception:
