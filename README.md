@@ -16,6 +16,11 @@ pip install square_authentication
 
 ## changelog
 
+### v2.1.0
+
+- added new endpoint
+    - /update_username/v0
+
 ### v2.0.0
 
 - authentication module needs to be used across applications so
