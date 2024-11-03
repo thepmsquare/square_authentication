@@ -1099,3 +1099,113 @@ async def delete_user_v0(
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
         )
+
+
+@router.patch("/update_password/v0")
+@global_object_square_logger.async_auto_logger
+async def delete_user_v0(
+    old_password: str,
+    new_password: str,
+    access_token: Annotated[str, Header()],
+):
+    try:
+        """
+        validation
+        """
+        # validate access token
+        try:
+            local_dict_access_token_payload = get_jwt_payload(
+                access_token, config_str_secret_key_for_access_token
+            )
+        except Exception as error:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
+            )
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=output_content,
+            )
+        user_id = local_dict_access_token_payload["user_id"]
+
+        # validate user_id
+        local_list_authentication_user_response = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserCredential.__tablename__,
+                filters=FiltersV0(
+                    {UserCredential.user_id.name: FilterConditionsV0(eq=user_id)}
+                ),
+            )["data"]["main"]
+        )
+        if len(local_list_authentication_user_response) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_USER_ID"],
+                log=f"incorrect user_id: {user_id}.",
+            )
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST, content=output_content
+            )
+
+        # validate password
+        local_dict_user = local_list_authentication_user_response[0]
+        if not (
+            bcrypt.checkpw(
+                old_password.encode("utf-8"),
+                local_dict_user[
+                    UserCredential.user_credential_hashed_password.name
+                ].encode("utf-8"),
+            )
+        ):
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_PASSWORD"],
+                log=f"incorrect password for user_id {user_id}.",
+            )
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=output_content,
+            )
+        """
+        main process
+        """
+        # delete the user.
+        local_str_hashed_password = bcrypt.hashpw(
+            new_password.encode("utf-8"), bcrypt.gensalt()
+        ).decode("utf-8")
+        global_object_square_database_helper.edit_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserCredential.__tablename__,
+            filters=FiltersV0(
+                {
+                    UserCredential.user_id.name: FilterConditionsV0(eq=user_id),
+                }
+            ),
+            data={
+                UserCredential.user_credential_hashed_password.name: local_str_hashed_password,
+            },
+        )
+        """
+        return value
+        """
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_UPDATE_SUCCESSFUL"],
+            log=f"password for user_id: {user_id} updated successfully.",
+        )
+        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+    except HTTPException as http_exception:
+        return JSONResponse(
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
+        """
+        rollback logic
+        """
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
+        )

@@ -18,9 +18,10 @@ pip install square_authentication
 
 ### v2.1.0
 
-- added new endpoint
+- added new endpoints
     - /update_username/v0
     - /delete_user/v0
+    - /update_password/v0
 
 ### v2.0.0
 
