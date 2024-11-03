@@ -22,6 +22,7 @@ pip install square_authentication
     - /update_username/v0
     - /delete_user/v0
     - /update_password/v0
+- move data in password related endpoints to request body from params.
 
 ### v2.0.0
 

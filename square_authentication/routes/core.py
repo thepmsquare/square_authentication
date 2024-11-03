@@ -36,6 +36,12 @@ from square_authentication.configuration import (
     config_str_square_database_protocol,
 )
 from square_authentication.messages import messages
+from square_authentication.pydantic_models.core import (
+    RegisterUsernameV0,
+    LoginUsernameV0,
+    DeleteUserV0,
+    UpdatePasswordV0,
+)
 from square_authentication.utils.token import get_jwt_payload
 
 router = APIRouter(
@@ -51,10 +57,10 @@ global_object_square_database_helper = SquareDatabaseHelper(
 
 @router.post("/register_username/v0")
 @global_object_square_logger.async_auto_logger
-async def register_username_v0(
-    username: str,
-    password: str,
-):
+async def register_username_v0(body: RegisterUsernameV0):
+
+    username = body.username
+    password = body.password
     local_str_user_id = None
     username = username.lower()
     try:
@@ -402,11 +408,10 @@ async def update_user_app_ids_v0(
 
 @router.get("/login_username/v0")
 @global_object_square_logger.async_auto_logger
-async def login_username_v0(
-    username: str,
-    password: str,
-    app_id: int,
-):
+async def login_username_v0(body: LoginUsernameV0):
+    username = body.username
+    password = body.password
+    app_id = body.app_id
     username = username.lower()
     try:
         """
@@ -1001,9 +1006,10 @@ async def update_username_v0(
 @router.delete("/delete_user/v0")
 @global_object_square_logger.async_auto_logger
 async def delete_user_v0(
-    password: str,
+    body: DeleteUserV0,
     access_token: Annotated[str, Header()],
 ):
+    password = body.password
     try:
         """
         validation
@@ -1103,11 +1109,12 @@ async def delete_user_v0(
 
 @router.patch("/update_password/v0")
 @global_object_square_logger.async_auto_logger
-async def delete_user_v0(
-    old_password: str,
-    new_password: str,
+async def update_password_v0(
+    body: UpdatePasswordV0,
     access_token: Annotated[str, Header()],
 ):
+    old_password = body.old_password
+    new_password = body.new_password
     try:
         """
         validation
