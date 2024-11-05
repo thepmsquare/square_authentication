@@ -24,6 +24,7 @@ pip install square_authentication
     - /update_password/v0
 - move data in password related endpoints to request body from params.
 - /register_username/v0 now takes in app_id as optional parameter to assign user to that app and create session for it.
+- /generate_access_token/v0 now only needs refresh token (removed validation).
 
 ### v2.0.0
 
