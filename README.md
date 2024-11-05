@@ -23,6 +23,7 @@ pip install square_authentication
     - /delete_user/v0
     - /update_password/v0
 - move data in password related endpoints to request body from params.
+- /register_username/v0 now takes in app_id as optional parameter to assign user to that app and create session for it.
 
 ### v2.0.0
 

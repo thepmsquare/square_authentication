@@ -57,11 +57,17 @@ global_object_square_database_helper = SquareDatabaseHelper(
 
 @router.post("/register_username/v0")
 @global_object_square_logger.async_auto_logger
-async def register_username_v0(body: RegisterUsernameV0):
-
+async def register_username_v0(
+    body: RegisterUsernameV0,
+):
     username = body.username
     password = body.password
+    app_id = body.app_id
+
     local_str_user_id = None
+    local_str_access_token = None
+    local_str_refresh_token = None
+
     username = username.lower()
     try:
         """
@@ -126,13 +132,77 @@ async def register_username_v0(body: RegisterUsernameV0):
             schema_name=global_string_schema_name,
             table_name=UserCredential.__tablename__,
         )
+        if app_id is not None:
+            # assign app to user
+            global_object_square_database_helper.insert_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserApp.__tablename__,
+                data=[
+                    {
+                        UserApp.user_id.name: local_str_user_id,
+                        UserApp.app_id.name: app_id,
+                    }
+                ],
+            )
 
+            # return new access token and refresh token
+            # create access token
+            local_dict_access_token_payload = {
+                "app_id": app_id,
+                "user_id": local_str_user_id,
+                "exp": datetime.now(timezone.utc)
+                + timedelta(minutes=config_int_access_token_valid_minutes),
+            }
+            local_str_access_token = jwt.encode(
+                local_dict_access_token_payload,
+                config_str_secret_key_for_access_token,
+            )
+
+            # create refresh token
+            local_object_refresh_token_expiry_time = datetime.now(
+                timezone.utc
+            ) + timedelta(minutes=config_int_refresh_token_valid_minutes)
+
+            local_dict_refresh_token_payload = {
+                "app_id": app_id,
+                "user_id": local_str_user_id,
+                "exp": local_object_refresh_token_expiry_time,
+            }
+            local_str_refresh_token = jwt.encode(
+                local_dict_refresh_token_payload,
+                config_str_secret_key_for_refresh_token,
+            )
+            # entry in user session table
+            global_object_square_database_helper.insert_rows_v0(
+                data=[
+                    {
+                        UserSession.user_id.name: local_str_user_id,
+                        UserSession.app_id.name: app_id,
+                        UserSession.user_session_refresh_token.name: local_str_refresh_token,
+                        UserSession.user_session_expiry_time.name: local_object_refresh_token_expiry_time.strftime(
+                            "%Y-%m-%d %H:%M:%S.%f+00"
+                        ),
+                    }
+                ],
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserSession.__tablename__,
+            )
         """
         return value
         """
         output_content = get_api_output_in_standard_format(
             message=messages["REGISTRATION_SUCCESSFUL"],
-            data={"main": {"user_id": local_str_user_id, "username": username}},
+            data={
+                "main": {
+                    "user_id": local_str_user_id,
+                    "username": username,
+                    "app_id": app_id,
+                    "access_token": local_str_access_token,
+                    "refresh_token": local_str_refresh_token,
+                },
+            },
         )
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
@@ -204,6 +274,7 @@ async def get_user_app_ids_v0(
                 {UserApp.user_id.name: FilterConditionsV0(eq=local_string_user_id)}
             ),
         )["data"]["main"]
+
         """
         return value
         """
