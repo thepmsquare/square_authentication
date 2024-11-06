@@ -26,6 +26,7 @@ pip install square_authentication
 - /register_username/v0 now takes in app_id as optional parameter to assign user to that app and create session for it.
 - /generate_access_token/v0 now only needs refresh token (removed validation).
 - /logout/v0 now only needs refresh token (removed validation).
+- /update_user_app_ids/v0 now only updates ids for self (user). added access token as input param and removed user_id.
 
 ### v2.0.0
 

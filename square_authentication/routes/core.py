@@ -310,15 +310,29 @@ async def get_user_app_ids_v0(
 @router.patch("/update_user_app_ids/v0")
 @global_object_square_logger.async_auto_logger
 async def update_user_app_ids_v0(
-    user_id: UUID,
+    access_token: Annotated[str, Header()],
     app_ids_to_add: List[int],
     app_ids_to_remove: List[int],
 ):
     try:
-        local_string_user_id = str(user_id)
+
         """
         validation
         """
+        # validate access token
+        try:
+            local_dict_access_token_payload = get_jwt_payload(
+                access_token, config_str_secret_key_for_access_token
+            )
+        except Exception as error:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
+            )
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=output_content,
+            )
+        user_id = local_dict_access_token_payload["user_id"]
 
         app_ids_to_add = list(set(app_ids_to_add))
         app_ids_to_remove = list(set(app_ids_to_remove))
@@ -332,27 +346,6 @@ async def update_user_app_ids_v0(
             )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        # validate access token
-        # TBD
-
-        # check if user id is in user table
-        local_list_response_user = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=User.__tablename__,
-            filters=FiltersV0(
-                {User.user_id.name: FilterConditionsV0(eq=local_string_user_id)}
-            ),
-        )["data"]["main"]
-        if len(local_list_response_user) != 1:
-            output_content = get_api_output_in_standard_format(
-                message=messages["INCORRECT_USER_ID"],
-                log=f"invalid user_id: {local_string_user_id}",
-            )
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
                 detail=output_content,
             )
 
@@ -387,13 +380,11 @@ async def update_user_app_ids_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserApp.__tablename__,
-            filters=FiltersV0(
-                {UserApp.user_id.name: FilterConditionsV0(eq=local_string_user_id)}
-            ),
+            filters=FiltersV0({UserApp.user_id.name: FilterConditionsV0(eq=user_id)}),
         )["data"]["main"]
         local_list_new_app_ids = [
             {
-                UserApp.user_id.name: local_string_user_id,
+                UserApp.user_id.name: user_id,
                 UserApp.app_id.name: x,
             }
             for x in app_ids_to_add
@@ -415,22 +406,19 @@ async def update_user_app_ids_v0(
                 table_name=UserApp.__tablename__,
                 filters=FiltersV0(
                     {
-                        UserApp.user_id.name: FilterConditionsV0(
-                            eq=local_string_user_id
-                        ),
+                        UserApp.user_id.name: FilterConditionsV0(eq=user_id),
                         UserApp.app_id.name: FilterConditionsV0(eq=app_id),
                     }
                 ),
             )
+            # logout user from removed apps
             global_object_square_database_helper.delete_rows_v0(
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
                 table_name=UserSession.__tablename__,
                 filters=FiltersV0(
                     {
-                        UserSession.user_id.name: FilterConditionsV0(
-                            eq=local_string_user_id
-                        ),
+                        UserSession.user_id.name: FilterConditionsV0(eq=user_id),
                         UserSession.app_id.name: FilterConditionsV0(eq=app_id),
                     }
                 ),
@@ -444,9 +432,7 @@ async def update_user_app_ids_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserApp.__tablename__,
-            filters=FiltersV0(
-                {UserApp.user_id.name: FilterConditionsV0(eq=local_string_user_id)}
-            ),
+            filters=FiltersV0({UserApp.user_id.name: FilterConditionsV0(eq=user_id)}),
         )["data"]["main"]
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_UPDATE_SUCCESSFUL"],
