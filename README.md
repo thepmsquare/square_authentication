@@ -16,7 +16,7 @@ pip install square_authentication
 
 ## changelog
 
-### v2.1.0
+### v3.0.0
 
 - added new endpoints
     - /update_username/v0
@@ -27,6 +27,7 @@ pip install square_authentication
 - /generate_access_token/v0 now only needs refresh token (removed validation).
 - /logout/v0 now only needs refresh token (removed validation).
 - /update_user_app_ids/v0 now only updates ids for self (user). added access token as input param and removed user_id.
+- /get_user_app_ids/v0 is now /get_user_details/v0 with access token as the only input param.
 
 ### v2.0.0
 

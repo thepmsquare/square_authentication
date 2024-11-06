@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, List
-from uuid import UUID
 
 import bcrypt
 import jwt
@@ -235,34 +234,29 @@ async def register_username_v0(
         )
 
 
-@router.get("/get_user_app_ids/v0")
+@router.get("/get_user_details/v0")
 @global_object_square_logger.async_auto_logger
-async def get_user_app_ids_v0(
-    user_id: UUID,
+async def get_user_details_v0(
+    access_token: Annotated[str, Header()],
 ):
     try:
-        local_string_user_id = str(user_id)
         """
         validation
         """
-
-        local_list_response_user = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=User.__tablename__,
-            filters=FiltersV0(
-                {User.user_id.name: FilterConditionsV0(eq=local_string_user_id)}
-            ),
-        )["data"]["main"]
-        if len(local_list_response_user) != 1:
+        # validate access token
+        try:
+            local_dict_access_token_payload = get_jwt_payload(
+                access_token, config_str_secret_key_for_access_token
+            )
+        except Exception as error:
             output_content = get_api_output_in_standard_format(
-                message=messages["INCORRECT_USER_ID"],
-                log=f"invalid user_id: {local_string_user_id}",
+                message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
             )
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=output_content,
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=output_content,
             )
+        user_id = local_dict_access_token_payload["user_id"]
         """
         main process
         """
@@ -270,19 +264,59 @@ async def get_user_app_ids_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserApp.__tablename__,
-            filters=FiltersV0(
-                {UserApp.user_id.name: FilterConditionsV0(eq=local_string_user_id)}
-            ),
+            filters=FiltersV0({UserApp.user_id.name: FilterConditionsV0(eq=user_id)}),
         )["data"]["main"]
-
+        local_list_response_user_credentials = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserCredential.__tablename__,
+                filters=FiltersV0(
+                    {UserCredential.user_id.name: FilterConditionsV0(eq=user_id)}
+                ),
+            )["data"]["main"]
+        )
+        # not putting filter for expiry refresh tokens
+        local_list_response_user_sessions = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserSession.__tablename__,
+                filters=FiltersV0(
+                    {
+                        UserSession.user_id.name: FilterConditionsV0(eq=user_id),
+                    }
+                ),
+            )["data"]["main"]
+        )
         """
         return value
         """
+        return_this = {
+            "user_id": user_id,
+            "credentials": {
+                "username": local_list_response_user_credentials[0][
+                    UserCredential.user_credential_username.name
+                ],
+            },
+            "apps": [x[UserApp.app_id.name] for x in local_list_response_user_app],
+            "sessions": [
+                {
+                    "app_id": x[UserApp.app_id.name],
+                    "sessions": len(
+                        [
+                            y
+                            for y in local_list_response_user_sessions
+                            if y[UserSession.app_id.name] == x[UserApp.app_id.name]
+                        ]
+                    ),
+                }
+                for x in local_list_response_user_app
+            ],
+        }
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_READ_SUCCESSFUL"],
-            data={
-                "main": [x[UserApp.app_id.name] for x in local_list_response_user_app]
-            },
+            data={"main": return_this},
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
