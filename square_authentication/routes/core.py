@@ -550,34 +550,35 @@ async def login_username_v0(body: LoginUsernameV0):
                 }
             ),
         )["data"]["main"]
-        if len(local_list_user_app_response) == 0 and not assign_app_id_if_missing:
-            output_content = get_api_output_in_standard_format(
-                message=messages["GENERIC_400"],
-                log=f"user_id {local_str_user_id}({username}) not assigned to app {app_id}.",
-            )
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST, content=output_content
-            )
-        else:
-            try:
-                global_object_square_database_helper.insert_rows_v0(
-                    database_name=global_string_database_name,
-                    schema_name=global_string_schema_name,
-                    table_name=UserApp.__tablename__,
-                    data=[
-                        {
-                            UserApp.user_id.name: local_str_user_id,
-                            UserApp.app_id.name: app_id,
-                        }
-                    ],
-                )
-            except HTTPError as he:
+        if len(local_list_user_app_response) == 0:
+            if assign_app_id_if_missing:
+                try:
+                    global_object_square_database_helper.insert_rows_v0(
+                        database_name=global_string_database_name,
+                        schema_name=global_string_schema_name,
+                        table_name=UserApp.__tablename__,
+                        data=[
+                            {
+                                UserApp.user_id.name: local_str_user_id,
+                                UserApp.app_id.name: app_id,
+                            }
+                        ],
+                    )
+                except HTTPError as he:
+                    output_content = get_api_output_in_standard_format(
+                        message=messages["GENERIC_400"],
+                        log=str(he),
+                    )
+                    return JSONResponse(
+                        status_code=he.response.status_code, content=output_content
+                    )
+            else:
                 output_content = get_api_output_in_standard_format(
                     message=messages["GENERIC_400"],
-                    log=str(he),
+                    log=f"user_id {local_str_user_id}({username}) not assigned to app {app_id}.",
                 )
                 return JSONResponse(
-                    status_code=he.response.status_code, content=output_content
+                    status_code=status.HTTP_400_BAD_REQUEST, content=output_content
                 )
 
         # validate password
