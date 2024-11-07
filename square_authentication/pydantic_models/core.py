@@ -13,6 +13,7 @@ class LoginUsernameV0(BaseModel):
     username: str
     password: str
     app_id: int
+    assign_app_id_if_missing: bool = False
 
 
 class DeleteUserV0(BaseModel):

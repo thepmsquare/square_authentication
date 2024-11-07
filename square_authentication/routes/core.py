@@ -5,6 +5,7 @@ import bcrypt
 import jwt
 from fastapi import APIRouter, status, Header, HTTPException
 from fastapi.responses import JSONResponse
+from requests import HTTPError
 from square_commons import get_api_output_in_standard_format
 from square_database.pydantic_models.pydantic_models import (
     FiltersV0,
@@ -497,12 +498,13 @@ async def update_user_app_ids_v0(
         )
 
 
-@router.get("/login_username/v0")
+@router.post("/login_username/v0")
 @global_object_square_logger.async_auto_logger
 async def login_username_v0(body: LoginUsernameV0):
     username = body.username
     password = body.password
     app_id = body.app_id
+    assign_app_id_if_missing = body.assign_app_id_if_missing
     username = username.lower()
     try:
         """
@@ -548,7 +550,7 @@ async def login_username_v0(body: LoginUsernameV0):
                 }
             ),
         )["data"]["main"]
-        if len(local_list_user_app_response) != 1:
+        if len(local_list_user_app_response) == 0 and not assign_app_id_if_missing:
             output_content = get_api_output_in_standard_format(
                 message=messages["GENERIC_400"],
                 log=f"user_id {local_str_user_id}({username}) not assigned to app {app_id}.",
@@ -556,6 +558,27 @@ async def login_username_v0(body: LoginUsernameV0):
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST, content=output_content
             )
+        else:
+            try:
+                global_object_square_database_helper.insert_rows_v0(
+                    database_name=global_string_database_name,
+                    schema_name=global_string_schema_name,
+                    table_name=UserApp.__tablename__,
+                    data=[
+                        {
+                            UserApp.user_id.name: local_str_user_id,
+                            UserApp.app_id.name: app_id,
+                        }
+                    ],
+                )
+            except HTTPError as he:
+                output_content = get_api_output_in_standard_format(
+                    message=messages["GENERIC_400"],
+                    log=str(he),
+                )
+                return JSONResponse(
+                    status_code=he.response.status_code, content=output_content
+                )
 
         # validate password
         if not (

@@ -16,6 +16,11 @@ pip install square_authentication
 
 ## changelog
 
+### v4.0.0
+
+- /login_username/v0 is now POST method.
+- new flag in /login_username/v0 assign_app_id_if_missing.
+
 ### v3.0.0
 
 - added new endpoints
