@@ -277,7 +277,6 @@ async def get_user_details_v0(
                 ),
             )["data"]["main"]
         )
-        # not putting filter for expiry refresh tokens
         local_list_response_user_sessions = (
             global_object_square_database_helper.get_rows_v0(
                 database_name=global_string_database_name,
@@ -286,6 +285,9 @@ async def get_user_details_v0(
                 filters=FiltersV0(
                     {
                         UserSession.user_id.name: FilterConditionsV0(eq=user_id),
+                        UserSession.user_session_expiry_time.name: FilterConditionsV0(
+                            gte=datetime.now(timezone.utc).isoformat()
+                        ),
                     }
                 ),
             )["data"]["main"]
@@ -304,7 +306,7 @@ async def get_user_details_v0(
             "sessions": [
                 {
                     "app_id": x[UserApp.app_id.name],
-                    "sessions": len(
+                    "active_sessions": len(
                         [
                             y
                             for y in local_list_response_user_sessions

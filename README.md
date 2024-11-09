@@ -20,6 +20,7 @@ pip install square_authentication
 
 - /login_username/v0 is now POST method.
 - new flag in /login_username/v0 assign_app_id_if_missing.
+- bugfix: /get_user_details/v0 now only returns number of active sessions.
 
 ### v3.0.0
 
