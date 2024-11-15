@@ -7,11 +7,11 @@ from fastapi import APIRouter, status, Header, HTTPException
 from fastapi.responses import JSONResponse
 from requests import HTTPError
 from square_commons import get_api_output_in_standard_format
-from square_database.pydantic_models.pydantic_models import (
+from square_database_helper.main import SquareDatabaseHelper
+from square_database_helper.pydantic_models import (
     FiltersV0,
     FilterConditionsV0,
 )
-from square_database_helper.main import SquareDatabaseHelper
 from square_database_structure.square import global_string_database_name
 from square_database_structure.square.authentication import global_string_schema_name
 from square_database_structure.square.authentication.tables import (
@@ -80,7 +80,7 @@ async def register_username_v0(
             schema_name=global_string_schema_name,
             table_name=UserCredential.__tablename__,
             filters=FiltersV0(
-                {
+                root={
                     UserCredential.user_credential_username.name: FilterConditionsV0(
                         eq=username
                     )
@@ -223,7 +223,7 @@ async def register_username_v0(
                 schema_name=global_string_schema_name,
                 table_name=User.__tablename__,
                 filters=FiltersV0(
-                    {User.user_id.name: FilterConditionsV0(eq=local_str_user_id)}
+                    root={User.user_id.name: FilterConditionsV0(eq=local_str_user_id)}
                 ),
             )
         output_content = get_api_output_in_standard_format(
@@ -265,7 +265,9 @@ async def get_user_details_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserApp.__tablename__,
-            filters=FiltersV0({UserApp.user_id.name: FilterConditionsV0(eq=user_id)}),
+            filters=FiltersV0(
+                root={UserApp.user_id.name: FilterConditionsV0(eq=user_id)}
+            ),
         )["data"]["main"]
         local_list_response_user_credentials = (
             global_object_square_database_helper.get_rows_v0(
@@ -273,7 +275,7 @@ async def get_user_details_v0(
                 schema_name=global_string_schema_name,
                 table_name=UserCredential.__tablename__,
                 filters=FiltersV0(
-                    {UserCredential.user_id.name: FilterConditionsV0(eq=user_id)}
+                    root={UserCredential.user_id.name: FilterConditionsV0(eq=user_id)}
                 ),
             )["data"]["main"]
         )
@@ -283,7 +285,7 @@ async def get_user_details_v0(
                 schema_name=global_string_schema_name,
                 table_name=UserSession.__tablename__,
                 filters=FiltersV0(
-                    {
+                    root={
                         UserSession.user_id.name: FilterConditionsV0(eq=user_id),
                         UserSession.user_session_expiry_time.name: FilterConditionsV0(
                             gte=datetime.now(timezone.utc).isoformat()
@@ -393,7 +395,7 @@ async def update_user_app_ids_v0(
             schema_name=global_string_public_schema_name,
             table_name=App.__tablename__,
             apply_filters=False,
-            filters=FiltersV0({}),
+            filters=FiltersV0(root={}),
         )["data"]["main"]
         local_list_invalid_ids = [
             x
@@ -417,7 +419,9 @@ async def update_user_app_ids_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserApp.__tablename__,
-            filters=FiltersV0({UserApp.user_id.name: FilterConditionsV0(eq=user_id)}),
+            filters=FiltersV0(
+                root={UserApp.user_id.name: FilterConditionsV0(eq=user_id)}
+            ),
         )["data"]["main"]
         local_list_new_app_ids = [
             {
@@ -442,7 +446,7 @@ async def update_user_app_ids_v0(
                 schema_name=global_string_schema_name,
                 table_name=UserApp.__tablename__,
                 filters=FiltersV0(
-                    {
+                    root={
                         UserApp.user_id.name: FilterConditionsV0(eq=user_id),
                         UserApp.app_id.name: FilterConditionsV0(eq=app_id),
                     }
@@ -454,7 +458,7 @@ async def update_user_app_ids_v0(
                 schema_name=global_string_schema_name,
                 table_name=UserSession.__tablename__,
                 filters=FiltersV0(
-                    {
+                    root={
                         UserSession.user_id.name: FilterConditionsV0(eq=user_id),
                         UserSession.app_id.name: FilterConditionsV0(eq=app_id),
                     }
@@ -469,7 +473,9 @@ async def update_user_app_ids_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserApp.__tablename__,
-            filters=FiltersV0({UserApp.user_id.name: FilterConditionsV0(eq=user_id)}),
+            filters=FiltersV0(
+                root={UserApp.user_id.name: FilterConditionsV0(eq=user_id)}
+            ),
         )["data"]["main"]
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_UPDATE_SUCCESSFUL"],
@@ -518,7 +524,7 @@ async def login_username_v0(body: LoginUsernameV0):
             schema_name=global_string_schema_name,
             table_name=UserCredential.__tablename__,
             filters=FiltersV0(
-                {
+                root={
                     UserCredential.user_credential_username.name: FilterConditionsV0(
                         eq=username
                     )
@@ -546,7 +552,7 @@ async def login_username_v0(body: LoginUsernameV0):
             schema_name=global_string_schema_name,
             table_name=UserApp.__tablename__,
             filters=FiltersV0(
-                {
+                root={
                     UserApp.user_id.name: FilterConditionsV0(eq=local_str_user_id),
                     UserApp.app_id.name: FilterConditionsV0(eq=app_id),
                 }
@@ -699,7 +705,7 @@ async def generate_access_token_v0(
                 schema_name=global_string_schema_name,
                 table_name=UserSession.__tablename__,
                 filters=FiltersV0(
-                    {
+                    root={
                         UserSession.user_session_refresh_token.name: FilterConditionsV0(
                             eq=refresh_token
                         ),
@@ -789,7 +795,7 @@ async def logout_v0(
                 schema_name=global_string_schema_name,
                 table_name=UserSession.__tablename__,
                 filters=FiltersV0(
-                    {
+                    root={
                         UserSession.user_session_refresh_token.name: FilterConditionsV0(
                             eq=refresh_token
                         ),
@@ -833,7 +839,7 @@ async def logout_v0(
             schema_name=global_string_schema_name,
             table_name=UserSession.__tablename__,
             filters=FiltersV0(
-                {
+                root={
                     UserSession.user_session_refresh_token.name: FilterConditionsV0(
                         eq=refresh_token
                     ),
@@ -896,7 +902,7 @@ async def update_username_v0(
             schema_name=global_string_schema_name,
             table_name=User.__tablename__,
             filters=FiltersV0(
-                {
+                root={
                     User.user_id.name: FilterConditionsV0(eq=user_id),
                 }
             ),
@@ -918,7 +924,7 @@ async def update_username_v0(
             schema_name=global_string_schema_name,
             table_name=UserCredential.__tablename__,
             filters=FiltersV0(
-                {
+                root={
                     UserCredential.user_credential_username.name: FilterConditionsV0(
                         eq=new_username
                     ),
@@ -947,7 +953,7 @@ async def update_username_v0(
             schema_name=global_string_schema_name,
             table_name=UserCredential.__tablename__,
             filters=FiltersV0(
-                {
+                root={
                     UserCredential.user_id.name: FilterConditionsV0(eq=user_id),
                 }
             ),
@@ -1014,7 +1020,7 @@ async def delete_user_v0(
                 schema_name=global_string_schema_name,
                 table_name=UserCredential.__tablename__,
                 filters=FiltersV0(
-                    {UserCredential.user_id.name: FilterConditionsV0(eq=user_id)}
+                    root={UserCredential.user_id.name: FilterConditionsV0(eq=user_id)}
                 ),
             )["data"]["main"]
         )
@@ -1054,7 +1060,7 @@ async def delete_user_v0(
             schema_name=global_string_schema_name,
             table_name=User.__tablename__,
             filters=FiltersV0(
-                {
+                root={
                     User.user_id.name: FilterConditionsV0(eq=user_id),
                 }
             ),
@@ -1119,7 +1125,7 @@ async def update_password_v0(
                 schema_name=global_string_schema_name,
                 table_name=UserCredential.__tablename__,
                 filters=FiltersV0(
-                    {UserCredential.user_id.name: FilterConditionsV0(eq=user_id)}
+                    root={UserCredential.user_id.name: FilterConditionsV0(eq=user_id)}
                 ),
             )["data"]["main"]
         )
@@ -1162,7 +1168,7 @@ async def update_password_v0(
             schema_name=global_string_schema_name,
             table_name=UserCredential.__tablename__,
             filters=FiltersV0(
-                {
+                root={
                     UserCredential.user_id.name: FilterConditionsV0(eq=user_id),
                 }
             ),

@@ -16,6 +16,10 @@ pip install square_authentication
 
 ## changelog
 
+### v4.0.1
+
+- bugfix in pydantic model import.
+
 ### v4.0.0
 
 - /login_username/v0 is now POST method.
