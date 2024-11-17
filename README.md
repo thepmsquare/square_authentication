@@ -16,6 +16,10 @@ pip install square_authentication
 
 ## changelog
 
+### v4.1.0
+
+- add get_text_hash/v0 in utils.
+
 ### v4.0.1
 
 - bugfix in pydantic model import.
