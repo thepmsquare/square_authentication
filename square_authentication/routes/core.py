@@ -4,6 +4,7 @@ from typing import Annotated, List
 import bcrypt
 import jwt
 from fastapi import APIRouter, status, Header, HTTPException
+from fastapi.params import Query
 from fastapi.responses import JSONResponse
 from requests import HTTPError
 from square_commons import get_api_output_in_standard_format
@@ -41,6 +42,7 @@ from square_authentication.pydantic_models.core import (
     LoginUsernameV0,
     DeleteUserV0,
     UpdatePasswordV0,
+    TokenType,
 )
 from square_authentication.utils.token import get_jwt_payload
 
@@ -1182,6 +1184,73 @@ async def update_password_v0(
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_UPDATE_SUCCESSFUL"],
             log=f"password for user_id: {user_id} updated successfully.",
+        )
+        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+    except HTTPException as http_exception:
+        return JSONResponse(
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
+        """
+        rollback logic
+        """
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
+        )
+
+
+@router.get("/validate_and_get_payload_from_token/v0")
+@global_object_square_logger.async_auto_logger
+async def validate_and_get_payload_from_token_v0(
+    token: Annotated[str, Header()],
+    token_type: TokenType = Query(...),
+):
+
+    try:
+        """
+        validation
+        """
+        # validate token
+        try:
+            local_dict_token_payload = None
+            if token_type == TokenType.access_token:
+                local_dict_token_payload = get_jwt_payload(
+                    token, config_str_secret_key_for_access_token
+                )
+            elif token_type == TokenType.refresh_token:
+                local_dict_token_payload = get_jwt_payload(
+                    token, config_str_secret_key_for_refresh_token
+                )
+        except Exception as error:
+            output_content = None
+            if token_type == TokenType.access_token:
+                output_content = get_api_output_in_standard_format(
+                    message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
+                )
+            elif token_type == TokenType.refresh_token:
+                output_content = get_api_output_in_standard_format(
+                    message=messages["INCORRECT_REFRESH_TOKEN"], log=str(error)
+                )
+
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                content=output_content,
+            )
+
+        """
+        main process
+        """
+        # pass
+        """
+        return value
+        """
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_READ_SUCCESSFUL"], data=local_dict_token_payload
         )
         return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
     except HTTPException as http_exception:

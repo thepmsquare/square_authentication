@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel
@@ -23,3 +24,8 @@ class DeleteUserV0(BaseModel):
 class UpdatePasswordV0(BaseModel):
     old_password: str
     new_password: str
+
+
+class TokenType(Enum):
+    access_token = "access_token"
+    refresh_token = "refresh_token"

@@ -16,6 +16,10 @@ pip install square_authentication
 
 ## changelog
 
+### v4.2.0
+
+- add validate_and_get_payload_from_token/v0 in core.
+
 ### v4.1.0
 
 - add get_text_hash/v0 in utils.
