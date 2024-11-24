@@ -1226,6 +1226,35 @@ async def validate_and_get_payload_from_token_v0(
                 local_dict_token_payload = get_jwt_payload(
                     token, config_str_secret_key_for_refresh_token
                 )
+                local_list_response_user_session = global_object_square_database_helper.get_rows_v0(
+                    database_name=global_string_database_name,
+                    schema_name=global_string_schema_name,
+                    table_name=UserSession.__tablename__,
+                    filters=FiltersV0(
+                        root={
+                            UserSession.user_session_refresh_token.name: FilterConditionsV0(
+                                eq=token
+                            ),
+                            UserSession.user_id.name: FilterConditionsV0(
+                                eq=local_dict_token_payload["user_id"]
+                            ),
+                        }
+                    ),
+                )[
+                    "data"
+                ][
+                    "main"
+                ]
+                if len(local_list_response_user_session) != 1:
+                    output_content = get_api_output_in_standard_format(
+                        message=messages["INCORRECT_REFRESH_TOKEN"],
+                        log="refresh token valid but not present in database.",
+                    )
+                    return JSONResponse(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        content=output_content,
+                    )
+
         except Exception as error:
             output_content = None
             if token_type == TokenType.access_token:
@@ -1250,7 +1279,8 @@ async def validate_and_get_payload_from_token_v0(
         return value
         """
         output_content = get_api_output_in_standard_format(
-            message=messages["GENERIC_READ_SUCCESSFUL"], data=local_dict_token_payload
+            message=messages["GENERIC_READ_SUCCESSFUL"],
+            data={"main": local_dict_token_payload},
         )
         return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
     except HTTPException as http_exception:

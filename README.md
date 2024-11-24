@@ -16,6 +16,11 @@ pip install square_authentication
 
 ## changelog
 
+### v4.2.1
+
+- fix output format in validate_and_get_payload_from_token/v0.
+- add db check refresh token validation in validate_and_get_payload_from_token/v0.
+
 ### v4.2.0
 
 - add validate_and_get_payload_from_token/v0 in core.
