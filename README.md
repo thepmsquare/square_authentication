@@ -16,6 +16,10 @@ pip install square_authentication
 
 ## changelog
 
+### v4.3.0
+
+- set allow_credentials=True.
+
 ### v4.2.1
 
 - fix output format in validate_and_get_payload_from_token/v0.
