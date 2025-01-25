@@ -69,7 +69,7 @@ async def register_username_v0(
     local_str_user_id = None
     local_str_access_token = None
     local_str_refresh_token = None
-
+    local_object_refresh_token_expiry_time = None
     username = username.lower()
     try:
         """
@@ -203,6 +203,7 @@ async def register_username_v0(
                     "app_id": app_id,
                     "access_token": local_str_access_token,
                     "refresh_token": local_str_refresh_token,
+                    "refresh_token_expiry_time": local_object_refresh_token_expiry_time.isoformat(),
                 },
             },
         )
@@ -664,6 +665,7 @@ async def login_username_v0(body: LoginUsernameV0):
                     "user_id": local_str_user_id,
                     "access_token": local_str_access_token,
                     "refresh_token": local_str_refresh_token,
+                    "refresh_token_expiry_time": local_object_refresh_token_expiry_time.isoformat(),
                 }
             },
             message=messages["LOGIN_SUCCESSFUL"],

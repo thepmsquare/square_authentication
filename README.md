@@ -16,6 +16,11 @@ pip install square_authentication
 
 ## changelog
 
+### v4.4.0
+
+- core
+    - add refresh_token_expiry_time in register_username_v0, login_username_v0.
+
 ### v4.3.0
 
 - set allow_credentials=True.
