@@ -16,6 +16,10 @@ pip install square_authentication
 
 ## changelog
 
+### v4.5.0
+
+- add pytest dependency and dummy test.
+
 ### v4.4.0
 
 - core

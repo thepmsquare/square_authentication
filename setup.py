@@ -4,7 +4,7 @@ package_name = "square_authentication"
 
 setup(
     name=package_name,
-    version="4.4.0",
+    version="4.5.0",
     packages=find_packages(),
     package_data={
         package_name: ["data/*"],
@@ -21,6 +21,7 @@ setup(
         "square_logger>=1.0.0",
         "square_database_helper>=2.0.0",
         "square_database_structure>=1.0.0",
+        "pytest>=8.0.0",
     ],
     extras_require={},
     author="thePmSquare",
