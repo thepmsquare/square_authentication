@@ -19,6 +19,8 @@ pip install square_authentication
 ### v4.5.0
 
 - add pytest dependency and dummy test.
+- add https dependency.
+- github actions for CI/CD for testing and auto build and push.
 
 ### v4.4.0
 

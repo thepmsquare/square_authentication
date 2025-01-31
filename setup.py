@@ -22,6 +22,7 @@ setup(
         "square_database_helper>=2.0.0",
         "square_database_structure>=1.0.0",
         "pytest>=8.0.0",
+        "httpx>=0.27.2",
     ],
     extras_require={},
     author="thePmSquare",
