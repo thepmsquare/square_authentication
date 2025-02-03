@@ -6,8 +6,12 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Release Tag'
+        description: "Release Tag"
         required: true
+      is_latest:
+        description: "Tag as latest"
+        required: true
+        type: boolean
 
 jobs:
   build:
@@ -23,9 +27,17 @@ jobs:
           if [[ "${{ github.event_name }}" == "release" ]]; then
             echo "Release triggered with tag: ${{ github.event.release.tag_name }}"
             echo "RELEASE_TAG=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
+            # Automatically tag as latest during a release event if needed
+            LATEST_TAG=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r .tag_name)
+            if [[ "${{ github.event.release.tag_name }}" == "$LATEST_TAG" ]]; then
+              echo "IS_LATEST=true" >> $GITHUB_ENV
+            else
+              echo "IS_LATEST=false" >> $GITHUB_ENV
+            fi
           else
             echo "Manual trigger with user input tag: ${{ github.event.inputs.release_tag }}"
             echo "RELEASE_TAG=${{ github.event.inputs.release_tag }}" >> $GITHUB_ENV
+            echo "IS_LATEST=${{ github.event.inputs.is_latest }}" >> $GITHUB_ENV
           fi
 
       - name: Set up Docker Buildx
@@ -45,8 +57,17 @@ jobs:
       - name: Build Docker image
         run: |
           docker build --platform linux/arm64/v8 \
-            -t ${{ secrets.DOCKERHUB_USERNAME  }}/$(basename ${{ github.repository }}):${{ env.RELEASE_TAG }} .
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/$(basename ${{ github.repository }}):${{ env.RELEASE_TAG }} .
+
+      - name: Tag Docker image as latest (if required)
+        if: ${{ env.IS_LATEST == 'true' }}
+        run: |
+          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/$(basename ${{ github.repository }}):${{ env.RELEASE_TAG }} ${{ secrets.DOCKERHUB_USERNAME }}/$(basename ${{ github.repository }}):latest
 
       - name: Push Docker image
         run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME  }}/$(basename ${{ github.repository }}):${{ env.RELEASE_TAG }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$(basename ${{ github.repository }}):${{ env.RELEASE_TAG }}
+          # Push latest tag if necessary
+          if [ "${{ env.IS_LATEST }}" == "true" ]; then
+            docker push ${{ secrets.DOCKERHUB_USERNAME }}/$(basename ${{ github.repository }}):latest
+          fi

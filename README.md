@@ -16,6 +16,10 @@ pip install square_authentication
 
 ## changelog
 
+### v4.5.1
+
+- fix auto docker image build github action.
+
 ### v4.5.0
 
 - add pytest dependency and dummy test.
