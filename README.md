@@ -16,6 +16,10 @@ pip install square_authentication
 
 ## changelog
 
+### v5.0.1
+
+- fix typo in return value of get_user_details_v0.
+
 ### v5.0.0
 
 - change get_user_details_v0 to return app name instead of app ids.

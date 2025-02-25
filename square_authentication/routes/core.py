@@ -322,7 +322,7 @@ async def get_user_details_v0(
             ],
             "sessions": [
                 {
-                    "app_id": [
+                    "app_name": [
                         y[App.app_name.name]
                         for y in local_list_app
                         if y[App.app_id.name] == x[UserApp.app_id.name]
