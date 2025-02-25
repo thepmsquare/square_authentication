@@ -16,6 +16,10 @@ pip install square_authentication
 
 ## changelog
 
+### v5.0.0
+
+- change get_user_details_v0 to return app name instead of app ids.
+
 ### v4.5.1
 
 - fix auto docker image build github action.

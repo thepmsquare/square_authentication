@@ -264,6 +264,13 @@ async def get_user_details_v0(
         """
         main process
         """
+        local_list_app = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_public_schema_name,
+            table_name=App.__tablename__,
+            apply_filters=False,
+            filters=FiltersV0(root={}),
+        )["data"]["main"]
         local_list_response_user_app = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
@@ -307,10 +314,19 @@ async def get_user_details_v0(
                     UserCredential.user_credential_username.name
                 ],
             },
-            "apps": [x[UserApp.app_id.name] for x in local_list_response_user_app],
+            "apps": [
+                y[App.app_name.name]
+                for y in local_list_app
+                if y[App.app_id.name]
+                in [x[UserApp.app_id.name] for x in local_list_response_user_app]
+            ],
             "sessions": [
                 {
-                    "app_id": x[UserApp.app_id.name],
+                    "app_id": [
+                        y[App.app_name.name]
+                        for y in local_list_app
+                        if y[App.app_id.name] == x[UserApp.app_id.name]
+                    ][0],
                     "active_sessions": len(
                         [
                             y
