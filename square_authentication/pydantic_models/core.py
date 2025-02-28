@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
@@ -29,3 +29,7 @@ class UpdatePasswordV0(BaseModel):
 class TokenType(Enum):
     access_token = "access_token"
     refresh_token = "refresh_token"
+
+
+class LogoutAppsV0(BaseModel):
+    app_ids: List[int]
