@@ -3,23 +3,20 @@ from typing import Annotated, List
 
 import bcrypt
 import jwt
-from fastapi import APIRouter, status, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, status
 from fastapi.params import Query
 from fastapi.responses import JSONResponse
 from requests import HTTPError
 from square_commons import get_api_output_in_standard_format
 from square_database_helper.main import SquareDatabaseHelper
-from square_database_helper.pydantic_models import (
-    FiltersV0,
-    FilterConditionsV0,
-)
+from square_database_helper.pydantic_models import FilterConditionsV0, FiltersV0
 from square_database_structure.square import global_string_database_name
 from square_database_structure.square.authentication import global_string_schema_name
 from square_database_structure.square.authentication.tables import (
     User,
+    UserApp,
     UserCredential,
     UserSession,
-    UserApp,
 )
 from square_database_structure.square.public import (
     global_string_schema_name as global_string_public_schema_name,
@@ -27,23 +24,23 @@ from square_database_structure.square.public import (
 from square_database_structure.square.public.tables import App
 
 from square_authentication.configuration import (
-    global_object_square_logger,
-    config_str_secret_key_for_access_token,
     config_int_access_token_valid_minutes,
     config_int_refresh_token_valid_minutes,
+    config_int_square_database_port,
+    config_str_secret_key_for_access_token,
     config_str_secret_key_for_refresh_token,
     config_str_square_database_ip,
-    config_int_square_database_port,
     config_str_square_database_protocol,
+    global_object_square_logger,
 )
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.core import (
-    RegisterUsernameV0,
-    LoginUsernameV0,
     DeleteUserV0,
-    UpdatePasswordV0,
-    TokenType,
+    LoginUsernameV0,
     LogoutAppsV0,
+    RegisterUsernameV0,
+    TokenType,
+    UpdatePasswordV0,
 )
 from square_authentication.utils.token import get_jwt_payload
 
@@ -213,6 +210,7 @@ async def register_username_v0(
             content=output_content,
         )
     except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
             status_code=http_exception.status_code, content=http_exception.detail
         )
@@ -257,9 +255,9 @@ async def get_user_details_v0(
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         user_id = local_dict_access_token_payload["user_id"]
         """
@@ -348,6 +346,7 @@ async def get_user_details_v0(
             content=output_content,
         )
     except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
             status_code=http_exception.status_code, content=http_exception.detail
         )
@@ -387,9 +386,9 @@ async def update_user_app_ids_v0(
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         user_id = local_dict_access_token_payload["user_id"]
 
@@ -508,6 +507,7 @@ async def update_user_app_ids_v0(
             content=output_content,
         )
     except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
             status_code=http_exception.status_code, content=http_exception.detail
         )
@@ -560,8 +560,9 @@ async def login_username_v0(body: LoginUsernameV0):
                 message=messages["INCORRECT_USERNAME"],
                 log=f"incorrect username {username}",
             )
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST, content=output_content
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
             )
         # validate if app_id is assigned to user
         # this will also validate if app_id is valid
@@ -597,16 +598,17 @@ async def login_username_v0(body: LoginUsernameV0):
                         message=messages["GENERIC_400"],
                         log=str(he),
                     )
-                    return JSONResponse(
-                        status_code=he.response.status_code, content=output_content
+                    raise HTTPException(
+                        status_code=he.response.status_code, detail=output_content
                     )
             else:
                 output_content = get_api_output_in_standard_format(
                     message=messages["GENERIC_400"],
                     log=f"user_id {local_str_user_id}({username}) not assigned to app {app_id}.",
                 )
-                return JSONResponse(
-                    status_code=status.HTTP_400_BAD_REQUEST, content=output_content
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=output_content,
                 )
 
         # validate password
@@ -622,9 +624,9 @@ async def login_username_v0(body: LoginUsernameV0):
                 message=messages["INCORRECT_PASSWORD"],
                 log=f"incorrect password for user_id {local_str_user_id}({username}).",
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         """
         main process
@@ -692,6 +694,7 @@ async def login_username_v0(body: LoginUsernameV0):
             content=output_content,
         )
     except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
             status_code=http_exception.status_code, content=http_exception.detail
         )
@@ -740,9 +743,9 @@ async def generate_access_token_v0(
                 message=messages["INCORRECT_REFRESH_TOKEN"],
                 log=f"incorrect refresh token: {refresh_token}.",
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         # validating if the refresh token is valid, active and of the same user.
         try:
@@ -753,9 +756,9 @@ async def generate_access_token_v0(
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_REFRESH_TOKEN"], log=str(error)
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         """
         main process
@@ -782,6 +785,7 @@ async def generate_access_token_v0(
             content=output_content,
         )
     except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
             status_code=http_exception.status_code, content=http_exception.detail
         )
@@ -830,9 +834,9 @@ async def logout_v0(
                 message=messages["INCORRECT_REFRESH_TOKEN"],
                 log=f"incorrect refresh token: {refresh_token}.",
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         # validating if the refresh token is valid, active and of the same user.
         try:
@@ -844,9 +848,9 @@ async def logout_v0(
                 message=messages["INCORRECT_REFRESH_TOKEN"],
                 log=str(error),
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         # ======================================================================================
         # NOTE: if refresh token has expired no need to delete it during this call
@@ -875,6 +879,7 @@ async def logout_v0(
         )
         return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
     except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
             status_code=http_exception.status_code, content=http_exception.detail
         )
@@ -911,9 +916,9 @@ async def logout_apps_v0(
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         user_id = local_dict_access_token_payload["user_id"]
         # validate app_ids
@@ -967,6 +972,7 @@ async def logout_apps_v0(
         )
         return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
     except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
             status_code=http_exception.status_code, content=http_exception.detail
         )
@@ -1002,9 +1008,9 @@ async def logout_all_v0(
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         user_id = local_dict_access_token_payload["user_id"]
 
@@ -1030,6 +1036,7 @@ async def logout_all_v0(
         )
         return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
     except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
             status_code=http_exception.status_code, content=http_exception.detail
         )
@@ -1066,9 +1073,9 @@ async def update_username_v0(
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         user_id = local_dict_access_token_payload["user_id"]
 
@@ -1089,9 +1096,9 @@ async def update_username_v0(
                 message=messages["INCORRECT_USER_ID"],
                 log=f"incorrect user_id: {user_id}.",
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
 
         # validate new username
@@ -1116,9 +1123,9 @@ async def update_username_v0(
                 message=messages["USERNAME_ALREADY_EXISTS"],
                 log=f"{new_username} is taken.",
             )
-            return JSONResponse(
-                status_code=status.HTTP_409_CONFLICT,
-                content=output_content,
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
             )
         """
         main process
@@ -1146,6 +1153,7 @@ async def update_username_v0(
         )
         return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
     except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
             status_code=http_exception.status_code, content=http_exception.detail
         )
@@ -1183,9 +1191,9 @@ async def delete_user_v0(
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         user_id = local_dict_access_token_payload["user_id"]
 
@@ -1205,8 +1213,9 @@ async def delete_user_v0(
                 message=messages["INCORRECT_USER_ID"],
                 log=f"incorrect user_id: {user_id}.",
             )
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST, content=output_content
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
             )
 
         # validate password
@@ -1223,9 +1232,9 @@ async def delete_user_v0(
                 message=messages["INCORRECT_PASSWORD"],
                 log=f"incorrect password for user_id {user_id}.",
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         """
         main process
@@ -1250,6 +1259,7 @@ async def delete_user_v0(
         )
         return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
     except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
             status_code=http_exception.status_code, content=http_exception.detail
         )
@@ -1288,9 +1298,9 @@ async def update_password_v0(
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         user_id = local_dict_access_token_payload["user_id"]
 
@@ -1310,8 +1320,9 @@ async def update_password_v0(
                 message=messages["INCORRECT_USER_ID"],
                 log=f"incorrect user_id: {user_id}.",
             )
-            return JSONResponse(
-                status_code=status.HTTP_400_BAD_REQUEST, content=output_content
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
             )
 
         # validate password
@@ -1328,9 +1339,9 @@ async def update_password_v0(
                 message=messages["INCORRECT_PASSWORD"],
                 log=f"incorrect password for user_id {user_id}.",
             )
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
         """
         main process
@@ -1361,6 +1372,7 @@ async def update_password_v0(
         )
         return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
     except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
             status_code=http_exception.status_code, content=http_exception.detail
         )
@@ -1424,11 +1436,12 @@ async def validate_and_get_payload_from_token_v0(
                         message=messages["INCORRECT_REFRESH_TOKEN"],
                         log="refresh token valid but not present in database.",
                     )
-                    return JSONResponse(
+                    raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        content=output_content,
+                        detail=output_content,
                     )
-
+        except HTTPException as http_exception:
+            raise
         except Exception as error:
             output_content = None
             if token_type == TokenType.access_token:
@@ -1440,9 +1453,9 @@ async def validate_and_get_payload_from_token_v0(
                     message=messages["INCORRECT_REFRESH_TOKEN"], log=str(error)
                 )
 
-            return JSONResponse(
+            raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                content=output_content,
+                detail=output_content,
             )
 
         """
@@ -1458,6 +1471,7 @@ async def validate_and_get_payload_from_token_v0(
         )
         return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
     except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
             status_code=http_exception.status_code, content=http_exception.detail
         )

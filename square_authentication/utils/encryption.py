@@ -4,7 +4,10 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
+from square_authentication.configuration import global_object_square_logger
 
+
+@global_object_square_logger.auto_logger
 def encrypt(key, plaintext):
     # Ensure the key length is 16, 24, or 32 bytes for AES
     key = key.ljust(32)[:32].encode('utf-8')
@@ -28,7 +31,7 @@ def encrypt(key, plaintext):
 
     return encoded_ciphertext
 
-
+@global_object_square_logger.auto_logger
 def decrypt(key, encoded_ciphertext):
     # Ensure the key length is 16, 24, or 32 bytes for AES
     key = key.ljust(32)[:32].encode('utf-8')

@@ -16,6 +16,11 @@ pip install square_authentication
 
 ## changelog
 
+### v5.1.1
+
+- add logger decorator in all functions.
+- add error logs in all endpoints.
+
 ### v5.1.0
 
 - Core
