@@ -547,7 +547,7 @@ async def login_username_v0(body: LoginUsernameV0):
         validation
         """
         # validation for username
-        local_list_authentication_user_response = (
+        local_list_response_user_profile = (
             global_object_square_database_helper.get_rows_v0(
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
@@ -556,6 +556,29 @@ async def login_username_v0(body: LoginUsernameV0):
                     root={
                         UserProfile.user_profile_username.name: FilterConditionsV0(
                             eq=username
+                        )
+                    }
+                ),
+            )["data"]["main"]
+        )
+        if len(local_list_response_user_profile) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_USERNAME"],
+                log=f"incorrect username {username}",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        local_list_authentication_user_response = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserCredential.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserCredential.user_id.name: FilterConditionsV0(
+                            eq=local_list_response_user_profile[0][UserProfile.user_id.name]
                         )
                     }
                 ),
