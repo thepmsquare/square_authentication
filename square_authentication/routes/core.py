@@ -578,7 +578,9 @@ async def login_username_v0(body: LoginUsernameV0):
                 filters=FiltersV0(
                     root={
                         UserCredential.user_id.name: FilterConditionsV0(
-                            eq=local_list_response_user_profile[0][UserProfile.user_id.name]
+                            eq=local_list_response_user_profile[0][
+                                UserProfile.user_id.name
+                            ]
                         )
                     }
                 ),
