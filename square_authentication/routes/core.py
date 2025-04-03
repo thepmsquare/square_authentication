@@ -17,6 +17,7 @@ from square_database_structure.square.authentication.tables import (
     UserApp,
     UserCredential,
     UserSession,
+    UserProfile,
 )
 from square_database_structure.square.public import (
     global_string_schema_name as global_string_public_schema_name,
@@ -75,22 +76,20 @@ async def register_username_v0(
         """
 
         # validation for username
-        local_list_response_user_creds = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=UserCredential.__tablename__,
-            filters=FiltersV0(
-                root={
-                    UserCredential.user_credential_username.name: FilterConditionsV0(
-                        eq=username
-                    )
-                }
-            ),
-        )[
-            "data"
-        ][
-            "main"
-        ]
+        local_list_response_user_creds = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserProfile.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserProfile.user_profile_username.name: FilterConditionsV0(
+                            eq=username
+                        )
+                    }
+                ),
+            )["data"]["main"]
+        )
         if len(local_list_response_user_creds) > 0:
             output_content = get_api_output_in_standard_format(
                 message=messages["USERNAME_ALREADY_EXISTS"],
@@ -124,13 +123,23 @@ async def register_username_v0(
             data=[
                 {
                     UserCredential.user_id.name: local_str_user_id,
-                    UserCredential.user_credential_username.name: username,
                     UserCredential.user_credential_hashed_password.name: local_str_hashed_password,
                 }
             ],
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserCredential.__tablename__,
+        )
+        global_object_square_database_helper.insert_rows_v0(
+            data=[
+                {
+                    UserProfile.user_id.name: local_str_user_id,
+                    UserProfile.user_profile_username.name: username,
+                }
+            ],
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserProfile.__tablename__,
         )
         if app_id is not None:
             # assign app to user
@@ -278,13 +287,13 @@ async def get_user_details_v0(
                 root={UserApp.user_id.name: FilterConditionsV0(eq=user_id)}
             ),
         )["data"]["main"]
-        local_list_response_user_credentials = (
+        local_list_response_user_profile = (
             global_object_square_database_helper.get_rows_v0(
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
-                table_name=UserCredential.__tablename__,
+                table_name=UserProfile.__tablename__,
                 filters=FiltersV0(
-                    root={UserCredential.user_id.name: FilterConditionsV0(eq=user_id)}
+                    root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
                 ),
             )["data"]["main"]
         )
@@ -309,8 +318,8 @@ async def get_user_details_v0(
         return_this = {
             "user_id": user_id,
             "credentials": {
-                "username": local_list_response_user_credentials[0][
-                    UserCredential.user_credential_username.name
+                "username": local_list_response_user_profile[0][
+                    UserProfile.user_profile_username.name
                 ],
             },
             "apps": [
@@ -539,22 +548,20 @@ async def login_username_v0(body: LoginUsernameV0):
         validation
         """
         # validation for username
-        local_list_authentication_user_response = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=UserCredential.__tablename__,
-            filters=FiltersV0(
-                root={
-                    UserCredential.user_credential_username.name: FilterConditionsV0(
-                        eq=username
-                    )
-                }
-            ),
-        )[
-            "data"
-        ][
-            "main"
-        ]
+        local_list_authentication_user_response = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserProfile.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserProfile.user_profile_username.name: FilterConditionsV0(
+                            eq=username
+                        )
+                    }
+                ),
+            )["data"]["main"]
+        )
         if len(local_list_authentication_user_response) != 1:
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_USERNAME"],
@@ -840,9 +847,7 @@ async def logout_v0(
             )
         # validating if the refresh token is valid, active and of the same user.
         try:
-            local_dict_refresh_token_payload = get_jwt_payload(
-                refresh_token, config_str_secret_key_for_refresh_token
-            )
+            _ = get_jwt_payload(refresh_token, config_str_secret_key_for_refresh_token)
         except Exception as error:
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_REFRESH_TOKEN"],
@@ -1102,22 +1107,20 @@ async def update_username_v0(
             )
 
         # validate new username
-        local_list_user_credentials_response = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=UserCredential.__tablename__,
-            filters=FiltersV0(
-                root={
-                    UserCredential.user_credential_username.name: FilterConditionsV0(
-                        eq=new_username
-                    ),
-                }
-            ),
-        )[
-            "data"
-        ][
-            "main"
-        ]
+        local_list_user_credentials_response = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserProfile.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserProfile.user_profile_username.name: FilterConditionsV0(
+                            eq=new_username
+                        ),
+                    }
+                ),
+            )["data"]["main"]
+        )
         if len(local_list_user_credentials_response) != 0:
             output_content = get_api_output_in_standard_format(
                 message=messages["USERNAME_ALREADY_EXISTS"],
@@ -1134,14 +1137,14 @@ async def update_username_v0(
         global_object_square_database_helper.edit_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
-            table_name=UserCredential.__tablename__,
+            table_name=UserProfile.__tablename__,
             filters=FiltersV0(
                 root={
-                    UserCredential.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserProfile.user_id.name: FilterConditionsV0(eq=user_id),
                 }
             ),
             data={
-                UserCredential.user_credential_username.name: new_username,
+                UserProfile.user_profile_username.name: new_username,
             },
         )
         """

@@ -16,6 +16,11 @@ pip install square_authentication
 
 ## changelog
 
+### v5.1.2
+
+- bump square_database_structure>=2.3.1.
+- change logic to read username from profile instead of credentials table.
+
 ### v5.1.1
 
 - add logger decorator in all functions.
