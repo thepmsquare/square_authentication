@@ -74,9 +74,8 @@ async def register_username_v0(
         """
         validation
         """
-
         # validation for username
-        local_list_response_user_creds = (
+        local_list_response_user_profile = (
             global_object_square_database_helper.get_rows_v0(
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
@@ -85,6 +84,20 @@ async def register_username_v0(
                     root={
                         UserProfile.user_profile_username.name: FilterConditionsV0(
                             eq=username
+                        )
+                    }
+                ),
+            )["data"]["main"]
+        )
+        local_list_response_user_creds = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserCredential.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserCredential.user_id.name: FilterConditionsV0(
+                            eq=local_list_response_user_profile[0][UserProfile.user_id.name]
                         )
                     }
                 ),
