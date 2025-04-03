@@ -16,6 +16,10 @@ pip install square_authentication
 
 ## changelog
 
+### v5.1.4
+
+- re bug fix v5.1.3
+
 ### v5.1.3
 
 - bugfix in login_username/v0 (getting creds from correct table).
