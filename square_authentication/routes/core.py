@@ -57,7 +57,7 @@ global_object_square_database_helper = SquareDatabaseHelper(
 
 
 @router.post("/register_username/v0")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def register_username_v0(
     body: RegisterUsernameV0,
 ):
@@ -246,7 +246,7 @@ async def register_username_v0(
 
 
 @router.get("/get_user_details/v0")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def get_user_details_v0(
     access_token: Annotated[str, Header()],
 ):
@@ -374,7 +374,7 @@ async def get_user_details_v0(
 
 
 @router.patch("/update_user_app_ids/v0")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def update_user_app_ids_v0(
     access_token: Annotated[str, Header()],
     app_ids_to_add: List[int],
@@ -535,7 +535,7 @@ async def update_user_app_ids_v0(
 
 
 @router.post("/login_username/v0")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def login_username_v0(body: LoginUsernameV0):
     username = body.username
     password = body.password
@@ -744,7 +744,7 @@ async def login_username_v0(body: LoginUsernameV0):
 
 
 @router.get("/generate_access_token/v0")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def generate_access_token_v0(
     refresh_token: Annotated[str, Header()],
 ):
@@ -835,7 +835,7 @@ async def generate_access_token_v0(
 
 
 @router.delete("/logout/v0")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def logout_v0(
     refresh_token: Annotated[str, Header()],
 ):
@@ -927,7 +927,7 @@ async def logout_v0(
 
 
 @router.delete("/logout/apps/v0")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def logout_apps_v0(
     access_token: Annotated[str, Header()],
     body: LogoutAppsV0,
@@ -1020,7 +1020,7 @@ async def logout_apps_v0(
 
 
 @router.delete("/logout/all/v0")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def logout_all_v0(
     access_token: Annotated[str, Header()],
 ):
@@ -1084,7 +1084,7 @@ async def logout_all_v0(
 
 
 @router.patch("/update_username/v0")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def update_username_v0(
     new_username: str,
     access_token: Annotated[str, Header()],
@@ -1199,7 +1199,7 @@ async def update_username_v0(
 
 
 @router.delete("/delete_user/v0")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def delete_user_v0(
     body: DeleteUserV0,
     access_token: Annotated[str, Header()],
@@ -1305,7 +1305,7 @@ async def delete_user_v0(
 
 
 @router.patch("/update_password/v0")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def update_password_v0(
     body: UpdatePasswordV0,
     access_token: Annotated[str, Header()],
@@ -1418,7 +1418,7 @@ async def update_password_v0(
 
 
 @router.get("/validate_and_get_payload_from_token/v0")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def validate_and_get_payload_from_token_v0(
     token: Annotated[str, Header()],
     token_type: TokenType = Query(...),

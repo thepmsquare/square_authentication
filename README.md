@@ -16,6 +16,10 @@ pip install square_authentication
 
 ## changelog
 
+### v5.1.5
+
+- bump square_logger to >=2.0.0.
+
 ### v5.1.4
 
 - re bug fix v5.1.3

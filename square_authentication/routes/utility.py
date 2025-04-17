@@ -12,7 +12,7 @@ router = APIRouter(
 
 
 @router.get("/get_text_hash/v0")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def get_text_hash_v0(plain_text: str):
 
     try:

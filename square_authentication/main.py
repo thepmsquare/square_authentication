@@ -31,7 +31,7 @@ app.include_router(utility.router)
 
 
 @app.get("/")
-@global_object_square_logger.async_auto_logger
+@global_object_square_logger.auto_logger()
 async def root():
     output_content = get_api_output_in_standard_format(log=config_str_module_name)
     return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
