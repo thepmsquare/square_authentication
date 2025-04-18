@@ -56,7 +56,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build --platform linux/arm64/v8 \
+          docker build \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/$(basename ${{ github.repository }}):${{ env.RELEASE_TAG }} .
 
       - name: Tag Docker image as latest (if required)
