@@ -2,6 +2,8 @@ import os
 import sys
 
 from square_commons import ConfigReader
+from square_database_helper import SquareDatabaseHelper
+from square_file_store_helper import SquareFileStoreHelper
 from square_logger.main import SquareLogger
 
 try:
@@ -67,12 +69,36 @@ try:
         ldict_configuration["SQUARE_DATABASE_HELPER"]["SQUARE_DATABASE_PORT"]
     )
     # ===========================================
+
+    # ===========================================
+    # square_file_store_helper
+
+    config_str_square_file_store_protocol = ldict_configuration[
+        "SQUARE_FILE_STORE_HELPER"
+    ]["SQUARE_FILE_STORE_PROTOCOL"]
+    config_str_square_file_store_ip = ldict_configuration["SQUARE_FILE_STORE_HELPER"][
+        "SQUARE_FILE_STORE_IP"
+    ]
+    config_int_square_file_store_port = int(
+        ldict_configuration["SQUARE_FILE_STORE_HELPER"]["SQUARE_FILE_STORE_PORT"]
+    )
+    # ===========================================
     # Initialize logger
     global_object_square_logger = SquareLogger(
         pstr_log_file_name=config_str_log_file_name,
         pint_log_level=config_int_log_level,
         pstr_log_path=config_str_log_path,
         pint_log_backup_count=config_int_log_backup_count,
+    )
+    global_object_square_database_helper = SquareDatabaseHelper(
+        param_str_square_database_ip=config_str_square_database_ip,
+        param_int_square_database_port=config_int_square_database_port,
+        param_str_square_database_protocol=config_str_square_database_protocol,
+    )
+    global_object_square_file_store_helper = SquareFileStoreHelper(
+        param_str_square_file_store_protocol=config_str_square_file_store_protocol,
+        param_str_square_file_store_ip=config_str_square_file_store_ip,
+        param_int_square_file_store_port=config_int_square_file_store_port,
     )
 except Exception as e:
     print(

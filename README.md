@@ -16,6 +16,18 @@ pip install square_authentication
 
 ## changelog
 
+### v5.2.0
+
+- add temp folder to .gitignore.
+- add square_file_store_helper as a dependency.
+- config
+    - add config section for file store helper.
+- initialise file store helper and database helper in config.py
+- add profile router
+- profile
+    - add update_profile_photo/v0
+- update messages.
+
 ### v5.1.5
 
 - bump square_logger to >=2.0.0.

@@ -4,7 +4,7 @@ package_name = "square_authentication"
 
 setup(
     name=package_name,
-    version="5.1.5",
+    version="5.2.0",
     packages=find_packages(),
     package_data={
         package_name: ["data/*"],
@@ -12,6 +12,7 @@ setup(
     install_requires=[
         "uvicorn>=0.24.0.post1",
         "fastapi>=0.104.1",
+        "python-multipart>=0.0.6",
         "pydantic>=2.5.3",
         "bcrypt>=4.1.2",
         "pyjwt>=2.8.0",
@@ -21,6 +22,7 @@ setup(
         "square_logger>=2.0.0",
         "square_database_helper>=2.0.0",
         "square_database_structure>=2.3.1",
+        "square_file_store_helper>=2.1.0",
         "pytest>=8.0.0",
         "httpx>=0.27.2",
     ],

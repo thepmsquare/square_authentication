@@ -8,7 +8,6 @@ from fastapi.params import Query
 from fastapi.responses import JSONResponse
 from requests import HTTPError
 from square_commons import get_api_output_in_standard_format
-from square_database_helper.main import SquareDatabaseHelper
 from square_database_helper.pydantic_models import FilterConditionsV0, FiltersV0
 from square_database_structure.square import global_string_database_name
 from square_database_structure.square.authentication import global_string_schema_name
@@ -27,12 +26,10 @@ from square_database_structure.square.public.tables import App
 from square_authentication.configuration import (
     config_int_access_token_valid_minutes,
     config_int_refresh_token_valid_minutes,
-    config_int_square_database_port,
     config_str_secret_key_for_access_token,
     config_str_secret_key_for_refresh_token,
-    config_str_square_database_ip,
-    config_str_square_database_protocol,
     global_object_square_logger,
+    global_object_square_database_helper,
 )
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.core import (
@@ -47,12 +44,6 @@ from square_authentication.utils.token import get_jwt_payload
 
 router = APIRouter(
     tags=["core"],
-)
-
-global_object_square_database_helper = SquareDatabaseHelper(
-    param_str_square_database_ip=config_str_square_database_ip,
-    param_int_square_database_port=config_int_square_database_port,
-    param_str_square_database_protocol=config_str_square_database_protocol,
 )
 
 
