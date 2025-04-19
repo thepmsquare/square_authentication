@@ -4,7 +4,7 @@ package_name = "square_authentication"
 
 setup(
     name=package_name,
-    version="5.2.0",
+    version="6.0.0",
     packages=find_packages(),
     package_data={
         package_name: ["data/*"],

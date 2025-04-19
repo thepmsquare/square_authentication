@@ -1,3 +1,4 @@
+import copy
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, List
 
@@ -302,16 +303,14 @@ async def get_user_details_v0(
                 ),
             )["data"]["main"]
         )
+        user_profile = copy.deepcopy(local_list_response_user_profile[0])
+        del user_profile[UserProfile.user_id.name]
         """
         return value
         """
         return_this = {
             "user_id": user_id,
-            "credentials": {
-                "username": local_list_response_user_profile[0][
-                    UserProfile.user_profile_username.name
-                ],
-            },
+            "profile": user_profile,
             "apps": [
                 y[App.app_name.name]
                 for y in local_list_app
