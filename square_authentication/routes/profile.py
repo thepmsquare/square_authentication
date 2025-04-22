@@ -74,7 +74,9 @@ async def update_profile_photo_v0(
         main process
         """
         # uploading to square file store
-        destination_path = f"temp/{user_id}/profile_photo/{profile_photo.filename}"
+        destination_path = os.path.join(
+            "temp", user_id, "profile_photo", profile_photo.filename
+        )
         os.makedirs(os.path.dirname(destination_path), exist_ok=True)
         with open(destination_path, "wb") as out_file:
             content = await profile_photo.read()
