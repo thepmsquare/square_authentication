@@ -91,6 +91,18 @@ async def update_profile_photo_v0(
         os.remove(destination_path)
 
         # adding file storage token to user profile
+        old_profile_photo_response = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserProfile.__tablename__,
+            filters=FiltersV0(
+                root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
+            ),
+            apply_filters=True,
+        )
+        old_profile_photo_token = old_profile_photo_response["data"]["main"][0][
+            "user_profile_photo_storage_token"
+        ]
         profile_update_response = global_object_square_database_helper.edit_rows_v0(
             data={
                 UserProfile.user_profile_photo_storage_token.name: file_upload_response[
@@ -98,13 +110,17 @@ async def update_profile_photo_v0(
                 ]["main"]
             },
             filters=FiltersV0(
-                {UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
+                root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
             ),
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserProfile.__tablename__,
             apply_filters=True,
         )
+        if old_profile_photo_token:
+            global_object_square_file_store_helper.delete_file_v0(
+                [old_profile_photo_token]
+            )
 
         """
         return value

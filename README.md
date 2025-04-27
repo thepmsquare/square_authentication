@@ -16,6 +16,10 @@ pip install square_authentication
 
 ## changelog
 
+### v6.0.1
+
+- delete previous profile photo from file store after successfully updating profile photo.
+
 ### v6.0.0
 
 - add profile details in get_user_details_v0 instead of credentials keyword.
