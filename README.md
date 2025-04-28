@@ -16,6 +16,11 @@ pip install square_authentication
 
 ## changelog
 
+### v6.0.2
+
+- bump square_file_store_helper to >=3.0.0.
+- use upload_file_using_tuple_v0 instead of upload_file_using_path_v0 in update_profile_photo/v0.
+
 ### v6.0.1
 
 - delete previous profile photo from file store after successfully updating profile photo.

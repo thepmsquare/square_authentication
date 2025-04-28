@@ -1,4 +1,3 @@
-import os
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, status, Header, UploadFile
@@ -74,21 +73,17 @@ async def update_profile_photo_v0(
         main process
         """
         # uploading to square file store
-        destination_path = os.path.join(
-            "temp", user_id, "profile_photo", profile_photo.filename
-        )
-        os.makedirs(os.path.dirname(destination_path), exist_ok=True)
-        with open(destination_path, "wb") as out_file:
-            content = await profile_photo.read()
-            out_file.write(content)
 
         file_upload_response = (
-            global_object_square_file_store_helper.upload_file_using_file_path_v0(
-                file_path=destination_path,
+            global_object_square_file_store_helper.upload_file_using_tuple_v0(
+                file=(
+                    profile_photo.filename,
+                    profile_photo.file,
+                    profile_photo.content_type,
+                ),
                 system_relative_path="global/users/profile_photos",
             )
         )
-        os.remove(destination_path)
 
         # adding file storage token to user profile
         old_profile_photo_response = global_object_square_database_helper.get_rows_v0(
