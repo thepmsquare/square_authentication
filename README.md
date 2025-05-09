@@ -16,6 +16,10 @@ pip install square_authentication
 
 ## changelog
 
+### v6.0.4
+
+- mock ini file for pytest.
+
 ### v6.0.3
 
 - make profile photo upload optional in update_profile_photo/v0, to enable users to remove their profile photo.

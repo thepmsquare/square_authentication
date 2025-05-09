@@ -7,12 +7,8 @@ from square_file_store_helper import SquareFileStoreHelper
 from square_logger.main import SquareLogger
 
 try:
-    config_file_path = (
-        os.path.dirname(os.path.abspath(__file__))
-        + os.sep
-        + "data"
-        + os.sep
-        + "config.ini"
+    config_file_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "data", "config.ini"
     )
     ldict_configuration = ConfigReader(config_file_path).read_configuration()
 
@@ -45,6 +41,13 @@ try:
     config_str_ssl_key_file_path = ldict_configuration["ENVIRONMENT"][
         "SSL_KEY_FILE_PATH"
     ]
+    config_str_db_ip = ldict_configuration["ENVIRONMENT"]["DB_IP"]
+
+    config_int_db_port = int(ldict_configuration["ENVIRONMENT"]["DB_PORT"])
+
+    config_str_db_username = ldict_configuration["ENVIRONMENT"]["DB_USERNAME"]
+
+    config_str_db_password = ldict_configuration["ENVIRONMENT"]["DB_PASSWORD"]
     # ===========================================
 
     # ===========================================
