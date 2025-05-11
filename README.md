@@ -16,6 +16,11 @@ pip install square_authentication
 
 ## changelog
 
+### v6.0.5
+
+- env
+    - add ALLOW_ORIGINS
+
 ### v6.0.4
 
 - mock ini file for pytest.

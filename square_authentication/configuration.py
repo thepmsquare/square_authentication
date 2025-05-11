@@ -22,6 +22,9 @@ try:
     # environment
     config_str_host_ip = ldict_configuration["ENVIRONMENT"]["HOST_IP"]
     config_int_host_port = int(ldict_configuration["ENVIRONMENT"]["HOST_PORT"])
+    config_list_allow_origins = eval(
+        ldict_configuration["ENVIRONMENT"]["ALLOW_ORIGINS"]
+    )
     config_str_log_file_name = ldict_configuration["ENVIRONMENT"]["LOG_FILE_NAME"]
     config_str_secret_key_for_access_token = ldict_configuration["ENVIRONMENT"][
         "SECRET_KEY_FOR_ACCESS_TOKEN"
