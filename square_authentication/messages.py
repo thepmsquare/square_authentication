@@ -5,6 +5,7 @@ messages = {
     "INCORRECT_USERNAME": "the username you entered does not exist.",
     "INCORRECT_PASSWORD": "the password you entered is incorrect. please try again.",
     "INCORRECT_USER_ID": "the user ID you provided does not exist or is invalid.",
+    "USERNAME_INVALID": "username must start and end with a lowercase letter and can include only lowercase letters, digits, underscores, or hyphens. no spaces, no dots, and no consecutive special characters.",
     "USERNAME_ALREADY_EXISTS": "the username you entered is already taken. please choose a different one.",
     "INCORRECT_ACCESS_TOKEN": "the access token provided is invalid or expired.",
     "INCORRECT_REFRESH_TOKEN": "the refresh token provided is invalid or expired.",

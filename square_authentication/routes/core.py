@@ -1,4 +1,5 @@
 import copy
+import re
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, List
 
@@ -67,6 +68,22 @@ async def register_username_v0(
         validation
         """
         # validation for username
+        # ^(?!.*[_-]{2})           # no consecutive _ or -
+        # [a-z]                    # must start with a lowercase letter
+        # (?:[a-z0-9_-]{1,18})     # 1–18 of lowercase, digits, _ or -
+        # [a-z]$                   # must end with a lowercase letter
+        username_pattern = re.compile(r"^(?!.*[._-]{2})[a-z][a-z0-9_-]{1,18}[a-z]$")
+        if not username_pattern.match(username):
+            output_content = get_api_output_in_standard_format(
+                message=messages["USERNAME_INVALID"],
+                log=f"username '{username}' is invalid. it must start and end with a letter, "
+                f"contain only lowercase letters, numbers, underscores, or hyphens, "
+                f"and not have consecutive separators.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
         local_list_response_user_creds = (
             global_object_square_database_helper.get_rows_v0(
                 database_name=global_string_database_name,
@@ -1097,6 +1114,25 @@ async def update_username_v0(
                 detail=output_content,
             )
         user_id = local_dict_access_token_payload["user_id"]
+
+        # validation for username
+        # ^(?!.*[_-]{2})           # no consecutive _ or -
+        # [a-z]                    # must start with a lowercase letter
+        # (?:[a-z0-9_-]{1,18})     # 1–18 of lowercase, digits, _ or -
+        # [a-z]$                   # must end with a lowercase letter
+        new_username = new_username.lower()
+        username_pattern = re.compile(r"^(?!.*[._-]{2})[a-z][a-z0-9_-]{1,18}[a-z]$")
+        if not username_pattern.match(new_username):
+            output_content = get_api_output_in_standard_format(
+                message=messages["USERNAME_INVALID"],
+                log=f"username '{new_username}' is invalid. it must start and end with a letter, "
+                f"contain only lowercase letters, numbers, underscores, or hyphens, "
+                f"and not have consecutive separators.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
 
         # validate user_id
         local_list_user_response = global_object_square_database_helper.get_rows_v0(
