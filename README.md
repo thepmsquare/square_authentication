@@ -16,6 +16,11 @@ pip install square_authentication
 
 ## changelog
 
+### v6.2.0
+
+- core
+    - add update_user_recovery_methods_v0.
+
 ### v6.1.0
 
 - add validation to username in register_username_v0 and update_username_v0.

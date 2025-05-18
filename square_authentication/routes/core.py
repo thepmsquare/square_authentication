@@ -13,12 +13,14 @@ from square_commons import get_api_output_in_standard_format
 from square_database_helper.pydantic_models import FilterConditionsV0, FiltersV0
 from square_database_structure.square import global_string_database_name
 from square_database_structure.square.authentication import global_string_schema_name
+from square_database_structure.square.authentication.enums import RecoveryMethodEnum
 from square_database_structure.square.authentication.tables import (
     User,
     UserApp,
     UserCredential,
     UserSession,
     UserProfile,
+    UserRecoveryMethod,
 )
 from square_database_structure.square.public import (
     global_string_schema_name as global_string_public_schema_name,
@@ -1539,4 +1541,150 @@ async def validate_and_get_payload_from_token_v0(
         )
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
+        )
+
+
+@router.patch("/update_user_recovery_methods/v0")
+@global_object_square_logger.auto_logger()
+async def update_user_recovery_methods_v0(
+    access_token: Annotated[str, Header()],
+    recovery_methods_to_add: List[RecoveryMethodEnum],
+    recovery_methods_to_remove: List[RecoveryMethodEnum],
+):
+    try:
+
+        """
+        validation
+        """
+        # validate access token
+        try:
+            local_dict_access_token_payload = get_jwt_payload(
+                access_token, config_str_secret_key_for_access_token
+            )
+        except Exception as error:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        user_id = local_dict_access_token_payload["user_id"]
+
+        recovery_methods_to_add = list(set(x.value for x in recovery_methods_to_add))
+        recovery_methods_to_remove = list(
+            set(x.value for x in recovery_methods_to_remove)
+        )
+
+        # check if recovery_methods_to_add and recovery_methods_to_remove don't have common ids.
+        local_list_common_recovery_methods = set(recovery_methods_to_add) & set(
+            recovery_methods_to_remove
+        )
+        if len(local_list_common_recovery_methods) > 0:
+            output_content = get_api_output_in_standard_format(
+                message=messages["GENERIC_400"],
+                log=f"invalid recovery_methods: {list(local_list_common_recovery_methods)}, present in both add list and remove list.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+
+        """
+        main process
+        """
+        # logic for adding new recovery_methods
+        local_list_response_user_recovery_methods = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserRecoveryMethod.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserRecoveryMethod.user_id.name: FilterConditionsV0(eq=user_id)
+                    }
+                ),
+            )["data"]["main"]
+        )
+        local_list_new_recovery_methods = [
+            {
+                UserRecoveryMethod.user_id.name: user_id,
+                UserRecoveryMethod.user_recovery_method_name.name: x,
+            }
+            for x in recovery_methods_to_add
+            if x
+            not in [
+                y[UserRecoveryMethod.user_recovery_method_name.name]
+                for y in local_list_response_user_recovery_methods
+            ]
+        ]
+        if len(local_list_new_recovery_methods) > 0:
+            global_object_square_database_helper.insert_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserRecoveryMethod.__tablename__,
+                data=local_list_new_recovery_methods,
+            )
+
+        # logic for removing recovery_methods
+        global_object_square_database_helper.delete_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserRecoveryMethod.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserRecoveryMethod.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserRecoveryMethod.user_recovery_method_name.name: FilterConditionsV0(
+                        in_=recovery_methods_to_remove
+                    ),
+                }
+            ),
+        )
+
+        """
+        return value
+        """
+        # get latest recovery_methods
+        local_list_response_user_recovery_methods = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserRecoveryMethod.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserRecoveryMethod.user_id.name: FilterConditionsV0(eq=user_id)
+                    }
+                ),
+            )["data"]["main"]
+        )
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_UPDATE_SUCCESSFUL"],
+            data={
+                "main": [
+                    x[UserRecoveryMethod.user_recovery_method_name.name]
+                    for x in local_list_response_user_recovery_methods
+                ]
+            },
+        )
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=output_content,
+        )
+    except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
+        return JSONResponse(
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
+        """
+        rollback logic
+        """
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=output_content,
         )
