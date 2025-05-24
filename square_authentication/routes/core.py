@@ -70,11 +70,7 @@ async def register_username_v0(
         validation
         """
         # validation for username
-        # ^(?!.*[_-]{2})           # no consecutive _ or -
-        # [a-z]                    # must start with a lowercase letter
-        # (?:[a-z0-9_-]{1,18})     # 1–18 of lowercase, digits, _ or -
-        # [a-z]$                   # must end with a lowercase letter
-        username_pattern = re.compile(r"^(?!.*[._-]{2})[a-z][a-z0-9_-]{1,18}[a-z]$")
+        username_pattern = re.compile(r"^[a-z0-9._-]{2,20}$")
         if not username_pattern.match(username):
             output_content = get_api_output_in_standard_format(
                 message=messages["USERNAME_INVALID"],
@@ -1118,12 +1114,8 @@ async def update_username_v0(
         user_id = local_dict_access_token_payload["user_id"]
 
         # validation for username
-        # ^(?!.*[_-]{2})           # no consecutive _ or -
-        # [a-z]                    # must start with a lowercase letter
-        # (?:[a-z0-9_-]{1,18})     # 1–18 of lowercase, digits, _ or -
-        # [a-z]$                   # must end with a lowercase letter
         new_username = new_username.lower()
-        username_pattern = re.compile(r"^(?!.*[._-]{2})[a-z][a-z0-9_-]{1,18}[a-z]$")
+        username_pattern = re.compile(r"^[a-z0-9._-]{2,20}$")
         if not username_pattern.match(new_username):
             output_content = get_api_output_in_standard_format(
                 message=messages["USERNAME_INVALID"],

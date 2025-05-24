@@ -1,15 +1,15 @@
 from square_authentication.messages import messages
 
 
-def test_register_username_invalid(create_client_and_cleanup):
+def test_register_username_consecutive_special_chars(create_client_and_cleanup):
     payload = {
         "username": "invalid..name",
         "password": "testpass123",
         "app_id": 1,
     }
     response = create_client_and_cleanup.post("/register_username/v0", json=payload)
-    assert response.status_code == 400
-    assert "username" in response.json()["log"]
+    assert response.status_code == 201
+    assert response.json()["message"] == messages["REGISTRATION_SUCCESSFUL"]
 
 
 def test_username_starts_with_number(create_client_and_cleanup):
@@ -19,8 +19,8 @@ def test_username_starts_with_number(create_client_and_cleanup):
         "app_id": 1,
     }
     response = create_client_and_cleanup.post("/register_username/v0", json=payload)
-    assert response.status_code == 400
-    assert "username" in response.json()["log"]
+    assert response.status_code == 201
+    assert response.json()["message"] == messages["REGISTRATION_SUCCESSFUL"]
 
 
 def test_username_ends_with_number(create_client_and_cleanup):
@@ -30,8 +30,8 @@ def test_username_ends_with_number(create_client_and_cleanup):
         "app_id": 1,
     }
     response = create_client_and_cleanup.post("/register_username/v0", json=payload)
-    assert response.status_code == 400
-    assert "username" in response.json()["log"]
+    assert response.status_code == 201
+    assert response.json()["message"] == messages["REGISTRATION_SUCCESSFUL"]
 
 
 def test_username_with_space(create_client_and_cleanup):
