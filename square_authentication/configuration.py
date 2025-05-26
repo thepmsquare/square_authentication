@@ -10,7 +10,12 @@ try:
     config_file_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "data", "config.ini"
     )
-    ldict_configuration = ConfigReader(config_file_path).read_configuration()
+    config_sample_file_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "data", "config.sample.ini"
+    )
+    ldict_configuration = ConfigReader(
+        config_file_path, config_sample_file_path
+    ).read_configuration()
 
     # get all vars and typecast
     # ===========================================

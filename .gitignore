@@ -4,3 +4,5 @@ build/
 *.egg-info/
 logs
 temp
+config.ini
+config.testing.ini

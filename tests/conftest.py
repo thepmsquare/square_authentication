@@ -11,6 +11,8 @@ def get_patched_configuration():
         *rest, last = args
         if last == "config.ini":
             last = "config.testing.ini"
+        elif last == "config.sample.ini":
+            last = "config.testing.sample.ini"
 
         return original_join(*rest, last)
 

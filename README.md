@@ -16,10 +16,14 @@ pip install square_authentication
 
 ## changelog
 
+### v6.2.2
+
+- remove config.ini and config.testing.ini from version control.
+
 ### v6.2.1
 
 - core
-  - tweak validation for username in register_username_v0 and update_username_v0.
+    - tweak validation for username in register_username_v0 and update_username_v0.
 
 ### v6.2.0
 
