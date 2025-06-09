@@ -13,7 +13,10 @@ from square_commons import get_api_output_in_standard_format
 from square_database_helper.pydantic_models import FilterConditionsV0, FiltersV0
 from square_database_structure.square import global_string_database_name
 from square_database_structure.square.authentication import global_string_schema_name
-from square_database_structure.square.authentication.enums import RecoveryMethodEnum
+from square_database_structure.square.authentication.enums import (
+    RecoveryMethodEnum,
+    AuthProviderEnum,
+)
 from square_database_structure.square.authentication.tables import (
     User,
     UserApp,
@@ -21,6 +24,7 @@ from square_database_structure.square.authentication.tables import (
     UserSession,
     UserProfile,
     UserRecoveryMethod,
+    UserAuthProvider,
 )
 from square_database_structure.square.public import (
     global_string_schema_name as global_string_public_schema_name,
@@ -86,13 +90,9 @@ async def register_username_v0(
             global_object_square_database_helper.get_rows_v0(
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
-                table_name=UserProfile.__tablename__,
+                table_name=User.__tablename__,
                 filters=FiltersV0(
-                    root={
-                        UserProfile.user_profile_username.name: FilterConditionsV0(
-                            eq=username
-                        )
-                    }
+                    root={User.user_username.name: FilterConditionsV0(eq=username)}
                 ),
             )["data"]["main"]
         )
@@ -111,12 +111,33 @@ async def register_username_v0(
         """
         # entry in user table
         local_list_response_user = global_object_square_database_helper.insert_rows_v0(
-            data=[{}],
+            data=[
+                {
+                    User.user_username.name: username,
+                }
+            ],
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=User.__tablename__,
         )["data"]["main"]
         local_str_user_id = local_list_response_user[0][User.user_id.name]
+
+        # entry in user auth provider table
+        local_list_response_user_auth_provider = global_object_square_database_helper.insert_rows_v0(
+            data=[
+                {
+                    UserAuthProvider.user_id.name: local_str_user_id,
+                    UserAuthProvider.auth_provider.name: AuthProviderEnum.SELF.value,
+                }
+            ],
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserAuthProvider.__tablename__,
+        )[
+            "data"
+        ][
+            "main"
+        ]
 
         # entry in credential table
 
@@ -135,17 +156,6 @@ async def register_username_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserCredential.__tablename__,
-        )
-        global_object_square_database_helper.insert_rows_v0(
-            data=[
-                {
-                    UserProfile.user_id.name: local_str_user_id,
-                    UserProfile.user_profile_username.name: username,
-                }
-            ],
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=UserProfile.__tablename__,
         )
         if app_id is not None:
             # assign app to user
