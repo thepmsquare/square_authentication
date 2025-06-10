@@ -562,21 +562,16 @@ async def login_username_v0(body: LoginUsernameV0):
         validation
         """
         # validation for username
-        local_list_response_user_profile = (
-            global_object_square_database_helper.get_rows_v0(
-                database_name=global_string_database_name,
-                schema_name=global_string_schema_name,
-                table_name=UserProfile.__tablename__,
-                filters=FiltersV0(
-                    root={
-                        UserProfile.user_profile_username.name: FilterConditionsV0(
-                            eq=username
-                        )
-                    }
-                ),
-            )["data"]["main"]
-        )
-        if len(local_list_response_user_profile) != 1:
+        # check if user with username exists
+        local_list_response_user = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=User.__tablename__,
+            filters=FiltersV0(
+                root={User.user_username.name: FilterConditionsV0(eq=username)}
+            ),
+        )["data"]["main"]
+        if len(local_list_response_user) != 1:
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_USERNAME"],
                 log=f"incorrect username {username}",
@@ -585,6 +580,34 @@ async def login_username_v0(body: LoginUsernameV0):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=output_content,
             )
+        # check if user has auth provider as SELF
+        local_list_user_auth_provider_response = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserAuthProvider.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserAuthProvider.user_id.name: FilterConditionsV0(
+                            eq=local_list_response_user[0][User.user_id.name]
+                        ),
+                        UserAuthProvider.auth_provider.name: FilterConditionsV0(
+                            eq=AuthProviderEnum.SELF.value
+                        ),
+                    }
+                ),
+            )["data"]["main"]
+        )
+        if len(local_list_user_auth_provider_response) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_AUTH_PROVIDER"],
+                log=f"{username} not linked with {AuthProviderEnum.SELF.value} auth provider.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        # check if user has credentials (might not be set in case of errors in registration.)
         local_list_authentication_user_response = (
             global_object_square_database_helper.get_rows_v0(
                 database_name=global_string_database_name,
@@ -593,9 +616,7 @@ async def login_username_v0(body: LoginUsernameV0):
                 filters=FiltersV0(
                     root={
                         UserCredential.user_id.name: FilterConditionsV0(
-                            eq=local_list_response_user_profile[0][
-                                UserProfile.user_id.name
-                            ]
+                            eq=local_list_response_user[0][User.user_id.name]
                         )
                     }
                 ),

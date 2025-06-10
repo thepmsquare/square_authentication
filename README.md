@@ -22,6 +22,7 @@ pip install square_authentication
 - internal support for username shifted from UserProfile to User.
 - core
     - register_username_v0 fixed to account for changes mentioned above.
+    - login_username_v0 fixed to account for changes mentioned above.
 
 ### v6.2.2
 

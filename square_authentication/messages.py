@@ -17,4 +17,5 @@ messages = {
     "GENERIC_500": "an internal server error occurred. please try again later.",
     "INVALID_FILE_FORMAT": "the file format is not supported. please upload a valid file.",
     "FILE_SIZE_EXCEEDS_LIMIT": "the file size exceeds the limit. please upload a smaller file.",
+    "INCORRECT_AUTH_PROVIDER": "you have not linked this authentication provider to your account. please link it first.",
 }
