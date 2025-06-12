@@ -23,6 +23,7 @@ pip install square_authentication
 - core
     - register_username_v0 fixed to account for changes mentioned above.
     - login_username_v0 fixed to account for changes mentioned above.
+    - update_username_v0 fixed to account for changes mentioned above.
 
 ### v6.2.2
 

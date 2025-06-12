@@ -1186,12 +1186,10 @@ async def update_username_v0(
             global_object_square_database_helper.get_rows_v0(
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
-                table_name=UserProfile.__tablename__,
+                table_name=User.__tablename__,
                 filters=FiltersV0(
                     root={
-                        UserProfile.user_profile_username.name: FilterConditionsV0(
-                            eq=new_username
-                        ),
+                        User.user_username.name: FilterConditionsV0(eq=new_username),
                     }
                 ),
             )["data"]["main"]
@@ -1212,14 +1210,14 @@ async def update_username_v0(
         global_object_square_database_helper.edit_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
-            table_name=UserProfile.__tablename__,
+            table_name=User.__tablename__,
             filters=FiltersV0(
                 root={
-                    UserProfile.user_id.name: FilterConditionsV0(eq=user_id),
+                    User.user_id.name: FilterConditionsV0(eq=user_id),
                 }
             ),
             data={
-                UserProfile.user_profile_username.name: new_username,
+                User.user_username.name: new_username,
             },
         )
         """
