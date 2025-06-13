@@ -138,6 +138,19 @@ async def register_username_v0(
         ][
             "main"
         ]
+        local_str_user_id = local_list_response_user[0][User.user_id.name]
+
+        # entry in user profile table
+        global_object_square_database_helper.insert_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserProfile.__tablename__,
+            data=[
+                {
+                    UserProfile.user_id.name: local_str_user_id,
+                }
+            ],
+        )
 
         # entry in credential table
 
