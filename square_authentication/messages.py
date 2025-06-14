@@ -18,4 +18,6 @@ messages = {
     "INVALID_FILE_FORMAT": "the file format is not supported. please upload a valid file.",
     "FILE_SIZE_EXCEEDS_LIMIT": "the file size exceeds the limit. please upload a smaller file.",
     "INCORRECT_AUTH_PROVIDER": "you have not linked this authentication provider to your account. please link it first.",
+    "INVALID_EMAIL_FORMAT": "the email address is invalid. please provide a valid email address.",
+    "INVALID_PHONE_NUMBER_FORMAT": "the phone number is invalid. please provide a valid phone number.",
 }

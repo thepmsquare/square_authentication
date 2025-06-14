@@ -24,6 +24,8 @@ pip install square_authentication
     - register_username_v0 fixed to account for changes mentioned above and creates empty profile.
     - login_username_v0 fixed to account for changes mentioned above.
     - update_username_v0 fixed to account for changes mentioned above.
+- profile
+    - add update_profile_details_v0.
 
 ### v6.2.2
 
