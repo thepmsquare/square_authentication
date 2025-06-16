@@ -26,6 +26,8 @@ pip install square_authentication
     - update_username_v0 fixed to account for changes mentioned above.
 - profile
     - add update_profile_details_v0.
+- tests
+    - add test cases and fixtures for login_username_v0.
 
 ### v6.2.2
 

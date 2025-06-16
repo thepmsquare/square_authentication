@@ -65,3 +65,15 @@ def create_client_and_cleanup(get_patched_configuration):
             postgres_connection.execute(
                 text(f"DROP DATABASE {database['database']} WITH (FORCE)")
             )
+
+
+@pytest.fixture()
+def fixture_create_user(create_client_and_cleanup):
+    payload = {
+        "username": "testuser",
+        "password": "testpass123",
+        "app_id": 1,
+    }
+    response = create_client_and_cleanup.post("/register_username/v0", json=payload)
+    assert response.status_code == 201
+    yield payload, response.json()
