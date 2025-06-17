@@ -16,7 +16,7 @@ pip install square_authentication
 
 ## changelog
 
-### v6.3.0 (inprogress)
+### v7.0.0 (inprogress)
 
 - internal support for UserAuthProvider.
 - internal support for username shifted from UserProfile to User.
@@ -24,10 +24,12 @@ pip install square_authentication
     - register_username_v0 fixed to account for changes mentioned above and creates empty profile.
     - login_username_v0 fixed to account for changes mentioned above.
     - update_username_v0 fixed to account for changes mentioned above.
+    - **breaking change**: delete_user_v0 is now a POST method instead of DELETE.
 - profile
     - add update_profile_details_v0.
 - tests
     - add test cases and fixtures for login_username_v0.
+    - add test cases and fixtures for delete_user_v0.
 
 ### v6.2.2
 

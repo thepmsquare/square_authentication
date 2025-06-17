@@ -1260,7 +1260,7 @@ async def update_username_v0(
         )
 
 
-@router.delete("/delete_user/v0")
+@router.post("/delete_user/v0")
 @global_object_square_logger.auto_logger()
 async def delete_user_v0(
     body: DeleteUserV0,

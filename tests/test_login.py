@@ -1,7 +1,7 @@
 from square_authentication.messages import messages
 
 
-def test_login(create_client_and_cleanup, fixture_create_user):
+def test_login_v0(create_client_and_cleanup, fixture_create_user):
     create_user_input, create_user_output = fixture_create_user
     payload = {
         "username": create_user_output["data"]["main"]["username"],
