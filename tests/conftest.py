@@ -77,3 +77,11 @@ def fixture_create_user(create_client_and_cleanup):
     response = create_client_and_cleanup.post("/register_username/v0", json=payload)
     assert response.status_code == 201
     yield payload, response.json()
+    # cleanup
+    cleanup_headers = {"access-token": response.json()["data"]["main"]["access_token"]}
+    cleanup_payload = {
+        "password": payload["password"],
+    }
+    create_client_and_cleanup.post(
+        "/delete_user/v0", json=cleanup_payload, headers=cleanup_headers
+    )

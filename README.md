@@ -31,6 +31,7 @@ pip install square_authentication
 - tests
     - add test cases and fixtures for login_username_v0.
     - add test cases and fixtures for delete_user_v0.
+    - add test cases and fixtures for update_profile_details_v0.
 
 ### v6.2.2
 
