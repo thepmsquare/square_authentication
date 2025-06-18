@@ -20,4 +20,5 @@ messages = {
     "INCORRECT_AUTH_PROVIDER": "you have not linked this authentication provider to your account. please link it first.",
     "INVALID_EMAIL_FORMAT": "the email address is invalid. please provide a valid email address.",
     "INVALID_PHONE_NUMBER_FORMAT": "the phone number is invalid. please provide a valid phone number.",
+    "GENERIC_MISSING_REQUIRED_FIELD": "a required field is missing. please check your input and try again.",
 }

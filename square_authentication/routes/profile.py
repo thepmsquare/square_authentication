@@ -173,6 +173,7 @@ async def update_profile_details_v0(
     first_name: Optional[str] = None,
     last_name: Optional[str] = None,
     email: Optional[str] = None,
+    phone_number_country_code: Optional[str] = None,
     phone_number: Optional[str] = None,
 ):
     try:
@@ -213,6 +214,17 @@ async def update_profile_details_v0(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=output_content,
             )
+        if (phone_number and not phone_number_country_code) or (
+            phone_number_country_code and not phone_number
+        ):
+            output_content = get_api_output_in_standard_format(
+                message=messages["GENERIC_MISSING_REQUIRED_FIELD"],
+                log="both phone number and country code must be provided together.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
 
         """
         main process
@@ -224,10 +236,13 @@ async def update_profile_details_v0(
             profile_update_data[UserProfile.user_profile_last_name.name] = last_name
         if email is not None:
             profile_update_data[UserProfile.user_profile_email.name] = email
-        if phone_number is not None:
+        if phone_number is not None and phone_number_country_code is not None:
             profile_update_data[UserProfile.user_profile_phone_number.name] = (
                 phone_number
             )
+            profile_update_data[
+                UserProfile.user_profile_phone_number_country_code.name
+            ] = phone_number_country_code
 
         # updating user profile
         profile_update_response = global_object_square_database_helper.edit_rows_v0(

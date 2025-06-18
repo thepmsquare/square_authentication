@@ -20,6 +20,7 @@ pip install square_authentication
 
 - internal support for UserAuthProvider.
 - internal support for username shifted from UserProfile to User.
+- internal support for phone number country code in UserProfile.
 - core
     - register_username_v0 fixed to account for changes mentioned above and creates empty profile.
     - login_username_v0 fixed to account for changes mentioned above.
