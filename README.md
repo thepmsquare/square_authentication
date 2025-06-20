@@ -26,6 +26,7 @@ pip install square_authentication
     - login_username_v0 fixed to account for changes mentioned above.
     - update_username_v0 fixed to account for changes mentioned above.
     - **breaking change**: delete_user_v0 is now a POST method instead of DELETE.
+    - add generate_account_backup_codes_v0.
 - profile
     - add update_profile_details_v0.
 - tests

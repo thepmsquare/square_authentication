@@ -1,5 +1,6 @@
 import copy
 import re
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, List
 
@@ -16,6 +17,7 @@ from square_database_structure.square.authentication import global_string_schema
 from square_database_structure.square.authentication.enums import (
     RecoveryMethodEnum,
     AuthProviderEnum,
+    VerificationCodeTypeEnum,
 )
 from square_database_structure.square.authentication.tables import (
     User,
@@ -25,6 +27,7 @@ from square_database_structure.square.authentication.tables import (
     UserProfile,
     UserRecoveryMethod,
     UserAuthProvider,
+    UserVerificationCode,
 )
 from square_database_structure.square.public import (
     global_string_schema_name as global_string_public_schema_name,
@@ -1721,4 +1724,115 @@ async def update_user_recovery_methods_v0(
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=output_content,
+        )
+
+
+@router.post("/generate_account_backup_codes/v0")
+@global_object_square_logger.auto_logger()
+async def generate_account_backup_codes_v0(
+    access_token: Annotated[str, Header()],
+):
+
+    try:
+        """
+        validation
+        """
+        try:
+            local_dict_access_token_payload = get_jwt_payload(
+                access_token, config_str_secret_key_for_access_token
+            )
+        except Exception as error:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        user_id = local_dict_access_token_payload["user_id"]
+        # check if user has recovery method enabled
+        local_list_response_user_recovery_methods = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserRecoveryMethod.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserRecoveryMethod.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserRecoveryMethod.user_recovery_method_name.name: FilterConditionsV0(
+                        eq=RecoveryMethodEnum.BACKUP_CODE.value
+                    ),
+                }
+            ),
+        )[
+            "data"
+        ][
+            "main"
+        ]
+        if len(local_list_response_user_recovery_methods) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["RECOVERY_METHOD_NOT_ENABLED"],
+                log=f"user_id: {user_id} does not have backup codes recovery method enabled.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        """
+        main process
+        """
+        # generate backup codes
+        backup_codes = []
+        db_data = []
+
+        for i in range(10):
+            backup_code = str(uuid.uuid4())
+            backup_codes.append(backup_code)
+            # hash the backup code
+            local_str_hashed_backup_code = bcrypt.hashpw(
+                backup_code.encode("utf-8"), bcrypt.gensalt()
+            ).decode("utf-8")
+
+            db_data.append(
+                {
+                    UserVerificationCode.user_id.name: user_id,
+                    UserVerificationCode.user_verification_code_type.name: VerificationCodeTypeEnum.BACKUP_CODE_RECOVERY.value,
+                    UserVerificationCode.user_verification_code_hash.name: local_str_hashed_backup_code,
+                }
+            )
+        global_object_square_database_helper.insert_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserVerificationCode.__tablename__,
+            data=db_data,
+        )
+
+        """
+        return value
+        """
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_CREATION_SUCCESSFUL"],
+            data={
+                "main": {
+                    "user_id": user_id,
+                    "backup_codes": backup_codes,
+                }
+            },
+        )
+        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+    except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
+        return JSONResponse(
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
+        """
+        rollback logic
+        """
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
         )
