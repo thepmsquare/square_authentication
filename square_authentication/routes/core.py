@@ -50,6 +50,7 @@ from square_authentication.pydantic_models.core import (
     RegisterUsernameV0,
     TokenType,
     UpdatePasswordV0,
+    ResetPasswordAndLoginUsingBackupCodeV0,
 )
 from square_authentication.utils.token import get_jwt_payload
 
@@ -1438,7 +1439,7 @@ async def update_password_v0(
         """
         main process
         """
-        # delete the user.
+        # update the password
         local_str_hashed_password = bcrypt.hashpw(
             new_password.encode("utf-8"), bcrypt.gensalt()
         ).decode("utf-8")
@@ -1818,6 +1819,250 @@ async def generate_account_backup_codes_v0(
                 }
             },
         )
+        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+    except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
+        return JSONResponse(
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
+        """
+        rollback logic
+        """
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
+        )
+
+
+@router.post("/reset_password_and_login_using_backup_code/v0")
+@global_object_square_logger.auto_logger()
+async def reset_password_and_login_using_backup_code_v0(
+    body: ResetPasswordAndLoginUsingBackupCodeV0,
+):
+    backup_code = body.backup_code
+    username = body.username
+    new_password = body.new_password
+    app_id = body.app_id
+    try:
+        """
+        validation
+        """
+        # validate username
+        local_list_authentication_user_response = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=User.__tablename__,
+                filters=FiltersV0(
+                    root={User.user_username.name: FilterConditionsV0(eq=username)}
+                ),
+            )["data"]["main"]
+        )
+        if len(local_list_authentication_user_response) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_USERNAME"],
+                log=f"incorrect username: {username}.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        user_id = local_list_authentication_user_response[0][User.user_id.name]
+        # check if user has recovery method enabled
+        local_list_response_user_recovery_methods = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserRecoveryMethod.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserRecoveryMethod.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserRecoveryMethod.user_recovery_method_name.name: FilterConditionsV0(
+                        eq=RecoveryMethodEnum.BACKUP_CODE.value
+                    ),
+                }
+            ),
+        )[
+            "data"
+        ][
+            "main"
+        ]
+        if len(local_list_response_user_recovery_methods) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["RECOVERY_METHOD_NOT_ENABLED"],
+                log=f"user_id: {user_id} does not have backup codes recovery method enabled.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        # validate if user is assigned to the app.
+        # not checking [skipping] if the app exists, as it is not required for this endpoint.
+        local_list_response_user_app = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserApp.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserApp.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserApp.app_id.name: FilterConditionsV0(eq=app_id),
+                }
+            ),
+        )["data"]["main"]
+        if len(local_list_response_user_app) == 0:
+            output_content = get_api_output_in_standard_format(
+                message=messages["GENERIC_400"],
+                log=f"user_id: {user_id} is not assigned to app_id: {app_id}.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        """
+        main process
+        """
+        # validate backup code
+        local_list_response_user_verification_code = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserVerificationCode.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserVerificationCode.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserVerificationCode.user_verification_code_type.name: FilterConditionsV0(
+                        eq=VerificationCodeTypeEnum.BACKUP_CODE_RECOVERY.value
+                    ),
+                    UserVerificationCode.user_verification_code_expires_at.name: FilterConditionsV0(
+                        is_null=True
+                    ),
+                    UserVerificationCode.user_verification_code_used_at.name: FilterConditionsV0(
+                        is_null=True
+                    ),
+                }
+            ),
+            columns=[UserVerificationCode.user_verification_code_hash.name],
+        )[
+            "data"
+        ][
+            "main"
+        ]
+        # find the backup code in the list
+        local_list_response_user_verification_code = [
+            x
+            for x in local_list_response_user_verification_code
+            if bcrypt.checkpw(
+                backup_code.encode("utf-8"),
+                x[UserVerificationCode.user_verification_code_hash.name].encode(
+                    "utf-8"
+                ),
+            )
+        ]
+        if len(local_list_response_user_verification_code) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_BACKUP_CODE"],
+                log=f"incorrect backup code: {backup_code} for user_id: {user_id}.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        # hash the new password
+        local_str_hashed_password = bcrypt.hashpw(
+            new_password.encode("utf-8"), bcrypt.gensalt()
+        ).decode("utf-8")
+        # update the password
+        global_object_square_database_helper.edit_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserCredential.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserCredential.user_id.name: FilterConditionsV0(eq=user_id),
+                }
+            ),
+            data={
+                UserCredential.user_credential_hashed_password.name: local_str_hashed_password,
+            },
+        )
+        # mark the backup code as used
+        global_object_square_database_helper.edit_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserVerificationCode.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserVerificationCode.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserVerificationCode.user_verification_code_type.name: FilterConditionsV0(
+                        eq=VerificationCodeTypeEnum.BACKUP_CODE_RECOVERY.value
+                    ),
+                    UserVerificationCode.user_verification_code_hash.name: FilterConditionsV0(
+                        eq=local_list_response_user_verification_code[0][
+                            UserVerificationCode.user_verification_code_hash.name
+                        ]
+                    ),
+                }
+            ),
+            data={
+                UserVerificationCode.user_verification_code_used_at.name: datetime.now(
+                    timezone.utc
+                ).strftime("%Y-%m-%d %H:%M:%S.%f+00"),
+            },
+        )
+        # generate access token and refresh token
+        local_dict_access_token_payload = {
+            "app_id": app_id,
+            "user_id": user_id,
+            "exp": datetime.now(timezone.utc)
+            + timedelta(minutes=config_int_access_token_valid_minutes),
+        }
+        local_str_access_token = jwt.encode(
+            local_dict_access_token_payload, config_str_secret_key_for_access_token
+        )
+        local_object_refresh_token_expiry_time = datetime.now(timezone.utc) + timedelta(
+            minutes=config_int_refresh_token_valid_minutes
+        )
+        local_dict_refresh_token_payload = {
+            "app_id": app_id,
+            "user_id": user_id,
+            "exp": local_object_refresh_token_expiry_time,
+        }
+        local_str_refresh_token = jwt.encode(
+            local_dict_refresh_token_payload, config_str_secret_key_for_refresh_token
+        )
+        # insert the refresh token in the database
+        global_object_square_database_helper.insert_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserSession.__tablename__,
+            data=[
+                {
+                    UserSession.user_id.name: user_id,
+                    UserSession.app_id.name: app_id,
+                    UserSession.user_session_refresh_token.name: local_str_refresh_token,
+                    UserSession.user_session_expiry_time.name: local_object_refresh_token_expiry_time.strftime(
+                        "%Y-%m-%d %H:%M:%S.%f+00"
+                    ),
+                }
+            ],
+        )
+        """
+        return value
+        """
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_CREATION_SUCCESSFUL"],
+            data={
+                "main": {
+                    "user_id": user_id,
+                    "access_token": local_str_access_token,
+                    "refresh_token": local_str_refresh_token,
+                }
+            },
+        )
+
         return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)

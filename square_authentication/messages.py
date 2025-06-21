@@ -22,4 +22,5 @@ messages = {
     "INVALID_PHONE_NUMBER_FORMAT": "the phone number is invalid. please provide a valid phone number.",
     "GENERIC_MISSING_REQUIRED_FIELD": "a required field is missing. please check your input and try again.",
     "RECOVERY_METHOD_NOT_ENABLED": "the recovery method you are trying to use is not enabled for your account.",
+    "INCORRECT_BACKUP_CODE": "the backup code you provided is incorrect or has already been used. please try again with a valid code.",
 }

@@ -33,3 +33,10 @@ class TokenType(Enum):
 
 class LogoutAppsV0(BaseModel):
     app_ids: List[int]
+
+
+class ResetPasswordAndLoginUsingBackupCodeV0(BaseModel):
+    backup_code: str
+    username: str
+    new_password: str
+    app_id: int
