@@ -13,6 +13,7 @@ messages = {
     "GENERIC_READ_SUCCESSFUL": "data retrieved successfully.",
     "GENERIC_UPDATE_SUCCESSFUL": "your information has been updated successfully.",
     "GENERIC_DELETE_SUCCESSFUL": "your records have been deleted successfully.",
+    "GENERIC_ACTION_SUCCESSFUL": "the action was completed successfully.",
     "GENERIC_400": "the request is invalid or cannot be processed.",
     "GENERIC_500": "an internal server error occurred. please try again later.",
     "INVALID_FILE_FORMAT": "the file format is not supported. please upload a valid file.",
@@ -23,4 +24,5 @@ messages = {
     "GENERIC_MISSING_REQUIRED_FIELD": "a required field is missing. please check your input and try again.",
     "RECOVERY_METHOD_NOT_ENABLED": "the recovery method you are trying to use is not enabled for your account.",
     "INCORRECT_BACKUP_CODE": "the backup code you provided is incorrect or has already been used. please try again with a valid code.",
+    "EMAIL_ALREADY_VERIFIED": "your email address has already been verified.",
 }

@@ -30,10 +30,13 @@ pip install square_authentication
     - add reset_password_and_login_using_backup_code_v0.
 - profile
     - add update_profile_details_v0.
+    - add send_verification_email_v0.
 - tests
     - add test cases and fixtures for login_username_v0.
     - add test cases and fixtures for delete_user_v0.
     - add test cases and fixtures for update_profile_details_v0.
+- env
+    - add EMAIL section and MAIL_GUN_API_KEY variable.
 
 ### v6.2.2
 

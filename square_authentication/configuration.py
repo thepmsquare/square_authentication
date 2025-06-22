@@ -94,6 +94,12 @@ try:
         ldict_configuration["SQUARE_FILE_STORE_HELPER"]["SQUARE_FILE_STORE_PORT"]
     )
     # ===========================================
+
+    # ===========================================
+    # EMAIL
+
+    MAIL_GUN_API_KEY = ldict_configuration["EMAIL"]["MAIL_GUN_API_KEY"]
+    # ===========================================
     # Initialize logger
     global_object_square_logger = SquareLogger(
         pstr_log_file_name=config_str_log_file_name,
