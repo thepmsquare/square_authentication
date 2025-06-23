@@ -25,4 +25,5 @@ messages = {
     "RECOVERY_METHOD_NOT_ENABLED": "the recovery method you are trying to use is not enabled for your account.",
     "INCORRECT_BACKUP_CODE": "the backup code you provided is incorrect or has already been used. please try again with a valid code.",
     "EMAIL_ALREADY_VERIFIED": "your email address has already been verified.",
+    "INCORRECT_VERIFICATION_CODE": "the verification code you entered is incorrect or has expired. please request a new code.",
 }
