@@ -26,4 +26,5 @@ messages = {
     "INCORRECT_BACKUP_CODE": "the backup code you provided is incorrect or has already been used. please try again with a valid code.",
     "EMAIL_ALREADY_VERIFIED": "your email address has already been verified.",
     "INCORRECT_VERIFICATION_CODE": "the verification code you entered is incorrect or has expired. please request a new code.",
+    "EMAIL_NOT_VERIFIED": "your email address has not been verified. please verify your email to continue.",
 }

@@ -28,6 +28,8 @@ pip install square_authentication
     - **breaking change**: delete_user_v0 is now a POST method instead of DELETE.
     - add generate_account_backup_codes_v0.
     - add reset_password_and_login_using_backup_code_v0.
+    - add validation for email verification when adding email as recovery method in update_user_recovery_methods_v0.
+    - add send_reset_password_email_v0.
 - profile
     - add update_profile_details_v0.
     - add send_verification_email_v0.

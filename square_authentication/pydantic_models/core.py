@@ -40,3 +40,8 @@ class ResetPasswordAndLoginUsingBackupCodeV0(BaseModel):
     username: str
     new_password: str
     app_id: int
+
+
+class SendResetPasswordEmailV0(BaseModel):
+    username: str
+    app_id: int
