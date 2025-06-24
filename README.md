@@ -16,7 +16,7 @@ pip install square_authentication
 
 ## changelog
 
-### v7.0.0 (inprogress)
+### v7.0.0
 
 - internal support for UserAuthProvider.
 - internal support for username shifted from UserProfile to User.
