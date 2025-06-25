@@ -16,6 +16,12 @@ pip install square_authentication
 
 ## changelog
 
+### v8.0.0 (in progress)
+
+- core
+    - add reset_password_and_login_using_reset_email_code_v0.
+    - **breaking change**: remove app_id from send_reset_password_email_v0.
+
 ### v7.0.0
 
 - internal support for UserAuthProvider.
