@@ -21,6 +21,7 @@ pip install square_authentication
 - core
     - add reset_password_and_login_using_reset_email_code_v0.
     - **breaking change**: remove app_id from send_reset_password_email_v0.
+    - implement deletion of existing backup codes before generating new ones (generate_account_backup_codes_v0).
 
 ### v7.0.0
 

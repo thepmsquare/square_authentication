@@ -1827,6 +1827,22 @@ async def generate_account_backup_codes_v0(
         """
         main process
         """
+        # delete existing backup codes if any
+        old_backup_code_hashes = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserVerificationCode.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserVerificationCode.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserVerificationCode.user_verification_code_type.name: FilterConditionsV0(
+                        eq=VerificationCodeTypeEnum.BACKUP_CODE_RECOVERY.value
+                    ),
+                }
+            ),
+            columns=[UserVerificationCode.user_verification_code_hash.name],
+        )["data"]["main"]
+
         # generate backup codes
         backup_codes = []
         db_data = []
@@ -1852,7 +1868,21 @@ async def generate_account_backup_codes_v0(
             table_name=UserVerificationCode.__tablename__,
             data=db_data,
         )
-
+        global_object_square_database_helper.delete_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserVerificationCode.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserVerificationCode.user_verification_code_hash.name: FilterConditionsV0(
+                        in_=[
+                            x[UserVerificationCode.user_verification_code_hash.name]
+                            for x in old_backup_code_hashes
+                        ]
+                    ),
+                }
+            ),
+        )
         """
         return value
         """
