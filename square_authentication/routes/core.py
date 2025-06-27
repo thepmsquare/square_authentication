@@ -1711,6 +1711,28 @@ async def update_user_recovery_methods_v0(
             )
 
         # logic for removing recovery_methods
+        remove_old_backup_codes = (
+            RecoveryMethodEnum.BACKUP_CODE.value in recovery_methods_to_remove
+        )
+
+        if remove_old_backup_codes:
+            # delete existing backup codes if any
+            old_backup_code_hashes = global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserVerificationCode.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserVerificationCode.user_id.name: FilterConditionsV0(
+                            eq=user_id
+                        ),
+                        UserVerificationCode.user_verification_code_type.name: FilterConditionsV0(
+                            eq=VerificationCodeTypeEnum.BACKUP_CODE_RECOVERY.value
+                        ),
+                    }
+                ),
+                columns=[UserVerificationCode.user_verification_code_hash.name],
+            )["data"]["main"]
         global_object_square_database_helper.delete_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
@@ -1724,6 +1746,22 @@ async def update_user_recovery_methods_v0(
                 }
             ),
         )
+        if remove_old_backup_codes:
+            global_object_square_database_helper.delete_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserVerificationCode.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserVerificationCode.user_verification_code_hash.name: FilterConditionsV0(
+                            in_=[
+                                x[UserVerificationCode.user_verification_code_hash.name]
+                                for x in old_backup_code_hashes
+                            ]
+                        ),
+                    }
+                ),
+            )
 
         """
         return value
