@@ -23,6 +23,10 @@ pip install square_authentication
     - **breaking change**: remove app_id from send_reset_password_email_v0.
     - implement deletion of existing backup codes before generating new ones (generate_account_backup_codes_v0).
     - implement deletion of existing backup codes before removing recovery method (update_user_recovery_methods_v0).
+    - implement logout_other_sessions in update_password_v0, reset_password_and_login_using_backup_code_v0 and
+      reset_password_and_login_using_reset_email_code_v0
+        - in update_password_v0, it will log out all other sessions except the current one if valid (optional)
+          refresh_token is passed in.
 
 ### v7.0.0
 

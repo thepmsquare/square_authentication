@@ -24,6 +24,8 @@ class DeleteUserV0(BaseModel):
 class UpdatePasswordV0(BaseModel):
     old_password: str
     new_password: str
+    logout_other_sessions: bool = False
+    preserve_session_refresh_token: Optional[str] = None
 
 
 class TokenType(Enum):
@@ -40,6 +42,7 @@ class ResetPasswordAndLoginUsingBackupCodeV0(BaseModel):
     username: str
     new_password: str
     app_id: int
+    logout_other_sessions: bool = False
 
 
 class SendResetPasswordEmailV0(BaseModel):
@@ -51,3 +54,4 @@ class ResetPasswordAndLoginUsingResetEmailCodeV0(BaseModel):
     username: str
     new_password: str
     app_id: int
+    logout_other_sessions: bool = False

@@ -1387,6 +1387,8 @@ async def update_password_v0(
 ):
     old_password = body.old_password
     new_password = body.new_password
+    logout_other_sessions = body.logout_other_sessions
+    preserve_session_refresh_token = body.preserve_session_refresh_token
     try:
         """
         validation
@@ -1445,6 +1447,37 @@ async def update_password_v0(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=output_content,
             )
+        # check if provided refresh token is valid
+        if preserve_session_refresh_token:
+            local_dict_token_payload = get_jwt_payload(
+                preserve_session_refresh_token, config_str_secret_key_for_refresh_token
+            )
+            local_list_response_user_session = global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserSession.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserSession.user_id.name: FilterConditionsV0(eq=user_id),
+                        UserSession.user_session_refresh_token.name: FilterConditionsV0(
+                            eq=preserve_session_refresh_token
+                        ),
+                    }
+                ),
+            )[
+                "data"
+            ][
+                "main"
+            ]
+            if len(local_list_response_user_session) != 1:
+                output_content = get_api_output_in_standard_format(
+                    message=messages["INCORRECT_REFRESH_TOKEN"],
+                    log=f"incorrect refresh token: {preserve_session_refresh_token}.",
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=output_content,
+                )
         """
         main process
         """
@@ -1465,6 +1498,34 @@ async def update_password_v0(
                 UserCredential.user_credential_hashed_password.name: local_str_hashed_password,
             },
         )
+        if logout_other_sessions:
+            if preserve_session_refresh_token:
+                # delete all sessions for user except the one with the given refresh token
+                global_object_square_database_helper.delete_rows_v0(
+                    database_name=global_string_database_name,
+                    schema_name=global_string_schema_name,
+                    table_name=UserSession.__tablename__,
+                    filters=FiltersV0(
+                        root={
+                            UserSession.user_id.name: FilterConditionsV0(eq=user_id),
+                            UserSession.user_session_refresh_token.name: FilterConditionsV0(
+                                ne=preserve_session_refresh_token
+                            ),
+                        }
+                    ),
+                )
+            else:
+                # delete all sessions for user
+                global_object_square_database_helper.delete_rows_v0(
+                    database_name=global_string_database_name,
+                    schema_name=global_string_schema_name,
+                    table_name=UserSession.__tablename__,
+                    filters=FiltersV0(
+                        root={
+                            UserSession.user_id.name: FilterConditionsV0(eq=user_id),
+                        }
+                    ),
+                )
         """
         return value
         """
@@ -1714,7 +1775,7 @@ async def update_user_recovery_methods_v0(
         remove_old_backup_codes = (
             RecoveryMethodEnum.BACKUP_CODE.value in recovery_methods_to_remove
         )
-
+        old_backup_code_hashes = None
         if remove_old_backup_codes:
             # delete existing backup codes if any
             old_backup_code_hashes = global_object_square_database_helper.get_rows_v0(
@@ -1746,7 +1807,7 @@ async def update_user_recovery_methods_v0(
                 }
             ),
         )
-        if remove_old_backup_codes:
+        if remove_old_backup_codes and old_backup_code_hashes:
             global_object_square_database_helper.delete_rows_v0(
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
@@ -1962,6 +2023,7 @@ async def reset_password_and_login_using_backup_code_v0(
     username = body.username
     new_password = body.new_password
     app_id = body.app_id
+    logout_other_sessions = body.logout_other_sessions
     try:
         """
         validation
@@ -2126,6 +2188,18 @@ async def reset_password_and_login_using_backup_code_v0(
                 ).strftime("%Y-%m-%d %H:%M:%S.%f+00"),
             },
         )
+        if logout_other_sessions:
+            # delete all sessions for user
+            global_object_square_database_helper.delete_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserSession.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserSession.user_id.name: FilterConditionsV0(eq=user_id),
+                    }
+                ),
+            )
         # generate access token and refresh token
         local_dict_access_token_payload = {
             "app_id": app_id,
@@ -2391,6 +2465,7 @@ async def reset_password_and_login_using_reset_email_code_v0(
     username = body.username
     new_password = body.new_password
     app_id = body.app_id
+    logout_other_sessions = body.logout_other_sessions
     try:
         """
         validation
@@ -2592,6 +2667,18 @@ async def reset_password_and_login_using_reset_email_code_v0(
                 ).strftime("%Y-%m-%d %H:%M:%S.%f+00"),
             },
         )
+        if logout_other_sessions:
+            # delete all sessions for user
+            global_object_square_database_helper.delete_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserSession.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserSession.user_id.name: FilterConditionsV0(eq=user_id),
+                    }
+                ),
+            )
         # generate access token and refresh token
         local_dict_access_token_payload = {
             "app_id": app_id,
