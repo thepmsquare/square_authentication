@@ -100,6 +100,14 @@ try:
 
     MAIL_GUN_API_KEY = ldict_configuration["EMAIL"]["MAIL_GUN_API_KEY"]
     # ===========================================
+    # ===========================================
+    # GOOGLE
+
+    GOOGLE_AUTH_PLATFORM_CLIENT_ID = ldict_configuration["GOOGLE"][
+        "GOOGLE_AUTH_PLATFORM_CLIENT_ID"
+    ]
+    # ===========================================
+
     # Initialize logger
     global_object_square_logger = SquareLogger(
         pstr_log_file_name=config_str_log_file_name,

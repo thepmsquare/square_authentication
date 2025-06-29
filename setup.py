@@ -25,6 +25,7 @@ setup(
         "square_file_store_helper>=3.0.0",
         "pytest>=8.0.0",
         "httpx>=0.27.2",
+        "google-auth>=2.40.3",
     ],
     extras_require={},
     author="thePmSquare",

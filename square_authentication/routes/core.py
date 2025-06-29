@@ -10,6 +10,8 @@ import jwt
 from fastapi import APIRouter, Header, HTTPException, status
 from fastapi.params import Query
 from fastapi.responses import JSONResponse
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
 from requests import HTTPError
 from square_commons import get_api_output_in_standard_format, send_email_using_mailgun
 from square_database_helper.pydantic_models import FilterConditionsV0, FiltersV0
@@ -48,6 +50,7 @@ from square_authentication.configuration import (
     global_object_square_logger,
     global_object_square_database_helper,
     MAIL_GUN_API_KEY,
+    GOOGLE_AUTH_PLATFORM_CLIENT_ID,
 )
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.core import (
@@ -60,7 +63,9 @@ from square_authentication.pydantic_models.core import (
     ResetPasswordAndLoginUsingBackupCodeV0,
     SendResetPasswordEmailV0,
     ResetPasswordAndLoginUsingResetEmailCodeV0,
+    RegisterLoginGoogleV0,
 )
+from square_authentication.utils.core import generate_default_username_for_google_users
 from square_authentication.utils.token import get_jwt_payload
 
 router = APIRouter(
@@ -136,7 +141,7 @@ async def register_username_v0(
         local_str_user_id = local_list_response_user[0][User.user_id.name]
 
         # entry in user auth provider table
-        local_list_response_user_auth_provider = global_object_square_database_helper.insert_rows_v0(
+        global_object_square_database_helper.insert_rows_v0(
             data=[
                 {
                     UserAuthProvider.user_id.name: local_str_user_id,
@@ -146,12 +151,7 @@ async def register_username_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserAuthProvider.__tablename__,
-        )[
-            "data"
-        ][
-            "main"
-        ]
-        local_str_user_id = local_list_response_user[0][User.user_id.name]
+        )
 
         # entry in user profile table
         global_object_square_database_helper.insert_rows_v0(
@@ -285,6 +285,288 @@ async def register_username_v0(
         )
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
+        )
+
+
+@router.post("/register_login_google/v0")
+async def register_login_google_v0(body: RegisterLoginGoogleV0):
+    app_id = body.app_id
+    google_id = body.google_id
+    assign_app_id_if_missing = body.assign_app_id_if_missing
+    was_new_user = False
+    try:
+        """
+        validation
+        """
+        # verify id token
+        id_info = id_token.verify_oauth2_token(
+            google_id,
+            google_requests.Request(),
+            GOOGLE_AUTH_PLATFORM_CLIENT_ID,
+        )
+        # validate if email is verified
+        if id_info.get("email_verified") is not True:
+            output_content = get_api_output_in_standard_format(
+                message=messages["EMAIL_NOT_VERIFIED"],
+                log="Google account email is not verified.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        """
+        processing
+        """
+        google_sub = id_info["sub"]
+        email = id_info.get("email")
+        given_name = id_info.get("given_name")
+        family_name = id_info.get("family_name")
+
+        profile_picture = id_info.get("picture")
+
+        # check if user exists
+        user_rows = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserAuthProvider.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserAuthProvider.auth_provider_user_id.name: FilterConditionsV0(
+                        eq=google_sub
+                    ),
+                    UserAuthProvider.auth_provider.name: FilterConditionsV0(
+                        eq=AuthProviderEnum.GOOGLE.value
+                    ),
+                }
+            ),
+        )["data"]["main"]
+
+        if user_rows:
+
+            # validate if app_id is assigned to user
+            # this will also validate if app_id is valid
+            local_str_user_id = user_rows[0][User.user_id.name]
+            user_record = global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=User.__tablename__,
+                filters=FiltersV0(
+                    root={User.user_id.name: FilterConditionsV0(eq=local_str_user_id)}
+                ),
+            )["data"]["main"][0]
+            username = user_record[User.user_username.name]
+            local_list_user_app_response = (
+                global_object_square_database_helper.get_rows_v0(
+                    database_name=global_string_database_name,
+                    schema_name=global_string_schema_name,
+                    table_name=UserApp.__tablename__,
+                    filters=FiltersV0(
+                        root={
+                            UserApp.user_id.name: FilterConditionsV0(
+                                eq=local_str_user_id
+                            ),
+                            UserApp.app_id.name: FilterConditionsV0(eq=app_id),
+                        }
+                    ),
+                )["data"]["main"]
+            )
+            if len(local_list_user_app_response) == 0:
+                if assign_app_id_if_missing:
+                    global_object_square_database_helper.insert_rows_v0(
+                        database_name=global_string_database_name,
+                        schema_name=global_string_schema_name,
+                        table_name=UserApp.__tablename__,
+                        data=[
+                            {
+                                UserApp.user_id.name: local_str_user_id,
+                                UserApp.app_id.name: app_id,
+                            }
+                        ],
+                    )
+                else:
+                    output_content = get_api_output_in_standard_format(
+                        message=messages["GENERIC_400"],
+                        log=f"user_id {local_str_user_id}({username}) not assigned to app {app_id}.",
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=output_content,
+                    )
+        else:
+            was_new_user = True
+            # check if account with same email address exists
+            profile_rows = global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserProfile.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserProfile.user_profile_email.name: FilterConditionsV0(
+                            eq=email
+                        )
+                    }
+                ),
+            )["data"]["main"]
+            if len(profile_rows) > 0:
+                output_content = get_api_output_in_standard_format(
+                    message=messages["ACCOUNT_WITH_EMAIL_ALREADY_EXISTS"],
+                    log=f"An account with the email {email} already exists.",
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=output_content,
+                )
+            # generate a default username
+            username = generate_default_username_for_google_users(
+                family_name=family_name, given_name=given_name
+            )
+            # create user
+            user_rows = global_object_square_database_helper.insert_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=User.__tablename__,
+                data=[
+                    {
+                        User.user_username.name: username,
+                    }
+                ],
+            )["data"]["main"]
+            local_str_user_id = user_rows[0][User.user_id.name]
+
+            # link to user_auth_provider
+            global_object_square_database_helper.insert_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserAuthProvider.__tablename__,
+                data=[
+                    {
+                        UserAuthProvider.user_id.name: local_str_user_id,
+                        UserAuthProvider.auth_provider.name: AuthProviderEnum.GOOGLE.value,
+                        UserAuthProvider.auth_provider_user_id.name: google_sub,
+                    }
+                ],
+            )
+
+            # create user profile
+            # todo: add logic to add profile picture if available
+            global_object_square_database_helper.insert_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserProfile.__tablename__,
+                data=[
+                    {
+                        UserProfile.user_id.name: local_str_user_id,
+                        UserProfile.user_profile_email.name: email,
+                        UserProfile.user_profile_email_verified.name: datetime.now(
+                            timezone.utc
+                        ).strftime("%Y-%m-%d %H:%M:%S.%f+00"),
+                        UserProfile.user_profile_first_name.name: given_name,
+                        UserProfile.user_profile_last_name.name: family_name,
+                    }
+                ],
+            )
+
+            # assign app if provided
+            if app_id is not None:
+                global_object_square_database_helper.insert_rows_v0(
+                    database_name=global_string_database_name,
+                    schema_name=global_string_schema_name,
+                    table_name=UserApp.__tablename__,
+                    data=[
+                        {
+                            UserApp.user_id.name: local_str_user_id,
+                            UserApp.app_id.name: app_id,
+                        }
+                    ],
+                )
+
+        # generate tokens
+        now = datetime.now(timezone.utc)
+        access_token_payload = {
+            "app_id": app_id,
+            "user_id": local_str_user_id,
+            "exp": now + timedelta(minutes=config_int_access_token_valid_minutes),
+        }
+        access_token_str = jwt.encode(
+            access_token_payload,
+            config_str_secret_key_for_access_token,
+        )
+
+        refresh_token_expiry = now + timedelta(
+            minutes=config_int_refresh_token_valid_minutes
+        )
+        refresh_token_payload = {
+            "app_id": app_id,
+            "user_id": local_str_user_id,
+            "exp": refresh_token_expiry,
+        }
+        refresh_token_str = jwt.encode(
+            refresh_token_payload,
+            config_str_secret_key_for_refresh_token,
+        )
+
+        # store refresh token
+        global_object_square_database_helper.insert_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserSession.__tablename__,
+            data=[
+                {
+                    UserSession.user_id.name: local_str_user_id,
+                    UserSession.app_id.name: app_id,
+                    UserSession.user_session_refresh_token.name: refresh_token_str,
+                    UserSession.user_session_expiry_time.name: refresh_token_expiry.strftime(
+                        "%Y-%m-%d %H:%M:%S.%f+00"
+                    ),
+                }
+            ],
+        )
+        """
+        return value
+        """
+        if was_new_user:
+            message = messages["REGISTRATION_SUCCESSFUL"]
+        else:
+            message = messages["LOGIN_SUCCESSFUL"]
+        output_content = get_api_output_in_standard_format(
+            message=message,
+            data={
+                "main": {
+                    "user_id": local_str_user_id,
+                    "username": username,
+                    "app_id": app_id,
+                    "access_token": access_token_str,
+                    "refresh_token": refresh_token_str,
+                    "refresh_token_expiry_time": refresh_token_expiry.isoformat(),
+                    "was_new_user": was_new_user,
+                },
+            },
+        )
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+    except HTTPError as http_error:
+        global_object_square_logger.logger.error(http_error, exc_info=True)
+        return JSONResponse(
+            status_code=http_error.response.status_code,
+            content=http_error.response.text,
+        )
+    except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
+        return JSONResponse(
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
+        """
+        rollback logic
+        """
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content=output_content,
         )
 
 

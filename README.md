@@ -18,6 +18,10 @@ pip install square_authentication
 
 ### v8.0.0 (in progress)
 
+- env
+    - add GOOGLE section and GOOGLE_AUTH_PLATFORM_CLIENT_ID variable.
+- dependencies
+    - add google-auth>=2.40.3.
 - core
     - add reset_password_and_login_using_reset_email_code_v0.
     - **breaking change**: remove app_id from send_reset_password_email_v0.
@@ -27,6 +31,9 @@ pip install square_authentication
       reset_password_and_login_using_reset_email_code_v0
         - in update_password_v0, it will log out all other sessions except the current one if valid (optional)
           refresh_token is passed in.
+    - add register_login_google_v0, **finally**.
+- utils
+    - add new core file with generate_default_username_for_google_users function.
 
 ### v7.0.0
 

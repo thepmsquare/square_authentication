@@ -10,6 +10,12 @@ class RegisterUsernameV0(BaseModel):
     app_id: Optional[int] = None
 
 
+class RegisterLoginGoogleV0(BaseModel):
+    google_id: str
+    app_id: Optional[int] = None
+    assign_app_id_if_missing: bool = False
+
+
 class LoginUsernameV0(BaseModel):
     username: str
     password: str
