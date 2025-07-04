@@ -28,4 +28,5 @@ messages = {
     "INCORRECT_VERIFICATION_CODE": "the verification code you entered is incorrect or has expired. please request a new code.",
     "EMAIL_NOT_VERIFIED": "your email address has not been verified. please verify your email to continue.",
     "ACCOUNT_WITH_EMAIL_ALREADY_EXISTS": "an account with this email address already exists.",
+    "MALFORMED_USER": " the user data is malformed or incomplete.",
 }

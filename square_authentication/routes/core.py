@@ -932,8 +932,8 @@ async def login_username_v0(body: LoginUsernameV0):
         )
         if len(local_list_authentication_user_response) != 1:
             output_content = get_api_output_in_standard_format(
-                message=messages["INCORRECT_USERNAME"],
-                log=f"incorrect username {username}",
+                message=messages["MALFORMED_USER"],
+                log=f"username: {username} does not have credentials set.",
             )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -1710,7 +1710,47 @@ async def update_password_v0(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=output_content,
             )
-
+        # check if user has SELF auth provider
+        local_list_response_user_auth_provider = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserAuthProvider.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id),
+                        UserAuthProvider.auth_provider.name: FilterConditionsV0(
+                            eq=AuthProviderEnum.SELF.value
+                        ),
+                    }
+                ),
+            )["data"]["main"]
+        )
+        if len(local_list_response_user_auth_provider) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_AUTH_PROVIDER"],
+                log=f"user_id: {user_id} does not have {AuthProviderEnum.SELF.value} auth provider.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        # check if user has credentials (might not be set in case of errors in registration.)
+        local_list_response_user = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=User.__tablename__,
+            filters=FiltersV0(root={User.user_id.name: FilterConditionsV0(eq=user_id)}),
+        )["data"]["main"]
+        if len(local_list_response_user) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["MALFORMED_USER"],
+                log=f"user_id: {user_id} does not have credentials.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
         # validate password
         local_dict_user = local_list_authentication_user_response[0]
         if not (
@@ -2331,6 +2371,31 @@ async def reset_password_and_login_using_backup_code_v0(
                 detail=output_content,
             )
         user_id = local_list_authentication_user_response[0][User.user_id.name]
+        # check if user has SELF auth provider
+        local_list_response_user_auth_provider = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserAuthProvider.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id),
+                        UserAuthProvider.auth_provider.name: FilterConditionsV0(
+                            eq=AuthProviderEnum.SELF.value
+                        ),
+                    }
+                ),
+            )["data"]["main"]
+        )
+        if len(local_list_response_user_auth_provider) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_AUTH_PROVIDER"],
+                log=f"user_id: {user_id} does not have {AuthProviderEnum.SELF.value} auth provider.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
         # check if user has recovery method enabled
         local_list_response_user_recovery_methods = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
@@ -2584,6 +2649,31 @@ async def send_reset_password_email_v0(
                 detail=output_content,
             )
         user_id = local_list_authentication_user_response[0][User.user_id.name]
+        # check if user has SELF auth provider
+        local_list_response_user_auth_provider = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserAuthProvider.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id),
+                        UserAuthProvider.auth_provider.name: FilterConditionsV0(
+                            eq=AuthProviderEnum.SELF.value
+                        ),
+                    }
+                ),
+            )["data"]["main"]
+        )
+        if len(local_list_response_user_auth_provider) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_AUTH_PROVIDER"],
+                log=f"user_id: {user_id} does not have {AuthProviderEnum.SELF.value} auth provider.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
         # check if user has recovery method enabled
         local_list_response_user_recovery_methods = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
@@ -2773,6 +2863,31 @@ async def reset_password_and_login_using_reset_email_code_v0(
                 detail=output_content,
             )
         user_id = local_list_authentication_user_response[0][User.user_id.name]
+        # check if user has SELF auth provider
+        local_list_response_user_auth_provider = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserAuthProvider.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id),
+                        UserAuthProvider.auth_provider.name: FilterConditionsV0(
+                            eq=AuthProviderEnum.SELF.value
+                        ),
+                    }
+                ),
+            )["data"]["main"]
+        )
+        if len(local_list_response_user_auth_provider) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_AUTH_PROVIDER"],
+                log=f"user_id: {user_id} does not have {AuthProviderEnum.SELF.value} auth provider.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
         # check if user has recovery method enabled
         local_list_response_user_recovery_methods = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
