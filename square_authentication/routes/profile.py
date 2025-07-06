@@ -30,6 +30,8 @@ from square_authentication.configuration import (
     global_object_square_file_store_helper,
     global_object_square_logger,
     MAIL_GUN_API_KEY,
+    NUMBER_OF_DIGITS_IN_EMAIL_VERIFICATION_CODE,
+    EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
 )
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.profile import (
@@ -359,14 +361,17 @@ async def send_verification_email_v0(
         """
         main process
         """
-        # create 6 digit verification code
-        verification_code = random.randint(100000, 999999)
+        verification_code = random.randint(
+            10 ** (NUMBER_OF_DIGITS_IN_EMAIL_VERIFICATION_CODE - 1),
+            10**NUMBER_OF_DIGITS_IN_EMAIL_VERIFICATION_CODE - 1,
+        )
         # hash the verification code
         hashed_verification_code = bcrypt.hashpw(
             str(verification_code).encode("utf-8"), bcrypt.gensalt()
         ).decode("utf-8")
-        # expire the verification code after 10 minutes
-        expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            seconds=EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS
+        )
         # add verification code to UserVerification code table
         global_object_square_database_helper.insert_rows_v0(
             database_name=global_string_database_name,
@@ -402,7 +407,7 @@ async def send_verification_email_v0(
             to_email=user_profile_data[UserProfile.user_profile_email.name],
             to_name=user_to_name,
             subject="Email Verification",
-            body=f"Your verification code is {verification_code}. It will expire in 10 minutes.",
+            body=f"Your verification code is {verification_code}. It will expire in {EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS/60} minutes.",
             api_key=MAIL_GUN_API_KEY,
             domain_name="thepmsquare.com",
         )

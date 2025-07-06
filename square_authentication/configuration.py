@@ -107,6 +107,29 @@ try:
         "GOOGLE_AUTH_PLATFORM_CLIENT_ID"
     ]
     # ===========================================
+    # ===========================================
+    # GOOGLE
+
+    NUMBER_OF_RECOVERY_CODES = int(
+        ldict_configuration["LOGIC"]["NUMBER_OF_RECOVERY_CODES"]
+    )
+    EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS = int(
+        ldict_configuration["LOGIC"][
+            "EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS"
+        ]
+    )
+    NUMBER_OF_DIGITS_IN_EMAIL_VERIFICATION_CODE = int(
+        ldict_configuration["LOGIC"]["NUMBER_OF_DIGITS_IN_EMAIL_VERIFICATION_CODE"]
+    )
+    EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS = int(
+        ldict_configuration["LOGIC"][
+            "EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS"
+        ]
+    )
+    NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE = int(
+        ldict_configuration["LOGIC"]["NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE"]
+    )
+    # ===========================================
 
     # Initialize logger
     global_object_square_logger = SquareLogger(

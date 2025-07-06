@@ -51,6 +51,9 @@ from square_authentication.configuration import (
     global_object_square_database_helper,
     MAIL_GUN_API_KEY,
     GOOGLE_AUTH_PLATFORM_CLIENT_ID,
+    NUMBER_OF_RECOVERY_CODES,
+    NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE,
+    EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
 )
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.core import (
@@ -342,6 +345,7 @@ async def register_login_google_v0(body: RegisterLoginGoogleV0):
         )["data"]["main"]
 
         if user_rows:
+            # login
 
             # validate if app_id is assigned to user
             # this will also validate if app_id is valid
@@ -393,6 +397,8 @@ async def register_login_google_v0(body: RegisterLoginGoogleV0):
                         detail=output_content,
                     )
         else:
+            # register
+
             was_new_user = True
             # check if account with same email address exists
             profile_rows = global_object_square_database_helper.get_rows_v0(
@@ -2268,7 +2274,7 @@ async def generate_account_backup_codes_v0(
         backup_codes = []
         db_data = []
 
-        for i in range(10):
+        for i in range(NUMBER_OF_RECOVERY_CODES):
             backup_code = str(uuid.uuid4())
             backup_codes.append(backup_code)
             # hash the backup code
@@ -2732,14 +2738,17 @@ async def send_reset_password_email_v0(
         """
         main process
         """
-        # create 6 digit verification code
-        verification_code = random.randint(100000, 999999)
+        verification_code = random.randint(
+            10 ** (NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE - 1),
+            10**NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE - 1,
+        )
         # hash the verification code
         hashed_verification_code = bcrypt.hashpw(
             str(verification_code).encode("utf-8"), bcrypt.gensalt()
         ).decode("utf-8")
-        # expire the verification code after 10 minutes
-        expires_at = datetime.now(timezone.utc) + timedelta(minutes=10)
+        expires_at = datetime.now(timezone.utc) + timedelta(
+            seconds=EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS
+        )
         # add verification code to UserVerification code table
         global_object_square_database_helper.insert_rows_v0(
             database_name=global_string_database_name,
@@ -2775,7 +2784,7 @@ async def send_reset_password_email_v0(
             to_email=user_profile_data[UserProfile.user_profile_email.name],
             to_name=user_to_name,
             subject="Password Reset Verification Code",
-            body=f"Your Password Reset verification code is {verification_code}. It will expire in 10 minutes.",
+            body=f"Your Password Reset verification code is {verification_code}. It will expire in {EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS/60} minutes.",
             api_key=MAIL_GUN_API_KEY,
             domain_name="thepmsquare.com",
         )

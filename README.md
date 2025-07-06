@@ -20,6 +20,9 @@ pip install square_authentication
 
 - env
     - add GOOGLE section and GOOGLE_AUTH_PLATFORM_CLIENT_ID variable.
+    - add LOGIC section with NUMBER_OF_RECOVERY_CODES, EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
+      NUMBER_OF_DIGITS_IN_EMAIL_VERIFICATION_CODE, EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
+      NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE variables.
 - dependencies
     - add google-auth>=2.40.3.
 - core
