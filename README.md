@@ -39,6 +39,8 @@ pip install square_authentication
       reset_password_and_login_using_reset_email_code_v0 to check if user has credentials and has self as auth provider.
 - utils
     - add new core file with generate_default_username_for_google_users function.
+- tests
+    - add test_login_fail_v0.
 
 ### v7.0.0
 
