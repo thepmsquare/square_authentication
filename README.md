@@ -25,6 +25,7 @@ pip install square_authentication
       NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE variables.
 - dependencies
     - add google-auth>=2.40.3.
+    - update square_commons to >=3.0.0.
 - core
     - add reset_password_and_login_using_reset_email_code_v0.
     - **breaking change**: remove app_id from send_reset_password_email_v0.

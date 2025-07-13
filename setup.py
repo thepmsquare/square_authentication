@@ -18,7 +18,7 @@ setup(
         "pyjwt>=2.8.0",
         "requests>=2.32.3",
         "cryptography>=42.0.7",
-        "square_commons>=2.1.0",
+        "square_commons>=3.0.0",
         "square_logger>=2.0.0",
         "square_database_helper>=2.0.0",
         "square_database_structure>=2.3.1",

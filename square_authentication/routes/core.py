@@ -1,4 +1,6 @@
 import copy
+import io
+import mimetypes
 import random
 import re
 import uuid
@@ -14,6 +16,7 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from requests import HTTPError
 from square_commons import get_api_output_in_standard_format, send_email_using_mailgun
+from square_commons.api_utils import make_request
 from square_database_helper.pydantic_models import FilterConditionsV0, FiltersV0
 from square_database_structure.square import global_string_database_name
 from square_database_structure.square.authentication import global_string_schema_name
@@ -54,6 +57,7 @@ from square_authentication.configuration import (
     NUMBER_OF_RECOVERY_CODES,
     NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE,
     EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
+    global_object_square_file_store_helper,
 )
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.core import (
@@ -452,9 +456,72 @@ async def register_login_google_v0(body: RegisterLoginGoogleV0):
                     }
                 ],
             )
+            # getting profile picture
+            if profile_picture:
+                try:
+                    profile_picture_response = make_request(
+                        "GET", profile_picture, return_type="response"
+                    )
 
+                    # finding content type and filename
+                    headers = profile_picture_response.headers
+                    content_type = headers.get(
+                        "Content-Type", "application/octet-stream"
+                    )
+                    content_disposition = headers.get("Content-Disposition", "")
+
+                    if content_disposition:
+                        match = re.search(r'filename="([^"]+)"', content_disposition)
+                        if match:
+                            filename = match.group(1)
+                        else:
+                            filename = None
+                    else:
+                        filename = None
+                    if filename is None:
+                        global_object_square_logger.logger.warning(
+                            f"user_id {local_str_user_id}'s profile picture from Google missing filename; guessing extension from Content-Type: {content_type}."
+                        )
+                        ext = (
+                            mimetypes.guess_extension(
+                                content_type.split(";")[0].strip()
+                            )
+                            or ""
+                        )
+                        filename = f"profile_photo{ext}"
+                        if not ext:
+                            filename += ".bin"
+
+                    # upload bytes to square_file_storage
+                    file_upload_response = global_object_square_file_store_helper.upload_file_using_tuple_v0(
+                        file=(
+                            filename,
+                            io.BytesIO(profile_picture_response.content),
+                            content_type,
+                        ),
+                        system_relative_path="global/users/profile_photos",
+                    )
+                    user_profile_photo_storage_token = file_upload_response["data"][
+                        "main"
+                    ]
+                except HTTPError:
+                    global_object_square_logger.logger.error(
+                        f"Failed to fetch profile picture for user_id {local_str_user_id} from google account.",
+                        exc_info=True,
+                    )
+                    user_profile_photo_storage_token = None
+                except Exception as e:
+                    global_object_square_logger.logger.error(
+                        f"Error while fetching profile picture for user_id {local_str_user_id} from google account: {str(e)}",
+                        exc_info=True,
+                    )
+                    user_profile_photo_storage_token = None
+            else:
+                global_object_square_logger.logger.warning(
+                    f"user_id {local_str_user_id} has no profile picture in google account."
+                )
+                user_profile_photo_storage_token = None
             # create user profile
-            # todo: add logic to add profile picture if available
             global_object_square_database_helper.insert_rows_v0(
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
@@ -468,6 +535,7 @@ async def register_login_google_v0(body: RegisterLoginGoogleV0):
                         ).strftime("%Y-%m-%d %H:%M:%S.%f+00"),
                         UserProfile.user_profile_first_name.name: given_name,
                         UserProfile.user_profile_last_name.name: family_name,
+                        UserProfile.user_profile_photo_storage_token.name: user_profile_photo_storage_token,
                     }
                 ],
             )
