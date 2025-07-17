@@ -1697,6 +1697,17 @@ async def delete_user_v0(
         """
         main process
         """
+        # fetch user profile photo storage token
+        user_profile_storage_token = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserProfile.__tablename__,
+            filters=FiltersV0(
+                root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
+            ),
+            columns=[UserProfile.user_profile_photo_storage_token.name],
+        )["data"]["main"][0][UserProfile.user_profile_photo_storage_token.name]
+
         # delete the user.
         global_object_square_database_helper.delete_rows_v0(
             database_name=global_string_database_name,
@@ -1708,6 +1719,18 @@ async def delete_user_v0(
                 }
             ),
         )
+        # delete profile photo if exists
+        if user_profile_storage_token:
+            try:
+                global_object_square_file_store_helper.delete_file_v0(
+                    list_file_storage_token=[user_profile_storage_token]
+                )
+            except HTTPError as he:
+                global_object_square_logger.warning(
+                    f"Failed to delete user profile photo with storage token {user_profile_storage_token}. "
+                    f"Error: {he.response.text}",
+                    exc_info=True,
+                )
         """
         return value
         """

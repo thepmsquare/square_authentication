@@ -38,6 +38,7 @@ pip install square_authentication
     - add register_login_google_v0, **finally**.
     - add validation in update_password_v0, reset_password_and_login_using_backup_code_v0, send_reset_password_email_v0,
       reset_password_and_login_using_reset_email_code_v0 to check if user has credentials and has self as auth provider.
+    - remove profile_photo from file_store when user is deleted in delete_user_v0.
 - utils
     - add new core file with generate_default_username_for_google_users function.
 - tests
