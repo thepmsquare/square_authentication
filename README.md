@@ -16,7 +16,7 @@ pip install square_authentication
 
 ## changelog
 
-### v8.0.0 (in progress)
+### v8.0.0
 
 - env
     - add GOOGLE section and GOOGLE_AUTH_PLATFORM_CLIENT_ID variable.
