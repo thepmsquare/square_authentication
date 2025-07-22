@@ -16,6 +16,12 @@ pip install square_authentication
 
 ## changelog
 
+### v8.0.1
+
+- core
+    - add make recovery_methods_to_add and recovery_methods_to_remove parameters optional in
+      update_user_recovery_methods_v0.
+
 ### v8.0.0
 
 - env

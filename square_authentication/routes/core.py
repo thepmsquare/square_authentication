@@ -2075,9 +2075,13 @@ async def validate_and_get_payload_from_token_v0(
 @global_object_square_logger.auto_logger()
 async def update_user_recovery_methods_v0(
     access_token: Annotated[str, Header()],
-    recovery_methods_to_add: List[RecoveryMethodEnum],
-    recovery_methods_to_remove: List[RecoveryMethodEnum],
+    recovery_methods_to_add: List[RecoveryMethodEnum] = None,
+    recovery_methods_to_remove: List[RecoveryMethodEnum] = None,
 ):
+    if recovery_methods_to_add is None:
+        recovery_methods_to_add = []
+    if recovery_methods_to_remove is None:
+        recovery_methods_to_remove = []
     try:
 
         """
