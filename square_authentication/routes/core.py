@@ -2695,6 +2695,7 @@ async def reset_password_and_login_using_backup_code_v0(
                     "user_id": user_id,
                     "access_token": local_str_access_token,
                     "refresh_token": local_str_refresh_token,
+                    "refresh_token_expiry_time": local_object_refresh_token_expiry_time.isoformat(),
                 }
             },
         )
@@ -3227,6 +3228,7 @@ async def reset_password_and_login_using_reset_email_code_v0(
                     "user_id": user_id,
                     "access_token": local_str_access_token,
                     "refresh_token": local_str_refresh_token,
+                    "refresh_token_expiry_time": local_object_refresh_token_expiry_time.isoformat(),
                 }
             },
         )

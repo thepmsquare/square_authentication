@@ -16,6 +16,12 @@ pip install square_authentication
 
 ## changelog
 
+### v8.0.2
+
+- core
+    - add refresh_token_expiry_time in output for reset_password_and_login_using_backup_code_v0 and
+      reset_password_and_login_using_reset_email_code_v0.
+
 ### v8.0.1
 
 - core
