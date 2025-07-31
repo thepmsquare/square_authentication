@@ -1975,6 +1975,7 @@ async def update_password_v0(
 @router.get("/validate_and_get_payload_from_token/v0")
 @global_object_square_logger.auto_logger()
 async def validate_and_get_payload_from_token_v0(
+    app_id: int,
     token: Annotated[str, Header()],
     token_type: TokenType = Query(...),
 ):
@@ -2022,6 +2023,15 @@ async def validate_and_get_payload_from_token_v0(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail=output_content,
                     )
+            if local_dict_token_payload["app_id"] != app_id:
+                output_content = get_api_output_in_standard_format(
+                    message=messages["GENERIC_400"],
+                    log=f"app_id: {app_id} does not match with token app_id: {local_dict_token_payload['app_id']}.",
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=output_content,
+                )
         except HTTPException as http_exception:
             raise
         except Exception as error:

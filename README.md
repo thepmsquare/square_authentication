@@ -16,6 +16,11 @@ pip install square_authentication
 
 ## changelog
 
+### v9.0.0
+
+- core
+    - **breaking change**: new mandatory parameter `app_id` in validate_and_get_payload_from_token_v0.
+
 ### v8.0.2
 
 - core
