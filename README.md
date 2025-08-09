@@ -16,6 +16,14 @@ pip install square_authentication
 
 ## changelog
 
+### v9.0.1 (in progress)
+
+- env
+    - add RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS and
+      RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS in LOGIC section.
+- profile
+    - add validation for email verification code already sent in send_verification_email_v0.
+
 ### v9.0.0
 
 - core

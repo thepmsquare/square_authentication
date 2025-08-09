@@ -108,7 +108,7 @@ try:
     ]
     # ===========================================
     # ===========================================
-    # GOOGLE
+    # LOGIC
 
     NUMBER_OF_RECOVERY_CODES = int(
         ldict_configuration["LOGIC"]["NUMBER_OF_RECOVERY_CODES"]
@@ -128,6 +128,16 @@ try:
     )
     NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE = int(
         ldict_configuration["LOGIC"]["NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE"]
+    )
+    RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS = int(
+        ldict_configuration["LOGIC"][
+            "RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS"
+        ]
+    )
+    RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS = int(
+        ldict_configuration["LOGIC"][
+            "RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS"
+        ]
     )
     # ===========================================
 

@@ -32,6 +32,7 @@ from square_authentication.configuration import (
     MAIL_GUN_API_KEY,
     NUMBER_OF_DIGITS_IN_EMAIL_VERIFICATION_CODE,
     EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
+    RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
 )
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.profile import (
@@ -357,6 +358,48 @@ async def send_verification_email_v0(
                 message=messages["EMAIL_ALREADY_VERIFIED"]
             )
             return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+        # check if email verification code already exists
+        existing_verification_code_response = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserVerificationCode.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserVerificationCode.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserVerificationCode.user_verification_code_type.name: FilterConditionsV0(
+                        eq=VerificationCodeTypeEnum.EMAIL_VERIFICATION.value
+                    ),
+                    UserVerificationCode.user_verification_code_used_at.name: FilterConditionsV0(
+                        is_null=True
+                    ),
+                }
+            ),
+            order_by=[
+                "-" + UserVerificationCode.user_verification_code_created_at.name
+            ],
+            limit=1,
+            apply_filters=True,
+        )
+        if len(existing_verification_code_response["data"]["main"]) > 0:
+            existing_verification_code_data = existing_verification_code_response[
+                "data"
+            ]["main"][0]
+            if (
+                datetime.now(timezone.utc)
+                - datetime.fromisoformat(
+                    existing_verification_code_data[
+                        UserVerificationCode.user_verification_code_created_at.name
+                    ]
+                )
+            ).total_seconds() < RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS:
+                output_content = get_api_output_in_standard_format(
+                    message=messages["GENERIC_400"],
+                    log="verification code already exists and was sent within the cooldown period.",
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=output_content,
+                )
 
         """
         main process
