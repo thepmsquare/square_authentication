@@ -372,6 +372,11 @@ async def send_verification_email_v0(
                     UserVerificationCode.user_verification_code_used_at.name: FilterConditionsV0(
                         is_null=True
                     ),
+                    UserVerificationCode.user_verification_code_expires_at.name: FilterConditionsV0(
+                        gte=datetime.now(timezone.utc).strftime(
+                            "%Y-%m-%d %H:%M:%S.%f+00"
+                        )
+                    ),
                 }
             ),
             order_by=[

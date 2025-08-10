@@ -58,6 +58,7 @@ from square_authentication.configuration import (
     NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE,
     EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
     global_object_square_file_store_helper,
+    RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
 )
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.core import (
@@ -2840,7 +2841,57 @@ async def send_reset_password_email_v0(
                 log="email is not verified.",
             )
             return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
-
+        # check if reset password code already exists
+        local_list_response_user_verification_code = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserVerificationCode.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserVerificationCode.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserVerificationCode.user_verification_code_type.name: FilterConditionsV0(
+                        eq=VerificationCodeTypeEnum.EMAIL_RECOVERY.value
+                    ),
+                    UserVerificationCode.user_verification_code_used_at.name: FilterConditionsV0(
+                        is_null=True
+                    ),
+                    UserVerificationCode.user_verification_code_expires_at.name: FilterConditionsV0(
+                        gte=datetime.now(timezone.utc).strftime(
+                            "%Y-%m-%d %H:%M:%S.%f+00"
+                        )
+                    ),
+                }
+            ),
+            order_by=[
+                "-" + UserVerificationCode.user_verification_code_created_at.name
+            ],
+            limit=1,
+            apply_filters=True,
+        )[
+            "data"
+        ][
+            "main"
+        ]
+        if len(local_list_response_user_verification_code) > 0:
+            existing_verification_code_data = (
+                local_list_response_user_verification_code[0]
+            )
+            if (
+                datetime.now(timezone.utc)
+                - datetime.fromisoformat(
+                    existing_verification_code_data[
+                        UserVerificationCode.user_verification_code_created_at.name
+                    ]
+                )
+            ).total_seconds() < RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS:
+                output_content = get_api_output_in_standard_format(
+                    message=messages["GENERIC_400"],
+                    log="verification code already exists and was sent within the cooldown period.",
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=output_content,
+                )
         """
         main process
         """
