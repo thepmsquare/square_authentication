@@ -479,9 +479,13 @@ async def send_verification_email_v0(
         """
         return value
         """
+        cooldown_reset_at = datetime.now(timezone.utc) + timedelta(
+            seconds=RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS
+        )
         output_content = get_api_output_in_standard_format(
             data={
                 "expires_at": expires_at.isoformat(),
+                "cooldown_reset_at": cooldown_reset_at.isoformat(),
             },
             message=messages["GENERIC_ACTION_SUCCESSFUL"],
         )
