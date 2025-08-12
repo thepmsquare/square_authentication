@@ -26,6 +26,7 @@ pip install square_authentication
     - add cooldown_reset_at in send_verification_email_v0 output.
 - core
     - add validation for email password reset code already sent in send_reset_password_email_v0.
+    - add cooldown_reset_at in send_reset_password_email_v0 output.
 
 ### v9.0.0
 
