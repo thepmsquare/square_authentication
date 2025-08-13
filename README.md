@@ -16,7 +16,7 @@ pip install square_authentication
 
 ## changelog
 
-### v9.0.1 (in progress)
+### v9.0.1
 
 - env
     - add RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS and
