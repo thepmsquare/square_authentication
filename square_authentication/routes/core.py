@@ -2968,6 +2968,7 @@ async def send_reset_password_email_v0(
         cooldown_reset_at = datetime.now(timezone.utc) + timedelta(
             seconds=EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
         )
+
         output_content = get_api_output_in_standard_format(
             data={
                 "expires_at": expires_at.isoformat(),

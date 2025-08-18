@@ -1,5 +1,5 @@
 import random
-from datetime import timezone, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Annotated, Optional
 
 import bcrypt
@@ -21,18 +21,18 @@ from square_database_structure.square.authentication.tables import (
 from square_database_structure.square.email import (
     global_string_schema_name as email_schema_name,
 )
-from square_database_structure.square.email.enums import EmailTypeEnum, EmailStatusEnum
+from square_database_structure.square.email.enums import EmailStatusEnum, EmailTypeEnum
 from square_database_structure.square.email.tables import EmailLog
 
 from square_authentication.configuration import (
+    EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
+    MAIL_GUN_API_KEY,
+    NUMBER_OF_DIGITS_IN_EMAIL_VERIFICATION_CODE,
+    RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
     config_str_secret_key_for_access_token,
     global_object_square_database_helper,
     global_object_square_file_store_helper,
     global_object_square_logger,
-    MAIL_GUN_API_KEY,
-    NUMBER_OF_DIGITS_IN_EMAIL_VERIFICATION_CODE,
-    EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
-    RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
 )
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.profile import (
