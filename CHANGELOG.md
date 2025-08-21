@@ -6,6 +6,8 @@
     - add GNU license v3.0.
     - update README.md.
     - move CHANGELOG to a separate file.
+- tests
+    - fix bugs in test cases.
 - dependencies
     - square_database_structure >= 2.6.0.
     - square_database_helper>=2.6.1.

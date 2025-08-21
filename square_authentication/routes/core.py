@@ -307,11 +307,22 @@ async def register_login_google_v0(body: RegisterLoginGoogleV0):
         validation
         """
         # verify id token
-        id_info = id_token.verify_oauth2_token(
-            google_id,
-            google_requests.Request(),
-            GOOGLE_AUTH_PLATFORM_CLIENT_ID,
-        )
+        try:
+            id_info = id_token.verify_oauth2_token(
+                google_id,
+                google_requests.Request(),
+                GOOGLE_AUTH_PLATFORM_CLIENT_ID,
+            )
+        except Exception:
+            output_content = get_api_output_in_standard_format(
+                message=messages["GENERIC_400"],
+                log="Google id is invalid.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+
         # validate if email is verified
         if id_info.get("email_verified") is not True:
             output_content = get_api_output_in_standard_format(
