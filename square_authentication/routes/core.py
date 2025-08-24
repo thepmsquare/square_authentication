@@ -1356,7 +1356,7 @@ async def logout_v0(
         )
 
 
-@router.delete("/logout/apps/v0")
+@router.post("/logout/apps/v0")
 @global_object_square_logger.auto_logger()
 async def logout_apps_v0(
     access_token: Annotated[str, Header()],

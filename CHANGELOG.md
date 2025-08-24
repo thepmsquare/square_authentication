@@ -1,7 +1,9 @@
 # changelog
 
-## v9.0.2 (in progress)
+## v10.0.0
 
+- core
+    - **breaking change**: logout_apps_v0 is now a POST method instead of DELETE.
 - docs
     - add GNU license v3.0.
     - update README.md.
