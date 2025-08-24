@@ -42,7 +42,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3 :: Only",
-        "Topic :: Authentication",
+        "Topic :: Security :: Authentication",
         "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
         "Framework :: FastAPI",
     ],
