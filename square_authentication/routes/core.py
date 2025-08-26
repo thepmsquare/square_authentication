@@ -682,6 +682,16 @@ async def get_user_details_v0(
         """
         main process
         """
+        local_list_user = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=User.__tablename__,
+            filters=FiltersV0(
+                root={
+                    User.user_id.name: FilterConditionsV0(eq=user_id),
+                }
+            ),
+        )["data"]["main"]
         local_list_app = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_public_schema_name,
@@ -729,6 +739,7 @@ async def get_user_details_v0(
         """
         return_this = {
             "user_id": user_id,
+            "username": local_list_user[0][User.user_username.name],
             "profile": user_profile,
             "apps": [
                 y[App.app_name.name]

@@ -1,5 +1,10 @@
 # changelog
 
+## v10.0.1
+
+- core
+    - add username in get_user_details_v0 output.
+
 ## v10.0.0
 
 - core
