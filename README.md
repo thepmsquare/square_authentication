@@ -8,7 +8,12 @@ authentication layer for my personal server.
 
 ## goals
 
-(wip)
+- integration with square_*
+- unified authentication api across all projects
+- jwt token support
+- simple user and user profile management
+- oauth support
+- future extensibility
 
 ## Installation
 
