@@ -1,5 +1,9 @@
 # changelog
 
+## v10.0.2 (in progress)
+
+- move application logic from route to utils.
+
 ## v10.0.1
 
 - core
