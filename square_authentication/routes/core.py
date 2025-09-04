@@ -67,6 +67,8 @@ from square_authentication.utils.routes.core import (
     util_register_login_google_v0,
     util_get_user_details_v0,
     util_update_user_app_ids_v0,
+    util_login_username_v0,
+    util_generate_access_token_v0,
 )
 from square_authentication.utils.token import get_jwt_payload
 
@@ -175,221 +177,19 @@ async def login_username_v0(body: LoginUsernameV0):
     assign_app_id_if_missing = body.assign_app_id_if_missing
     username = username.lower()
     try:
-        """
-        validation
-        """
-        # validation for username
-        # check if user with username exists
-        local_list_response_user = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=User.__tablename__,
-            filters=FiltersV0(
-                root={User.user_username.name: FilterConditionsV0(eq=username)}
-            ),
-        )["data"]["main"]
-        if len(local_list_response_user) != 1:
-            output_content = get_api_output_in_standard_format(
-                message=messages["INCORRECT_USERNAME"],
-                log=f"incorrect username {username}",
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        # check if user has auth provider as SELF
-        local_list_user_auth_provider_response = (
-            global_object_square_database_helper.get_rows_v0(
-                database_name=global_string_database_name,
-                schema_name=global_string_schema_name,
-                table_name=UserAuthProvider.__tablename__,
-                filters=FiltersV0(
-                    root={
-                        UserAuthProvider.user_id.name: FilterConditionsV0(
-                            eq=local_list_response_user[0][User.user_id.name]
-                        ),
-                        UserAuthProvider.auth_provider.name: FilterConditionsV0(
-                            eq=AuthProviderEnum.SELF.value
-                        ),
-                    }
-                ),
-            )["data"]["main"]
+        return util_login_username_v0(
+            username=username,
+            password=password,
+            app_id=app_id,
+            assign_app_id_if_missing=assign_app_id_if_missing,
         )
-        if len(local_list_user_auth_provider_response) != 1:
-            output_content = get_api_output_in_standard_format(
-                message=messages["INCORRECT_AUTH_PROVIDER"],
-                log=f"{username} not linked with {AuthProviderEnum.SELF.value} auth provider.",
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        # check if user has credentials (might not be set in case of errors in registration.)
-        local_list_authentication_user_response = (
-            global_object_square_database_helper.get_rows_v0(
-                database_name=global_string_database_name,
-                schema_name=global_string_schema_name,
-                table_name=UserCredential.__tablename__,
-                filters=FiltersV0(
-                    root={
-                        UserCredential.user_id.name: FilterConditionsV0(
-                            eq=local_list_response_user[0][User.user_id.name]
-                        )
-                    }
-                ),
-            )["data"]["main"]
-        )
-        if len(local_list_authentication_user_response) != 1:
-            output_content = get_api_output_in_standard_format(
-                message=messages["MALFORMED_USER"],
-                log=f"username: {username} does not have credentials set.",
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        # validate if app_id is assigned to user
-        # this will also validate if app_id is valid
-        local_dict_user = local_list_authentication_user_response[0]
-        local_str_user_id = local_dict_user[UserCredential.user_id.name]
-        local_list_user_app_response = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=UserApp.__tablename__,
-            filters=FiltersV0(
-                root={
-                    UserApp.user_id.name: FilterConditionsV0(eq=local_str_user_id),
-                    UserApp.app_id.name: FilterConditionsV0(eq=app_id),
-                }
-            ),
-        )["data"]["main"]
-        if len(local_list_user_app_response) == 0:
-            if assign_app_id_if_missing:
-                try:
-                    global_object_square_database_helper.insert_rows_v0(
-                        database_name=global_string_database_name,
-                        schema_name=global_string_schema_name,
-                        table_name=UserApp.__tablename__,
-                        data=[
-                            {
-                                UserApp.user_id.name: local_str_user_id,
-                                UserApp.app_id.name: app_id,
-                            }
-                        ],
-                    )
-                except HTTPError as he:
-                    output_content = get_api_output_in_standard_format(
-                        message=messages["GENERIC_400"],
-                        log=str(he),
-                    )
-                    raise HTTPException(
-                        status_code=he.response.status_code, detail=output_content
-                    )
-            else:
-                output_content = get_api_output_in_standard_format(
-                    message=messages["GENERIC_400"],
-                    log=f"user_id {local_str_user_id}({username}) not assigned to app {app_id}.",
-                )
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=output_content,
-                )
-
-        # validate password
-        if not (
-            bcrypt.checkpw(
-                password.encode("utf-8"),
-                local_dict_user[
-                    UserCredential.user_credential_hashed_password.name
-                ].encode("utf-8"),
-            )
-        ):
-            output_content = get_api_output_in_standard_format(
-                message=messages["INCORRECT_PASSWORD"],
-                log=f"incorrect password for user_id {local_str_user_id}({username}).",
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        """
-        main process
-        """
-        # return new access token and refresh token
-
-        # create access token
-        local_dict_access_token_payload = {
-            "app_id": app_id,
-            "user_id": local_str_user_id,
-            "exp": datetime.now(timezone.utc)
-            + timedelta(minutes=config_int_access_token_valid_minutes),
-        }
-        local_str_access_token = jwt.encode(
-            local_dict_access_token_payload,
-            config_str_secret_key_for_access_token,
-        )
-
-        # create refresh token
-        local_object_refresh_token_expiry_time = datetime.now(timezone.utc) + timedelta(
-            minutes=config_int_refresh_token_valid_minutes
-        )
-
-        local_dict_refresh_token_payload = {
-            "app_id": app_id,
-            "user_id": local_str_user_id,
-            "exp": local_object_refresh_token_expiry_time,
-        }
-        local_str_refresh_token = jwt.encode(
-            local_dict_refresh_token_payload,
-            config_str_secret_key_for_refresh_token,
-        )
-        # entry in user session table
-        global_object_square_database_helper.insert_rows_v0(
-            data=[
-                {
-                    UserSession.user_id.name: local_str_user_id,
-                    UserSession.app_id.name: app_id,
-                    UserSession.user_session_refresh_token.name: local_str_refresh_token,
-                    UserSession.user_session_expiry_time.name: local_object_refresh_token_expiry_time.strftime(
-                        "%Y-%m-%d %H:%M:%S.%f+00"
-                    ),
-                }
-            ],
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=UserSession.__tablename__,
-        )
-        """
-        return value
-        """
-        output_content = get_api_output_in_standard_format(
-            data={
-                "main": {
-                    "user_id": local_str_user_id,
-                    "access_token": local_str_access_token,
-                    "refresh_token": local_str_refresh_token,
-                    "refresh_token_expiry_time": local_object_refresh_token_expiry_time.isoformat(),
-                }
-            },
-            message=messages["LOGIN_SUCCESSFUL"],
-        )
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content=output_content,
-        )
-    except HTTPException as http_exception:
-        global_object_square_logger.logger.error(http_exception, exc_info=True)
-        return JSONResponse(
-            status_code=http_exception.status_code, content=http_exception.detail
-        )
+    except HTTPException as he:
+        global_object_square_logger.logger.error(he, exc_info=True)
+        return JSONResponse(status_code=he.status_code, content=he.detail)
     except Exception as e:
-        """
-        rollback logic
-        """
         global_object_square_logger.logger.error(e, exc_info=True)
         output_content = get_api_output_in_standard_format(
-            message=messages["GENERIC_500"],
-            log=str(e),
+            message=messages["GENERIC_500"], log=str(e)
         )
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
@@ -402,85 +202,16 @@ async def generate_access_token_v0(
     refresh_token: Annotated[str, Header()],
 ):
     try:
-        """
-        validation
-        """
-        # validate refresh token
-        # validating if a session refresh token exists in the database.
-        local_list_user_session_response = (
-            global_object_square_database_helper.get_rows_v0(
-                database_name=global_string_database_name,
-                schema_name=global_string_schema_name,
-                table_name=UserSession.__tablename__,
-                filters=FiltersV0(
-                    root={
-                        UserSession.user_session_refresh_token.name: FilterConditionsV0(
-                            eq=refresh_token
-                        ),
-                    }
-                ),
-            )["data"]["main"]
+        return util_generate_access_token_v0(
+            refresh_token=refresh_token,
         )
-
-        if len(local_list_user_session_response) != 1:
-            output_content = get_api_output_in_standard_format(
-                message=messages["INCORRECT_REFRESH_TOKEN"],
-                log=f"incorrect refresh token: {refresh_token}.",
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        # validating if the refresh token is valid, active and of the same user.
-        try:
-            local_dict_refresh_token_payload = get_jwt_payload(
-                refresh_token, config_str_secret_key_for_refresh_token
-            )
-        except Exception as error:
-            output_content = get_api_output_in_standard_format(
-                message=messages["INCORRECT_REFRESH_TOKEN"], log=str(error)
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        """
-        main process
-        """
-        # create and send access token
-        local_dict_access_token_payload = {
-            "app_id": local_dict_refresh_token_payload["app_id"],
-            "user_id": local_dict_refresh_token_payload["user_id"],
-            "exp": datetime.now(timezone.utc)
-            + timedelta(minutes=config_int_access_token_valid_minutes),
-        }
-        local_str_access_token = jwt.encode(
-            local_dict_access_token_payload, config_str_secret_key_for_access_token
-        )
-        """
-        return value
-        """
-        output_content = get_api_output_in_standard_format(
-            data={"main": {"access_token": local_str_access_token}},
-            message=messages["GENERIC_CREATION_SUCCESSFUL"],
-        )
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content=output_content,
-        )
-    except HTTPException as http_exception:
-        global_object_square_logger.logger.error(http_exception, exc_info=True)
-        return JSONResponse(
-            status_code=http_exception.status_code, content=http_exception.detail
-        )
+    except HTTPException as he:
+        global_object_square_logger.logger.error(he, exc_info=True)
+        return JSONResponse(status_code=he.status_code, content=he.detail)
     except Exception as e:
-        """
-        rollback logic
-        """
         global_object_square_logger.logger.error(e, exc_info=True)
         output_content = get_api_output_in_standard_format(
-            message=messages["GENERIC_500"],
-            log=str(e),
+            message=messages["GENERIC_500"], log=str(e)
         )
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
