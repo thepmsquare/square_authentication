@@ -1,4 +1,3 @@
-import copy
 import random
 import re
 import uuid
@@ -35,10 +34,6 @@ from square_database_structure.square.email import (
 )
 from square_database_structure.square.email.enums import EmailTypeEnum, EmailStatusEnum
 from square_database_structure.square.email.tables import EmailLog
-from square_database_structure.square.public import (
-    global_string_schema_name as global_string_public_schema_name,
-)
-from square_database_structure.square.public.tables import App
 
 from square_authentication.configuration import (
     config_int_access_token_valid_minutes,
@@ -70,6 +65,8 @@ from square_authentication.pydantic_models.core import (
 from square_authentication.utils.routes.core import (
     util_register_username_v0,
     util_register_login_google_v0,
+    util_get_user_details_v0,
+    util_update_user_app_ids_v0,
 )
 from square_authentication.utils.token import get_jwt_payload
 
@@ -129,134 +126,17 @@ async def get_user_details_v0(
     access_token: Annotated[str, Header()],
 ):
     try:
-        """
-        validation
-        """
-        # validate access token
-        try:
-            local_dict_access_token_payload = get_jwt_payload(
-                access_token, config_str_secret_key_for_access_token
-            )
-        except Exception as error:
-            output_content = get_api_output_in_standard_format(
-                message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        user_id = local_dict_access_token_payload["user_id"]
-        """
-        main process
-        """
-        local_list_user = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=User.__tablename__,
-            filters=FiltersV0(
-                root={
-                    User.user_id.name: FilterConditionsV0(eq=user_id),
-                }
-            ),
-        )["data"]["main"]
-        local_list_app = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_public_schema_name,
-            table_name=App.__tablename__,
-            apply_filters=False,
-            filters=FiltersV0(root={}),
-        )["data"]["main"]
-        local_list_response_user_app = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=UserApp.__tablename__,
-            filters=FiltersV0(
-                root={UserApp.user_id.name: FilterConditionsV0(eq=user_id)}
-            ),
-        )["data"]["main"]
-        local_list_response_user_profile = (
-            global_object_square_database_helper.get_rows_v0(
-                database_name=global_string_database_name,
-                schema_name=global_string_schema_name,
-                table_name=UserProfile.__tablename__,
-                filters=FiltersV0(
-                    root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
-                ),
-            )["data"]["main"]
-        )
-        local_list_response_user_sessions = (
-            global_object_square_database_helper.get_rows_v0(
-                database_name=global_string_database_name,
-                schema_name=global_string_schema_name,
-                table_name=UserSession.__tablename__,
-                filters=FiltersV0(
-                    root={
-                        UserSession.user_id.name: FilterConditionsV0(eq=user_id),
-                        UserSession.user_session_expiry_time.name: FilterConditionsV0(
-                            gte=datetime.now(timezone.utc).isoformat()
-                        ),
-                    }
-                ),
-            )["data"]["main"]
-        )
-        user_profile = copy.deepcopy(local_list_response_user_profile[0])
-        del user_profile[UserProfile.user_id.name]
-        """
-        return value
-        """
-        return_this = {
-            "user_id": user_id,
-            "username": local_list_user[0][User.user_username.name],
-            "profile": user_profile,
-            "apps": [
-                y[App.app_name.name]
-                for y in local_list_app
-                if y[App.app_id.name]
-                in [x[UserApp.app_id.name] for x in local_list_response_user_app]
-            ],
-            "sessions": [
-                {
-                    "app_name": [
-                        y[App.app_name.name]
-                        for y in local_list_app
-                        if y[App.app_id.name] == x[UserApp.app_id.name]
-                    ][0],
-                    "active_sessions": len(
-                        [
-                            y
-                            for y in local_list_response_user_sessions
-                            if y[UserSession.app_id.name] == x[UserApp.app_id.name]
-                        ]
-                    ),
-                }
-                for x in local_list_response_user_app
-            ],
-        }
-        output_content = get_api_output_in_standard_format(
-            message=messages["GENERIC_READ_SUCCESSFUL"],
-            data={"main": return_this},
-        )
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content=output_content,
-        )
-    except HTTPException as http_exception:
-        global_object_square_logger.logger.error(http_exception, exc_info=True)
-        return JSONResponse(
-            status_code=http_exception.status_code, content=http_exception.detail
-        )
+        return util_get_user_details_v0(access_token=access_token)
+    except HTTPException as he:
+        global_object_square_logger.logger.error(he, exc_info=True)
+        return JSONResponse(status_code=he.status_code, content=he.detail)
     except Exception as e:
-        """
-        rollback logic
-        """
         global_object_square_logger.logger.error(e, exc_info=True)
         output_content = get_api_output_in_standard_format(
-            message=messages["GENERIC_500"],
-            log=str(e),
+            message=messages["GENERIC_500"], log=str(e)
         )
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content=output_content,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
         )
 
 
@@ -268,156 +148,21 @@ async def update_user_app_ids_v0(
     app_ids_to_remove: List[int],
 ):
     try:
-
-        """
-        validation
-        """
-        # validate access token
-        try:
-            local_dict_access_token_payload = get_jwt_payload(
-                access_token, config_str_secret_key_for_access_token
-            )
-        except Exception as error:
-            output_content = get_api_output_in_standard_format(
-                message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        user_id = local_dict_access_token_payload["user_id"]
-
-        app_ids_to_add = list(set(app_ids_to_add))
-        app_ids_to_remove = list(set(app_ids_to_remove))
-
-        # check if app_ids_to_add and app_ids_to_remove don't have common ids.
-        local_list_common_app_ids = set(app_ids_to_add) & set(app_ids_to_remove)
-        if len(local_list_common_app_ids) > 0:
-            output_content = get_api_output_in_standard_format(
-                message=messages["GENERIC_400"],
-                log=f"invalid app_ids: {list(local_list_common_app_ids)}, present in both add list and remove list.",
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-
-        # check if all app_ids are valid
-        local_list_all_app_ids = [*app_ids_to_add, *app_ids_to_remove]
-        local_list_response_app = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_public_schema_name,
-            table_name=App.__tablename__,
-            apply_filters=False,
-            filters=FiltersV0(root={}),
-        )["data"]["main"]
-        local_list_invalid_ids = [
-            x
-            for x in local_list_all_app_ids
-            if x not in [y[App.app_id.name] for y in local_list_response_app]
-        ]
-        if len(local_list_invalid_ids) > 0:
-            output_content = get_api_output_in_standard_format(
-                message=messages["GENERIC_400"],
-                log=f"invalid app_ids: {local_list_invalid_ids}.",
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        """
-        main process
-        """
-        # logic for adding new app_ids
-        local_list_response_user_app = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=UserApp.__tablename__,
-            filters=FiltersV0(
-                root={UserApp.user_id.name: FilterConditionsV0(eq=user_id)}
-            ),
-        )["data"]["main"]
-        local_list_new_app_ids = [
-            {
-                UserApp.user_id.name: user_id,
-                UserApp.app_id.name: x,
-            }
-            for x in app_ids_to_add
-            if x not in [y[UserApp.app_id.name] for y in local_list_response_user_app]
-        ]
-        if len(local_list_new_app_ids) > 0:
-            global_object_square_database_helper.insert_rows_v0(
-                database_name=global_string_database_name,
-                schema_name=global_string_schema_name,
-                table_name=UserApp.__tablename__,
-                data=local_list_new_app_ids,
-            )
-
-        # logic for removing app_ids
-        for app_id in app_ids_to_remove:
-            global_object_square_database_helper.delete_rows_v0(
-                database_name=global_string_database_name,
-                schema_name=global_string_schema_name,
-                table_name=UserApp.__tablename__,
-                filters=FiltersV0(
-                    root={
-                        UserApp.user_id.name: FilterConditionsV0(eq=user_id),
-                        UserApp.app_id.name: FilterConditionsV0(eq=app_id),
-                    }
-                ),
-            )
-            # logout user from removed apps
-            global_object_square_database_helper.delete_rows_v0(
-                database_name=global_string_database_name,
-                schema_name=global_string_schema_name,
-                table_name=UserSession.__tablename__,
-                filters=FiltersV0(
-                    root={
-                        UserSession.user_id.name: FilterConditionsV0(eq=user_id),
-                        UserSession.app_id.name: FilterConditionsV0(eq=app_id),
-                    }
-                ),
-            )
-
-        """
-        return value
-        """
-        # get latest app ids
-        local_list_response_user_app = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=UserApp.__tablename__,
-            filters=FiltersV0(
-                root={UserApp.user_id.name: FilterConditionsV0(eq=user_id)}
-            ),
-        )["data"]["main"]
-        output_content = get_api_output_in_standard_format(
-            message=messages["GENERIC_UPDATE_SUCCESSFUL"],
-            data={
-                "main": [x[UserApp.app_id.name] for x in local_list_response_user_app]
-            },
+        return util_update_user_app_ids_v0(
+            access_token=access_token,
+            app_ids_to_add=app_ids_to_add,
+            app_ids_to_remove=app_ids_to_remove,
         )
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content=output_content,
-        )
-    except HTTPException as http_exception:
-        global_object_square_logger.logger.error(http_exception, exc_info=True)
-        return JSONResponse(
-            status_code=http_exception.status_code, content=http_exception.detail
-        )
+    except HTTPException as he:
+        global_object_square_logger.logger.error(he, exc_info=True)
+        return JSONResponse(status_code=he.status_code, content=he.detail)
     except Exception as e:
-        """
-        rollback logic
-        """
         global_object_square_logger.logger.error(e, exc_info=True)
         output_content = get_api_output_in_standard_format(
-            message=messages["GENERIC_500"],
-            log=str(e),
+            message=messages["GENERIC_500"], log=str(e)
         )
         return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content=output_content,
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
         )
 
 
