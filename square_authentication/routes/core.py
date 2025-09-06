@@ -69,6 +69,8 @@ from square_authentication.utils.routes.core import (
     util_update_user_app_ids_v0,
     util_login_username_v0,
     util_generate_access_token_v0,
+    util_logout_v0,
+    util_logout_apps_v0,
 )
 from square_authentication.utils.token import get_jwt_payload
 
@@ -224,86 +226,16 @@ async def logout_v0(
     refresh_token: Annotated[str, Header()],
 ):
     try:
-        """
-        validation
-        """
-        # validate refresh token
-        # validating if a session refresh token exists in the database.
-        local_list_user_session_response = (
-            global_object_square_database_helper.get_rows_v0(
-                database_name=global_string_database_name,
-                schema_name=global_string_schema_name,
-                table_name=UserSession.__tablename__,
-                filters=FiltersV0(
-                    root={
-                        UserSession.user_session_refresh_token.name: FilterConditionsV0(
-                            eq=refresh_token
-                        ),
-                    }
-                ),
-            )["data"]["main"]
+        return util_logout_v0(
+            refresh_token=refresh_token,
         )
-
-        if len(local_list_user_session_response) != 1:
-            output_content = get_api_output_in_standard_format(
-                message=messages["INCORRECT_REFRESH_TOKEN"],
-                log=f"incorrect refresh token: {refresh_token}.",
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        # validating if the refresh token is valid, active and of the same user.
-        try:
-            _ = get_jwt_payload(refresh_token, config_str_secret_key_for_refresh_token)
-        except Exception as error:
-            output_content = get_api_output_in_standard_format(
-                message=messages["INCORRECT_REFRESH_TOKEN"],
-                log=str(error),
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        # ======================================================================================
-        # NOTE: if refresh token has expired no need to delete it during this call
-        # ======================================================================================
-        """
-        main process
-        """
-        # delete session for user
-        global_object_square_database_helper.delete_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=UserSession.__tablename__,
-            filters=FiltersV0(
-                root={
-                    UserSession.user_session_refresh_token.name: FilterConditionsV0(
-                        eq=refresh_token
-                    ),
-                }
-            ),
-        )
-        """
-        return value
-        """
-        output_content = get_api_output_in_standard_format(
-            message=messages["LOGOUT_SUCCESSFUL"],
-        )
-        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
-    except HTTPException as http_exception:
-        global_object_square_logger.logger.error(http_exception, exc_info=True)
-        return JSONResponse(
-            status_code=http_exception.status_code, content=http_exception.detail
-        )
+    except HTTPException as he:
+        global_object_square_logger.logger.error(he, exc_info=True)
+        return JSONResponse(status_code=he.status_code, content=he.detail)
     except Exception as e:
-        """
-        rollback logic
-        """
         global_object_square_logger.logger.error(e, exc_info=True)
         output_content = get_api_output_in_standard_format(
-            message=messages["GENERIC_500"],
-            log=str(e),
+            message=messages["GENERIC_500"], log=str(e)
         )
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
@@ -318,85 +250,14 @@ async def logout_apps_v0(
 ):
     app_ids = body.app_ids
     try:
-        """
-        validation
-        """
-        try:
-            local_dict_access_token_payload = get_jwt_payload(
-                access_token, config_str_secret_key_for_access_token
-            )
-        except Exception as error:
-            output_content = get_api_output_in_standard_format(
-                message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        user_id = local_dict_access_token_payload["user_id"]
-        # validate app_ids
-        app_ids = list(set(app_ids))
-        local_list_response_user_app = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=UserApp.__tablename__,
-            filters=FiltersV0(
-                root={
-                    UserApp.user_id.name: FilterConditionsV0(eq=user_id),
-                }
-            ),
-            columns=[UserApp.app_id.name],
-        )["data"]["main"]
-        local_list_user_app_ids = [
-            x[UserApp.app_id.name] for x in local_list_response_user_app
-        ]
-        local_list_invalid_app_ids = [
-            x for x in app_ids if x not in local_list_user_app_ids
-        ]
-        if len(local_list_invalid_app_ids) > 0:
-            output_content = get_api_output_in_standard_format(
-                message=messages["GENERIC_400"],
-                log=f"invalid app_ids: {local_list_invalid_app_ids}.",
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
-        """
-        main process
-        """
-        # delete session for user
-        global_object_square_database_helper.delete_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=UserSession.__tablename__,
-            filters=FiltersV0(
-                root={
-                    UserSession.user_id.name: FilterConditionsV0(eq=user_id),
-                    UserSession.app_id.name: FilterConditionsV0(in_=app_ids),
-                }
-            ),
-        )
-        """
-        return value
-        """
-        output_content = get_api_output_in_standard_format(
-            message=messages["LOGOUT_SUCCESSFUL"],
-        )
-        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
-    except HTTPException as http_exception:
-        global_object_square_logger.logger.error(http_exception, exc_info=True)
-        return JSONResponse(
-            status_code=http_exception.status_code, content=http_exception.detail
-        )
+        return util_logout_apps_v0(access_token=access_token, app_ids=app_ids)
+    except HTTPException as he:
+        global_object_square_logger.logger.error(he, exc_info=True)
+        return JSONResponse(status_code=he.status_code, content=he.detail)
     except Exception as e:
-        """
-        rollback logic
-        """
         global_object_square_logger.logger.error(e, exc_info=True)
         output_content = get_api_output_in_standard_format(
-            message=messages["GENERIC_500"],
-            log=str(e),
+            message=messages["GENERIC_500"], log=str(e)
         )
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
