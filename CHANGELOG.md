@@ -1,5 +1,12 @@
 # changelog
 
+## v10.0.3
+
+- env
+    - SQUARE_LOGGER -> FORMATTER_CHOICE + ENABLE_REDACTION
+- dependencies
+    - square_logger>=3.0.0.
+
 ## v10.0.2
 
 - move application logic from route to utils.
