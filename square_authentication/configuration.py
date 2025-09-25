@@ -65,6 +65,12 @@ try:
     config_int_log_backup_count = int(
         ldict_configuration["SQUARE_LOGGER"]["LOG_BACKUP_COUNT"]
     )
+    config_formatter_choice = ldict_configuration["SQUARE_LOGGER"]["FORMATTER_CHOICE"]
+    if config_formatter_choice not in ("human_readable", "json"):
+        raise ValueError(f"Invalid formatter choice: {config_formatter_choice}")
+    config_bool_enable_redaction = eval(
+        ldict_configuration["SQUARE_LOGGER"]["ENABLE_REDACTION"]
+    )
     # ===========================================
 
     # ===========================================
@@ -93,12 +99,7 @@ try:
     config_int_square_file_store_port = int(
         ldict_configuration["SQUARE_FILE_STORE_HELPER"]["SQUARE_FILE_STORE_PORT"]
     )
-    config_formatter_choice = ldict_configuration["SQUARE_LOGGER"]["FORMATTER_CHOICE"]
-    if config_formatter_choice not in ("human_readable", "json"):
-        raise ValueError(f"Invalid formatter choice: {config_formatter_choice}")
-    config_bool_enable_redaction = eval(
-        ldict_configuration["SQUARE_LOGGER"]["ENABLE_REDACTION"]
-    )
+
     # ===========================================
 
     # ===========================================
