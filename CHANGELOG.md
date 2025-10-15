@@ -1,5 +1,9 @@
 # changelog
 
+## v10.0.4
+
+- remove setup.py and switch to pyproject.toml
+
 ## v10.0.3
 
 - env
