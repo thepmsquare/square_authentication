@@ -1,5 +1,10 @@
 # changelog
 
+## v10.0.5
+
+- dependencies
+    - create all and dev sections for pytest dependencies.
+
 ## v10.0.4
 
 - remove setup.py and switch to pyproject.toml
