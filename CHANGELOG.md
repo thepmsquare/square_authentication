@@ -1,5 +1,12 @@
 # changelog
 
+## v10.0.6
+
+- switch build-system to uv.
+- update pytest github action.
+- update pypi publish github action.
+- update Dockerfile to use uv.
+
 ## v10.0.5
 
 - dependencies
