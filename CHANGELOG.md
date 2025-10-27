@@ -1,5 +1,9 @@
 # changelog
 
+## v10.0.7
+
+- rename utility router to internal.
+
 ## v10.0.6
 
 - switch build-system to uv.

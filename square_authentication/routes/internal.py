@@ -4,10 +4,10 @@ from square_commons import get_api_output_in_standard_format
 
 from square_authentication.configuration import global_object_square_logger
 from square_authentication.messages import messages
-from square_authentication.utils.routes.utility import util_get_text_hash_v0
+from square_authentication.utils.routes.internal import util_get_text_hash_v0
 
 router = APIRouter(
-    tags=["utility"],
+    tags=["internal"],
 )
 
 
