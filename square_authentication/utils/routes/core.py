@@ -708,6 +708,18 @@ def util_get_user_details_v0(access_token):
         )
         user_profile = copy.deepcopy(local_list_response_user_profile[0])
         del user_profile[UserProfile.user_id.name]
+        local_list_response_user_recovery_methods = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserRecoveryMethod.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserRecoveryMethod.user_id.name: FilterConditionsV0(eq=user_id)
+                }
+            ),
+            columns=[UserRecoveryMethod.user_recovery_method_name.name]
+        )["data"]["main"]
+        local_list_response_user_recovery_methods = [x[UserRecoveryMethod.user_recovery_method_name.name] for x in local_list_response_user_recovery_methods]
         """
         return value
         """
@@ -738,6 +750,9 @@ def util_get_user_details_v0(access_token):
                 }
                 for x in local_list_response_user_app
             ],
+            "recovery_methods": {
+                x.name:(x.name in local_list_response_user_recovery_methods) for x in RecoveryMethodEnum.__members__.values()
+            }
         }
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_READ_SUCCESSFUL"],

@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "square_authentication"
-version = "10.0.7"
+version = "10.1.0"
 description = "authentication layer for my personal server."
 readme = "README.md"
 readme-content-type = "text/markdown"

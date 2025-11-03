@@ -1,5 +1,9 @@
 # changelog
 
+## v10.1.0
+
+- add recovery_methods to output for get_user_details_v0.
+
 ## v10.0.7
 
 - rename utility router to internal.
