@@ -1,5 +1,9 @@
 # changelog
 
+## v10.2.0
+
+- add email_verification_details to output for get_user_details_v0.
+
 ## v10.1.0
 
 - add recovery_methods to output for get_user_details_v0.

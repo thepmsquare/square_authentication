@@ -45,6 +45,7 @@ from square_database_structure.square.public.tables import App
 
 from square_authentication.configuration import (
     GOOGLE_AUTH_PLATFORM_CLIENT_ID,
+    RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
 )
 from square_authentication.configuration import (
     config_int_access_token_valid_minutes,
@@ -708,18 +709,71 @@ def util_get_user_details_v0(access_token):
         )
         user_profile = copy.deepcopy(local_list_response_user_profile[0])
         del user_profile[UserProfile.user_id.name]
-        local_list_response_user_recovery_methods = global_object_square_database_helper.get_rows_v0(
+        local_list_response_user_recovery_methods = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserRecoveryMethod.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserRecoveryMethod.user_id.name: FilterConditionsV0(eq=user_id)
+                    }
+                ),
+                columns=[UserRecoveryMethod.user_recovery_method_name.name],
+            )["data"]["main"]
+        )
+        local_list_response_user_recovery_methods = [
+            x[UserRecoveryMethod.user_recovery_method_name.name]
+            for x in local_list_response_user_recovery_methods
+        ]
+
+        # check if email verification code already exists
+        existing_verification_code_response = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
-            table_name=UserRecoveryMethod.__tablename__,
+            table_name=UserVerificationCode.__tablename__,
             filters=FiltersV0(
                 root={
-                    UserRecoveryMethod.user_id.name: FilterConditionsV0(eq=user_id)
+                    UserVerificationCode.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserVerificationCode.user_verification_code_type.name: FilterConditionsV0(
+                        eq=VerificationCodeTypeEnum.EMAIL_VERIFICATION.value
+                    ),
+                    UserVerificationCode.user_verification_code_used_at.name: FilterConditionsV0(
+                        is_null=True
+                    ),
+                    UserVerificationCode.user_verification_code_expires_at.name: FilterConditionsV0(
+                        gte=datetime.now(timezone.utc).strftime(
+                            "%Y-%m-%d %H:%M:%S.%f+00"
+                        )
+                    ),
                 }
             ),
-            columns=[UserRecoveryMethod.user_recovery_method_name.name]
-        )["data"]["main"]
-        local_list_response_user_recovery_methods = [x[UserRecoveryMethod.user_recovery_method_name.name] for x in local_list_response_user_recovery_methods]
+            order_by=[
+                "-" + UserVerificationCode.user_verification_code_created_at.name
+            ],
+            limit=1,
+            apply_filters=True,
+        )
+        if len(existing_verification_code_response["data"]["main"]) > 0:
+            existing_verification_expiry_time = existing_verification_code_response[
+                "data"
+            ]["main"][0][UserVerificationCode.user_verification_code_expires_at.name]
+            existing_verification_created_at = existing_verification_code_response[
+                "data"
+            ]["main"][0][UserVerificationCode.user_verification_code_created_at.name]
+            existing_verification_created_at_datetime = datetime.fromisoformat(
+                existing_verification_created_at
+            )
+            cooldown_reset_at = existing_verification_created_at_datetime + timedelta(
+                seconds=RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS
+            )
+            email_verification_details = {
+                "expires_at": existing_verification_expiry_time,
+                "cooldown_reset_at": cooldown_reset_at.isoformat(),
+            }
+        else:
+            email_verification_details = None
+
         """
         return value
         """
@@ -751,8 +805,10 @@ def util_get_user_details_v0(access_token):
                 for x in local_list_response_user_app
             ],
             "recovery_methods": {
-                x.name:(x.name in local_list_response_user_recovery_methods) for x in RecoveryMethodEnum.__members__.values()
-            }
+                x.name: (x.name in local_list_response_user_recovery_methods)
+                for x in RecoveryMethodEnum.__members__.values()
+            },
+            "email_verification_details": email_verification_details,
         }
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_READ_SUCCESSFUL"],
