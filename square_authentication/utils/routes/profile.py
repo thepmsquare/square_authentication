@@ -246,6 +246,7 @@ def util_update_profile_details_v0(
             profile_update_data[UserProfile.user_profile_last_name.name] = last_name
         if email is not None:
             profile_update_data[UserProfile.user_profile_email.name] = email
+            profile_update_data[UserProfile.user_profile_email_verified.name]=None
         if phone_number is not None and phone_number_country_code is not None:
             profile_update_data[UserProfile.user_profile_phone_number.name] = (
                 phone_number

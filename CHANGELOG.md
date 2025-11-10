@@ -1,5 +1,10 @@
 # changelog
 
+## v10.2.1 (in progress)
+
+- profile
+    - mark email as not verified when updating it in update_profile_details_v0.
+
 ## v10.2.0
 
 - add email_verification_details to output for get_user_details_v0.
