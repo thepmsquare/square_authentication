@@ -3320,3 +3320,85 @@ def util_reset_password_and_login_using_reset_email_code_v0(
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
         )
+
+
+@global_object_square_logger.auto_logger()
+def util_get_user_recovery_methods_v0(username: str):
+    try:
+        """
+        validation
+        """
+        # validate username
+        local_list_authentication_user_response = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=User.__tablename__,
+                filters=FiltersV0(
+                    root={User.user_username.name: FilterConditionsV0(eq=username)}
+                ),
+            )["data"]["main"]
+        )
+        if len(local_list_authentication_user_response) != 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_USERNAME"],
+                log=f"incorrect username: {username}.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        user_id = local_list_authentication_user_response[0][User.user_id.name]
+
+        """
+        main process
+        """
+        local_list_response_user_recovery_methods = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserRecoveryMethod.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserRecoveryMethod.user_id.name: FilterConditionsV0(eq=user_id)
+                    }
+                ),
+                columns=[UserRecoveryMethod.user_recovery_method_name.name],
+            )["data"]["main"]
+        )
+        local_list_response_user_recovery_methods = [
+            x[UserRecoveryMethod.user_recovery_method_name.name]
+            for x in local_list_response_user_recovery_methods
+        ]
+        """
+        return value
+        """
+
+        return_this = {
+            x.name: (x.name in local_list_response_user_recovery_methods)
+            for x in RecoveryMethodEnum.__members__.values()
+        }
+
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_ACTION_SUCCESSFUL"],
+            data={"main": return_this},
+        )
+
+        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+    except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
+        return JSONResponse(
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
+        """
+        rollback logic
+        """
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
+        )

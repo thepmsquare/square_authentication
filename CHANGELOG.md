@@ -1,9 +1,11 @@
 # changelog
 
-## v10.2.1 (in progress)
+## v10.3.0
 
 - profile
     - mark email as not verified when updating it in update_profile_details_v0.
+- core
+    - add get_user_recovery_methods_v0.
 
 ## v10.2.0
 
