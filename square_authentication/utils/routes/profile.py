@@ -246,7 +246,7 @@ def util_update_profile_details_v0(
             profile_update_data[UserProfile.user_profile_last_name.name] = last_name
         if email is not None:
             profile_update_data[UserProfile.user_profile_email.name] = email
-            profile_update_data[UserProfile.user_profile_email_verified.name]=None
+            profile_update_data[UserProfile.user_profile_email_verified.name] = None
         if phone_number is not None and phone_number_country_code is not None:
             profile_update_data[UserProfile.user_profile_phone_number.name] = (
                 phone_number
@@ -407,7 +407,7 @@ def util_send_verification_email_v0(access_token):
             seconds=EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS
         )
         # add verification code to UserVerification code table
-        global_object_square_database_helper.insert_rows_v0(
+        user_verification_insert_response = global_object_square_database_helper.insert_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserVerificationCode.__tablename__,
@@ -465,7 +465,12 @@ def util_send_verification_email_v0(access_token):
         """
         return value
         """
-        cooldown_reset_at = datetime.now(timezone.utc) + timedelta(
+        email_verification_code_created_at = datetime.fromisoformat(
+            user_verification_insert_response["data"]["main"][0][
+                UserVerificationCode.user_verification_code_created_at.name
+            ]
+        )
+        cooldown_reset_at = email_verification_code_created_at + timedelta(
             seconds=RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS
         )
         output_content = get_api_output_in_standard_format(
