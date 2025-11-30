@@ -42,7 +42,8 @@ from square_authentication.utils.routes.core import (
     util_generate_account_backup_codes_v0,
     util_reset_password_and_login_using_backup_code_v0,
     util_send_reset_password_email_v0,
-    util_reset_password_and_login_using_reset_email_code_v0, util_get_user_recovery_methods_v0,
+    util_reset_password_and_login_using_reset_email_code_v0,
+    util_get_user_recovery_methods_v0,
 )
 
 router = APIRouter(
@@ -365,8 +366,8 @@ async def validate_and_get_payload_from_token_v0(
 @global_object_square_logger.auto_logger()
 async def update_user_recovery_methods_v0(
     access_token: Annotated[str, Header()],
-    recovery_methods_to_add: List[RecoveryMethodEnum] = None,
-    recovery_methods_to_remove: List[RecoveryMethodEnum] = None,
+    recovery_methods_to_add: List[RecoveryMethodEnum] = Query(None),
+    recovery_methods_to_remove: List[RecoveryMethodEnum] = Query(None),
 ):
     try:
         return util_update_user_recovery_methods_v0(

@@ -1,5 +1,10 @@
 # changelog
 
+## v10.3.2
+
+- core
+    - bugfix in update_user_recovery_methods_v0 default parameters.
+
 ## v10.3.1
 
 - profile
