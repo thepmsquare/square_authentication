@@ -1,5 +1,10 @@
 # changelog
 
+## v11.0.0
+
+- core
+    - **breaking change**: update_user_recovery_methods_v0 input passed in as request body instead of query parameters.
+
 ## v10.3.2
 
 - core

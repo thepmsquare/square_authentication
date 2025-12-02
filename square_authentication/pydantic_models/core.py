@@ -2,6 +2,7 @@ from enum import Enum
 from typing import Optional, List
 
 from pydantic import BaseModel
+from square_database_structure.square.authentication.enums import RecoveryMethodEnum
 
 
 class RegisterUsernameV0(BaseModel):
@@ -61,3 +62,8 @@ class ResetPasswordAndLoginUsingResetEmailCodeV0(BaseModel):
     new_password: str
     app_id: int
     logout_other_sessions: bool = False
+
+
+class UpdateUserRecoveryMethodsV0(BaseModel):
+    recovery_methods_to_add: List[RecoveryMethodEnum] = None
+    recovery_methods_to_remove: List[RecoveryMethodEnum] = None

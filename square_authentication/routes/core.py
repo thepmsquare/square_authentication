@@ -4,9 +4,6 @@ from fastapi import APIRouter, Header, HTTPException, status
 from fastapi.params import Query
 from fastapi.responses import JSONResponse
 from square_commons import get_api_output_in_standard_format
-from square_database_structure.square.authentication.enums import (
-    RecoveryMethodEnum,
-)
 
 from square_authentication.configuration import (
     global_object_square_logger,
@@ -23,6 +20,7 @@ from square_authentication.pydantic_models.core import (
     SendResetPasswordEmailV0,
     ResetPasswordAndLoginUsingResetEmailCodeV0,
     RegisterLoginGoogleV0,
+    UpdateUserRecoveryMethodsV0,
 )
 from square_authentication.utils.routes.core import (
     util_register_username_v0,
@@ -366,9 +364,10 @@ async def validate_and_get_payload_from_token_v0(
 @global_object_square_logger.auto_logger()
 async def update_user_recovery_methods_v0(
     access_token: Annotated[str, Header()],
-    recovery_methods_to_add: List[RecoveryMethodEnum] = Query(None),
-    recovery_methods_to_remove: List[RecoveryMethodEnum] = Query(None),
+    body: UpdateUserRecoveryMethodsV0,
 ):
+    recovery_methods_to_add = body.recovery_methods_to_add
+    recovery_methods_to_remove = body.recovery_methods_to_remove
     try:
         return util_update_user_recovery_methods_v0(
             access_token=access_token,
