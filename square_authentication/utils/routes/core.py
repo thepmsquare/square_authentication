@@ -13,6 +13,30 @@ from fastapi.responses import JSONResponse
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from requests import HTTPError
+from square_authentication.configuration import (
+    GOOGLE_AUTH_PLATFORM_CLIENT_ID,
+    RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
+)
+from square_authentication.configuration import (
+    config_int_access_token_valid_minutes,
+    config_int_refresh_token_valid_minutes,
+    config_str_secret_key_for_access_token,
+    config_str_secret_key_for_refresh_token,
+    global_object_square_logger,
+    global_object_square_database_helper,
+    MAIL_GUN_API_KEY,
+    NUMBER_OF_RECOVERY_CODES,
+    NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE,
+    EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
+    global_object_square_file_store_helper,
+    RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
+)
+from square_authentication.messages import messages
+from square_authentication.pydantic_models.core import (
+    TokenType,
+)
+from square_authentication.utils.core import generate_default_username_for_google_users
+from square_authentication.utils.token import get_jwt_payload
 from square_commons import get_api_output_in_standard_format, send_email_using_mailgun
 from square_commons.api_utils import make_request
 from square_database_helper.pydantic_models import FilterConditionsV0, FiltersV0
@@ -42,31 +66,6 @@ from square_database_structure.square.public import (
     global_string_schema_name as global_string_public_schema_name,
 )
 from square_database_structure.square.public.tables import App
-
-from square_authentication.configuration import (
-    GOOGLE_AUTH_PLATFORM_CLIENT_ID,
-    RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
-)
-from square_authentication.configuration import (
-    config_int_access_token_valid_minutes,
-    config_int_refresh_token_valid_minutes,
-    config_str_secret_key_for_access_token,
-    config_str_secret_key_for_refresh_token,
-    global_object_square_logger,
-    global_object_square_database_helper,
-    MAIL_GUN_API_KEY,
-    NUMBER_OF_RECOVERY_CODES,
-    NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE,
-    EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
-    global_object_square_file_store_helper,
-    RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
-)
-from square_authentication.messages import messages
-from square_authentication.pydantic_models.core import (
-    TokenType,
-)
-from square_authentication.utils.core import generate_default_username_for_google_users
-from square_authentication.utils.token import get_jwt_payload
 
 
 @global_object_square_logger.auto_logger()
@@ -2975,7 +2974,7 @@ def util_send_reset_password_email_v0(
         return value
         """
         cooldown_reset_at = datetime.now(timezone.utc) + timedelta(
-            seconds=EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
+            seconds=RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
         )
 
         output_content = get_api_output_in_standard_format(

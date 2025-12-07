@@ -1,5 +1,10 @@
 # changelog
 
+## v11.0.1
+
+- core
+    - **bug fix**: fix cooldown time return value in send_reset_password_email_v0.
+
 ## v11.0.0
 
 - core
