@@ -1,5 +1,9 @@
 # changelog
 
+## v11.1.0
+
+- add backup_code_details to output for get_user_details_v0.
+
 ## v11.0.1
 
 - core
