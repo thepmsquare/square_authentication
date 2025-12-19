@@ -793,20 +793,21 @@ def util_get_user_details_v0(access_token):
                     }
                 ),
             )["data"]["main"]
-            backup_code_details = {
-                "total": len(codes),
-                "available": len(
-                    [c for c in codes if c["user_verification_code_used_at"] is None]
-                ),
-                "generated_at": (
-                    max(
-                        datetime.fromisoformat(c["user_verification_code_created_at"])
-                        for c in codes
-                    ).isoformat()
-                    if codes
-                    else None
-                ),
-            }
+            if codes:
+                backup_code_details = {
+                    "total": len(codes),
+                    "available": len(
+                        [c for c in codes if c["user_verification_code_used_at"] is None]
+                    ),
+                    "generated_at": (
+                        max(
+                            datetime.fromisoformat(c["user_verification_code_created_at"])
+                            for c in codes
+                        ).isoformat()
+                    ),
+                }
+            else:
+                backup_code_details = None
         else:
             backup_code_details = None
         """
