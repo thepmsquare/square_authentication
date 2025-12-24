@@ -11,6 +11,19 @@ class RegisterUsernameV0(BaseModel):
     app_id: Optional[int] = None
 
 
+class RegisterUsernameV0ResponseMain(BaseModel):
+    user_id: str
+    username: str
+    app_id: int | None
+    access_token: str | None
+    refresh_token: str | None
+    refresh_token_expiry_time: str | None
+
+
+class RegisterUsernameV0Response(BaseModel):
+    main: RegisterUsernameV0ResponseMain
+
+
 class RegisterLoginGoogleV0(BaseModel):
     google_id: str
     app_id: Optional[int] = None

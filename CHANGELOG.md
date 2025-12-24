@@ -1,5 +1,17 @@
 # changelog
 
+## v11.2.0 (in progress)
+
+- models
+    - add the following in core:
+        - RegisterUsernameV0Response.
+        - RegisterUsernameV0ResponseMain.
+- routes
+    - add output format validation in the following in core:
+        - register_username_v0
+- dependencies
+    - update "square_commons>=3.1.0"
+
 ## v11.1.1
 
 - fix type for backup_code_details in get_user_details_v0.

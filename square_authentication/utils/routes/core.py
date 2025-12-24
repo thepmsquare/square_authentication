@@ -64,6 +64,8 @@ from square_authentication.configuration import (
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.core import (
     TokenType,
+    RegisterUsernameV0Response,
+    RegisterUsernameV0ResponseMain,
 )
 from square_authentication.utils.core import generate_default_username_for_google_users
 from square_authentication.utils.token import get_jwt_payload
@@ -232,22 +234,24 @@ def util_register_username_v0(username, password, app_id):
         """
         return value
         """
+        data_pydantic = RegisterUsernameV0Response(
+            main=RegisterUsernameV0ResponseMain(
+                username=username,
+                user_id=local_str_user_id,
+                app_id=app_id,
+                access_token=local_str_access_token,
+                refresh_token=local_str_refresh_token,
+                refresh_token_expiry_time=local_object_refresh_token_expiry_time.isoformat(),
+            )
+        )
         output_content = get_api_output_in_standard_format(
             message=messages["REGISTRATION_SUCCESSFUL"],
-            data={
-                "main": {
-                    "user_id": local_str_user_id,
-                    "username": username,
-                    "app_id": app_id,
-                    "access_token": local_str_access_token,
-                    "refresh_token": local_str_refresh_token,
-                    "refresh_token_expiry_time": local_object_refresh_token_expiry_time.isoformat(),
-                },
-            },
+            data=data_pydantic.model_dump(),
+            as_dict=False,
         )
         return JSONResponse(
             status_code=status.HTTP_201_CREATED,
-            content=output_content,
+            content=output_content.model_dump(),
         )
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)
@@ -797,11 +801,17 @@ def util_get_user_details_v0(access_token):
                 backup_code_details = {
                     "total": len(codes),
                     "available": len(
-                        [c for c in codes if c["user_verification_code_used_at"] is None]
+                        [
+                            c
+                            for c in codes
+                            if c["user_verification_code_used_at"] is None
+                        ]
                     ),
                     "generated_at": (
                         max(
-                            datetime.fromisoformat(c["user_verification_code_created_at"])
+                            datetime.fromisoformat(
+                                c["user_verification_code_created_at"]
+                            )
                             for c in codes
                         ).isoformat()
                     ),
