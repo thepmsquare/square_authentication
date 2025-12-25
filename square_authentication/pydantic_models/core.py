@@ -30,6 +30,20 @@ class RegisterLoginGoogleV0(BaseModel):
     assign_app_id_if_missing: bool = False
 
 
+class RegisterLoginGoogleV0ResponseMain(BaseModel):
+    user_id: str
+    username: str
+    app_id: int | None
+    access_token: str | None
+    refresh_token: str | None
+    refresh_token_expiry_time: str | None
+    was_new_user: bool
+
+
+class RegisterLoginGoogleV0Response(BaseModel):
+    main: RegisterLoginGoogleV0ResponseMain
+
+
 class LoginUsernameV0(BaseModel):
     username: str
     password: str

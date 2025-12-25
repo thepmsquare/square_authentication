@@ -66,6 +66,8 @@ from square_authentication.pydantic_models.core import (
     TokenType,
     RegisterUsernameV0Response,
     RegisterUsernameV0ResponseMain,
+    RegisterLoginGoogleV0Response,
+    RegisterLoginGoogleV0ResponseMain,
 )
 from square_authentication.utils.core import generate_default_username_for_google_users
 from square_authentication.utils.token import get_jwt_payload
@@ -596,22 +598,24 @@ def util_register_login_google_v0(google_id, assign_app_id_if_missing, app_id):
             message = messages["REGISTRATION_SUCCESSFUL"]
         else:
             message = messages["LOGIN_SUCCESSFUL"]
+        data_pydantic = RegisterLoginGoogleV0Response(
+            main=RegisterLoginGoogleV0ResponseMain(
+                user_id=local_str_user_id,
+                username=username,
+                app_id=app_id,
+                access_token=access_token_str,
+                refresh_token=refresh_token_str,
+                refresh_token_expiry_time=refresh_token_expiry.isoformat(),
+                was_new_user=was_new_user,
+            )
+        )
         output_content = get_api_output_in_standard_format(
-            message=message,
-            data={
-                "main": {
-                    "user_id": local_str_user_id,
-                    "username": username,
-                    "app_id": app_id,
-                    "access_token": access_token_str,
-                    "refresh_token": refresh_token_str,
-                    "refresh_token_expiry_time": refresh_token_expiry.isoformat(),
-                    "was_new_user": was_new_user,
-                },
-            },
+            message=message, data=data_pydantic.model_dump(), as_dict=False
         )
 
-        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK, content=output_content.model_dump()
+        )
     except HTTPError as http_error:
         global_object_square_logger.logger.error(http_error, exc_info=True)
         return JSONResponse(

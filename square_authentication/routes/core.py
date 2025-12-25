@@ -23,6 +23,7 @@ from square_authentication.pydantic_models.core import (
     RegisterLoginGoogleV0,
     UpdateUserRecoveryMethodsV0,
     RegisterUsernameV0Response,
+    RegisterLoginGoogleV0Response,
 )
 from square_authentication.utils.routes.core import (
     util_register_username_v0,
@@ -79,7 +80,11 @@ async def register_username_v0(
         )
 
 
-@router.post("/register_login_google/v0")
+@router.post(
+    "/register_login_google/v0",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[RegisterLoginGoogleV0Response],
+)
 async def register_login_google_v0(body: RegisterLoginGoogleV0):
     try:
         return util_register_login_google_v0(
