@@ -8,10 +8,12 @@
         - RegisterUsernameV0ResponseMain.
         - RegisterLoginGoogleV0Response.
         - RegisterLoginGoogleV0ResponseMain.
+        - UpdateUserAppIdsV0Response
 - routes
     - add output format validation in the following in core:
         - register_username_v0
         - register_login_google_v0.
+        - update_user_app_ids_v0.
 - dependencies
     - update "square_commons>=3.1.0"
 

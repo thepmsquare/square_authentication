@@ -94,3 +94,7 @@ class ResetPasswordAndLoginUsingResetEmailCodeV0(BaseModel):
 class UpdateUserRecoveryMethodsV0(BaseModel):
     recovery_methods_to_add: List[RecoveryMethodEnum] = None
     recovery_methods_to_remove: List[RecoveryMethodEnum] = None
+
+
+class UpdateUserAppIdsV0Response(BaseModel):
+    main: List[int]

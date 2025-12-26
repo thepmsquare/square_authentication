@@ -68,6 +68,7 @@ from square_authentication.pydantic_models.core import (
     RegisterUsernameV0ResponseMain,
     RegisterLoginGoogleV0Response,
     RegisterLoginGoogleV0ResponseMain,
+    UpdateUserAppIdsV0Response,
 )
 from square_authentication.utils.core import generate_default_username_for_google_users
 from square_authentication.utils.token import get_jwt_payload
@@ -1015,15 +1016,17 @@ def util_update_user_app_ids_v0(access_token, app_ids_to_add, app_ids_to_remove)
                 root={UserApp.user_id.name: FilterConditionsV0(eq=user_id)}
             ),
         )["data"]["main"]
+        data_pydantic = UpdateUserAppIdsV0Response(
+            main=[x[UserApp.app_id.name] for x in local_list_response_user_app]
+        )
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_UPDATE_SUCCESSFUL"],
-            data={
-                "main": [x[UserApp.app_id.name] for x in local_list_response_user_app]
-            },
+            data=data_pydantic.model_dump(),
+            as_dict=False,
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=output_content,
+            content=output_content.model_dump(),
         )
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)
