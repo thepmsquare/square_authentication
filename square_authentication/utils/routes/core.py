@@ -69,6 +69,12 @@ from square_authentication.pydantic_models.core import (
     RegisterLoginGoogleV0Response,
     RegisterLoginGoogleV0ResponseMain,
     UpdateUserAppIdsV0Response,
+    GetUserDetailsV0Response,
+    GetUserDetailsV0ResponseMain,
+    GetUserDetailsV0ResponseMainProfile,
+    GetUserDetailsV0ResponseMainSession,
+    GetUserDetailsV0ResponseMainEmailVerification,
+    GetUserDetailsV0ResponseMainBackupCodes,
 )
 from square_authentication.utils.core import generate_default_username_for_google_users
 from square_authentication.utils.token import get_jwt_payload
@@ -828,47 +834,54 @@ def util_get_user_details_v0(access_token):
         """
         return value
         """
-        return_this = {
-            "user_id": user_id,
-            "username": local_list_user[0][User.user_username.name],
-            "profile": user_profile,
-            "apps": [
-                y[App.app_name.name]
-                for y in local_list_app
-                if y[App.app_id.name]
-                in [x[UserApp.app_id.name] for x in local_list_response_user_app]
-            ],
-            "sessions": [
-                {
-                    "app_name": [
-                        y[App.app_name.name]
-                        for y in local_list_app
-                        if y[App.app_id.name] == x[UserApp.app_id.name]
-                    ][0],
-                    "active_sessions": len(
-                        [
-                            y
-                            for y in local_list_response_user_sessions
-                            if y[UserSession.app_id.name] == x[UserApp.app_id.name]
-                        ]
-                    ),
-                }
-                for x in local_list_response_user_app
-            ],
-            "recovery_methods": {
-                x.name: (x.name in local_list_response_user_recovery_methods)
-                for x in RecoveryMethodEnum.__members__.values()
-            },
-            "email_verification_details": email_verification_details,
-            "backup_code_details": backup_code_details,
-        }
+        data_pydantic = GetUserDetailsV0Response(
+            main=GetUserDetailsV0ResponseMain(
+                user_id=user_id,
+                username=local_list_user[0][User.user_username.name],
+                profile=GetUserDetailsV0ResponseMainProfile(**user_profile),
+                apps=[
+                    y[App.app_name.name]
+                    for y in local_list_app
+                    if y[App.app_id.name]
+                    in [x[UserApp.app_id.name] for x in local_list_response_user_app]
+                ],
+                sessions=[
+                    GetUserDetailsV0ResponseMainSession(
+                        app_name=[
+                            y[App.app_name.name]
+                            for y in local_list_app
+                            if y[App.app_id.name] == x[UserApp.app_id.name]
+                        ][0],
+                        active_sessions=len(
+                            [
+                                y
+                                for y in local_list_response_user_sessions
+                                if y[UserSession.app_id.name] == x[UserApp.app_id.name]
+                            ]
+                        ),
+                    )
+                    for x in local_list_response_user_app
+                ],
+                recovery_methods={
+                    x.name: (x.name in local_list_response_user_recovery_methods)
+                    for x in RecoveryMethodEnum.__members__.values()
+                },
+                email_verification_details=GetUserDetailsV0ResponseMainEmailVerification(
+                    **email_verification_details
+                ),
+                backup_code_details=GetUserDetailsV0ResponseMainBackupCodes(
+                    **backup_code_details
+                ),
+            )
+        )
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_READ_SUCCESSFUL"],
-            data={"main": return_this},
+            data=data_pydantic.model_dump(),
+            as_dict=False,
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=output_content,
+            content=output_content.model_dump(),
         )
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)

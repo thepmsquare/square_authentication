@@ -98,3 +98,45 @@ class UpdateUserRecoveryMethodsV0(BaseModel):
 
 class UpdateUserAppIdsV0Response(BaseModel):
     main: List[int]
+
+
+class GetUserDetailsV0ResponseMainProfile(BaseModel):
+    user_profile_id: int
+    user_profile_photo_storage_token: str | None
+    user_profile_email: str | None
+    user_profile_phone_number_country_code: str | None
+    user_profile_phone_number: str | None
+    user_profile_first_name: str | None
+    user_profile_last_name: str | None
+    user_profile_email_verified: str | None
+
+
+class GetUserDetailsV0ResponseMainSession(BaseModel):
+    app_name: str
+    active_sessions: int
+
+
+class GetUserDetailsV0ResponseMainEmailVerification(BaseModel):
+    expires_at: str
+    cooldown_reset_at: str
+
+
+class GetUserDetailsV0ResponseMainBackupCodes(BaseModel):
+    total: int
+    available: int
+    generated_at: str
+
+
+class GetUserDetailsV0ResponseMain(BaseModel):
+    user_id: str
+    username: str
+    profile: GetUserDetailsV0ResponseMainProfile
+    apps: List[str]
+    sessions: List[GetUserDetailsV0ResponseMainSession]
+    recovery_methods: dict[RecoveryMethodEnum, bool]
+    email_verification_details: GetUserDetailsV0ResponseMainEmailVerification | None
+    backup_code_details: GetUserDetailsV0ResponseMainBackupCodes | None
+
+
+class GetUserDetailsV0Response(BaseModel):
+    main: GetUserDetailsV0ResponseMain
