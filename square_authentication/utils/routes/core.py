@@ -782,10 +782,10 @@ def util_get_user_details_v0(access_token):
             cooldown_reset_at = existing_verification_created_at_datetime + timedelta(
                 seconds=RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS
             )
-            email_verification_details = {
-                "expires_at": existing_verification_expiry_time,
-                "cooldown_reset_at": cooldown_reset_at.isoformat(),
-            }
+            email_verification_details = GetUserDetailsV0ResponseMainEmailVerification(
+                expires_at=existing_verification_expiry_time,
+                cooldown_reset_at=cooldown_reset_at.isoformat(),
+            )
         else:
             email_verification_details = None
         # check for backup code.
@@ -809,16 +809,16 @@ def util_get_user_details_v0(access_token):
                 ),
             )["data"]["main"]
             if codes:
-                backup_code_details = {
-                    "total": len(codes),
-                    "available": len(
+                backup_code_details = GetUserDetailsV0ResponseMainBackupCodes(
+                    total=len(codes),
+                    available=len(
                         [
                             c
                             for c in codes
                             if c["user_verification_code_used_at"] is None
                         ]
                     ),
-                    "generated_at": (
+                    generated_at=(
                         max(
                             datetime.fromisoformat(
                                 c["user_verification_code_created_at"]
@@ -826,7 +826,7 @@ def util_get_user_details_v0(access_token):
                             for c in codes
                         ).isoformat()
                     ),
-                }
+                )
             else:
                 backup_code_details = None
         else:
@@ -866,12 +866,8 @@ def util_get_user_details_v0(access_token):
                     x.name: (x.name in local_list_response_user_recovery_methods)
                     for x in RecoveryMethodEnum.__members__.values()
                 },
-                email_verification_details=GetUserDetailsV0ResponseMainEmailVerification(
-                    **email_verification_details
-                ),
-                backup_code_details=GetUserDetailsV0ResponseMainBackupCodes(
-                    **backup_code_details
-                ),
+                email_verification_details=email_verification_details,
+                backup_code_details=backup_code_details,
             )
         )
         output_content = get_api_output_in_standard_format(

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 from pydantic import BaseModel
 from square_database_structure.square.authentication.enums import RecoveryMethodEnum
@@ -133,7 +133,7 @@ class GetUserDetailsV0ResponseMain(BaseModel):
     profile: GetUserDetailsV0ResponseMainProfile
     apps: List[str]
     sessions: List[GetUserDetailsV0ResponseMainSession]
-    recovery_methods: dict[RecoveryMethodEnum, bool]
+    recovery_methods: Dict[str, bool]
     email_verification_details: GetUserDetailsV0ResponseMainEmailVerification | None
     backup_code_details: GetUserDetailsV0ResponseMainBackupCodes | None
 
