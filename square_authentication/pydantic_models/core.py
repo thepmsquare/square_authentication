@@ -151,3 +151,11 @@ class GetUserDetailsV0ResponseMain(BaseModel):
 
 class GetUserDetailsV0Response(BaseModel):
     main: GetUserDetailsV0ResponseMain
+
+
+class GenerateAccessTokenV0ResponseMain(BaseModel):
+    access_token: str
+
+
+class GenerateAccessTokenV0Response(BaseModel):
+    main: GenerateAccessTokenV0ResponseMain

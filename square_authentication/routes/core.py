@@ -27,6 +27,7 @@ from square_authentication.pydantic_models.core import (
     UpdateUserAppIdsV0Response,
     GetUserDetailsV0Response,
     LoginUsernameV0Response,
+    GenerateAccessTokenV0Response,
 )
 from square_authentication.utils.routes.core import (
     util_register_username_v0,
@@ -194,7 +195,11 @@ async def login_username_v0(body: LoginUsernameV0):
         )
 
 
-@router.get("/generate_access_token/v0")
+@router.get(
+    "/generate_access_token/v0",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[GenerateAccessTokenV0Response],
+)
 @global_object_square_logger.auto_logger()
 async def generate_access_token_v0(
     refresh_token: Annotated[str, Header()],
