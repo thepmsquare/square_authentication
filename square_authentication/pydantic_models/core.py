@@ -51,6 +51,17 @@ class LoginUsernameV0(BaseModel):
     assign_app_id_if_missing: bool = False
 
 
+class LoginUsernameV0ResponseMain(BaseModel):
+    user_id: str
+    access_token: str
+    refresh_token: str
+    refresh_token_expiry_time: str
+
+
+class LoginUsernameV0Response(BaseModel):
+    main: LoginUsernameV0ResponseMain
+
+
 class DeleteUserV0(BaseModel):
     password: str
 

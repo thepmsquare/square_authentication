@@ -26,6 +26,7 @@ from square_authentication.pydantic_models.core import (
     RegisterLoginGoogleV0Response,
     UpdateUserAppIdsV0Response,
     GetUserDetailsV0Response,
+    LoginUsernameV0Response,
 )
 from square_authentication.utils.routes.core import (
     util_register_username_v0,
@@ -161,7 +162,11 @@ async def update_user_app_ids_v0(
         )
 
 
-@router.post("/login_username/v0")
+@router.post(
+    "/login_username/v0",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[LoginUsernameV0Response],
+)
 @global_object_square_logger.auto_logger()
 async def login_username_v0(body: LoginUsernameV0):
     username = body.username

@@ -9,18 +9,21 @@
         - RegisterLoginGoogleV0Response.
         - RegisterLoginGoogleV0ResponseMain.
         - UpdateUserAppIdsV0Response.
-        - GetUserDetailsV0Response
-        - GetUserDetailsV0ResponseMain
-        - GetUserDetailsV0ResponseMainBackupCodes
-        - GetUserDetailsV0ResponseMainEmailVerification
-        - GetUserDetailsV0ResponseMainSession
-        - GetUserDetailsV0ResponseMainProfile
+        - GetUserDetailsV0Response.
+        - GetUserDetailsV0ResponseMain.
+        - GetUserDetailsV0ResponseMainBackupCodes.
+        - GetUserDetailsV0ResponseMainEmailVerification.
+        - GetUserDetailsV0ResponseMainSession.
+        - GetUserDetailsV0ResponseMainProfile.
+        - LoginUsernameV0Response.
+        - LoginUsernameV0ResponseMain.
 - routes
     - add output format validation in the following in core:
         - register_username_v0
         - register_login_google_v0.
         - update_user_app_ids_v0.
         - update get_user_details_v0.
+        - login_username_v0.
 - dependencies
     - update "square_commons>=3.1.0"
 

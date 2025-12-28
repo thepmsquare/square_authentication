@@ -75,6 +75,8 @@ from square_authentication.pydantic_models.core import (
     GetUserDetailsV0ResponseMainSession,
     GetUserDetailsV0ResponseMainEmailVerification,
     GetUserDetailsV0ResponseMainBackupCodes,
+    LoginUsernameV0Response,
+    LoginUsernameV0ResponseMain,
 )
 from square_authentication.utils.core import generate_default_username_for_google_users
 from square_authentication.utils.token import get_jwt_payload
@@ -1247,20 +1249,22 @@ def util_login_username_v0(username, password, app_id, assign_app_id_if_missing)
         """
         return value
         """
+        data_pydantic = LoginUsernameV0Response(
+            main=LoginUsernameV0ResponseMain(
+                user_id=local_str_user_id,
+                access_token=local_str_access_token,
+                refresh_token=local_str_refresh_token,
+                refresh_token_expiry_time=local_object_refresh_token_expiry_time.isoformat(),
+            )
+        )
         output_content = get_api_output_in_standard_format(
-            data={
-                "main": {
-                    "user_id": local_str_user_id,
-                    "access_token": local_str_access_token,
-                    "refresh_token": local_str_refresh_token,
-                    "refresh_token_expiry_time": local_object_refresh_token_expiry_time.isoformat(),
-                }
-            },
+            data=data_pydantic.model_dump(),
             message=messages["LOGIN_SUCCESSFUL"],
+            as_dict=False,
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=output_content,
+            content=output_content.model_dump(),
         )
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)
