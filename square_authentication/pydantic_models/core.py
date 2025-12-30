@@ -1,7 +1,8 @@
 from enum import Enum
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, TypeAlias
 
 from pydantic import BaseModel
+from square_commons.api_utils import StandardResponse
 from square_database_structure.square.authentication.enums import RecoveryMethodEnum
 
 
@@ -159,3 +160,6 @@ class GenerateAccessTokenV0ResponseMain(BaseModel):
 
 class GenerateAccessTokenV0Response(BaseModel):
     main: GenerateAccessTokenV0ResponseMain
+
+
+LogoutV0Response: TypeAlias = StandardResponse[None]
