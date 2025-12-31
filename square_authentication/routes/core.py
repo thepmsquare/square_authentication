@@ -276,9 +276,11 @@ async def logout_apps_v0(
         )
 
 
-@router.delete("/logout/all/v0",
+@router.delete(
+    "/logout/all/v0",
     status_code=status.HTTP_200_OK,
-    response_model=LogoutAllV0Response,)
+    response_model=LogoutAllV0Response,
+)
 @global_object_square_logger.auto_logger()
 async def logout_all_v0(
     access_token: Annotated[str, Header()],
