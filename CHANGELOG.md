@@ -21,6 +21,7 @@
         - GenerateAccessTokenV0ResponseMain.
         - LogoutV0Response.
         - LogoutAppsV0Response.
+        - LogoutAllV0Response.
 - routes
     - add output format validation in the following in core:
         - register_username_v0
@@ -31,6 +32,7 @@
         - generate_access_token_v0.
         - logout_v0.
         - logout_apps_v0.
+        - logout_all_v0.
 - dependencies
     - update "square_commons>=3.1.0"
 
