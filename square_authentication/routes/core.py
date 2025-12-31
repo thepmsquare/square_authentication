@@ -29,6 +29,7 @@ from square_authentication.pydantic_models.core import (
     LoginUsernameV0Response,
     GenerateAccessTokenV0Response,
     LogoutV0Response,
+    LogoutAppsV0Response,
 )
 from square_authentication.utils.routes.core import (
     util_register_username_v0,
@@ -248,7 +249,11 @@ async def logout_v0(
         )
 
 
-@router.post("/logout/apps/v0")
+@router.post(
+    "/logout/apps/v0",
+    status_code=status.HTTP_200_OK,
+    response_model=LogoutAppsV0Response,
+)
 @global_object_square_logger.auto_logger()
 async def logout_apps_v0(
     access_token: Annotated[str, Header()],

@@ -1536,9 +1536,11 @@ def util_logout_apps_v0(access_token, app_ids):
         return value
         """
         output_content = get_api_output_in_standard_format(
-            message=messages["LOGOUT_SUCCESSFUL"],
+            message=messages["LOGOUT_SUCCESSFUL"], as_dict=False
         )
-        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK, content=output_content.model_dump()
+        )
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(

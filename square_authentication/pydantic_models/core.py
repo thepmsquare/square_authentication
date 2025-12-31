@@ -163,3 +163,4 @@ class GenerateAccessTokenV0Response(BaseModel):
 
 
 LogoutV0Response: TypeAlias = StandardResponse[None]
+LogoutAppsV0Response: TypeAlias = StandardResponse[None]
