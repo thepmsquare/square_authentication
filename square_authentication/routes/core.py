@@ -31,6 +31,7 @@ from square_authentication.pydantic_models.core import (
     LogoutV0Response,
     LogoutAppsV0Response,
     LogoutAllV0Response,
+    UpdateUsernameV0Response,
 )
 from square_authentication.utils.routes.core import (
     util_register_username_v0,
@@ -300,7 +301,11 @@ async def logout_all_v0(
         )
 
 
-@router.patch("/update_username/v0")
+@router.patch(
+    "/update_username/v0",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[UpdateUsernameV0Response],
+)
 @global_object_square_logger.auto_logger()
 async def update_username_v0(
     new_username: str,

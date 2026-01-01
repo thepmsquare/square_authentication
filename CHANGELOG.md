@@ -22,6 +22,8 @@
         - LogoutV0Response.
         - LogoutAppsV0Response.
         - LogoutAllV0Response.
+        - UpdateUsernameV0Response.
+        - UpdateUsernameV0ResponseMain.
 - routes
     - add output format validation in the following in core:
         - register_username_v0
@@ -33,6 +35,7 @@
         - logout_v0.
         - logout_apps_v0.
         - logout_all_v0.
+        - update_username_v0.
 - dependencies
     - update "square_commons>=3.1.0"
 
