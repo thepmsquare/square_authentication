@@ -174,3 +174,6 @@ class UpdateUsernameV0ResponseMain(BaseModel):
 
 class UpdateUsernameV0Response(BaseModel):
     main: UpdateUsernameV0ResponseMain
+
+
+DeleteUserV0Response: TypeAlias = StandardResponse[None]
