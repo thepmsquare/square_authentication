@@ -177,3 +177,4 @@ class UpdateUsernameV0Response(BaseModel):
 
 
 DeleteUserV0Response: TypeAlias = StandardResponse[None]
+UpdatePasswordV0Response: TypeAlias = StandardResponse[None]

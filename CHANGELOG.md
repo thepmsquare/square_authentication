@@ -25,6 +25,7 @@
         - UpdateUsernameV0Response.
         - UpdateUsernameV0ResponseMain.
         - DeleteUserV0Response.
+        - UpdatePasswordV0Response.
 - routes
     - add output format validation in the following in core:
         - register_username_v0
@@ -38,6 +39,7 @@
         - logout_all_v0.
         - update_username_v0.
         - delete_user_v0.
+        - update_password_v0.
 - dependencies
     - update "square_commons>=3.1.0"
 
@@ -267,7 +269,7 @@
 - add square_file_store_helper as a dependency.
 - config
     - add config section for file store helper.
-- initialise file store helper and database helper in config.py
+- initialize file store helper and database helper in config.py
 - add profile router
 - profile
     - add update_profile_photo/v0
