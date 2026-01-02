@@ -34,6 +34,7 @@ from square_authentication.pydantic_models.core import (
     UpdateUsernameV0Response,
     DeleteUserV0Response,
     UpdatePasswordV0Response,
+    ValidateAndGetPayloadFromTokenV0Response,
 )
 from square_authentication.utils.routes.core import (
     util_register_username_v0,
@@ -395,7 +396,11 @@ async def update_password_v0(
         )
 
 
-@router.get("/validate_and_get_payload_from_token/v0")
+@router.get(
+    "/validate_and_get_payload_from_token/v0",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[ValidateAndGetPayloadFromTokenV0Response],
+)
 @global_object_square_logger.auto_logger()
 async def validate_and_get_payload_from_token_v0(
     app_id: int,

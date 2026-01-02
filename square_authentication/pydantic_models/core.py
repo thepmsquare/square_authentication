@@ -178,3 +178,7 @@ class UpdateUsernameV0Response(BaseModel):
 
 DeleteUserV0Response: TypeAlias = StandardResponse[None]
 UpdatePasswordV0Response: TypeAlias = StandardResponse[None]
+
+
+class ValidateAndGetPayloadFromTokenV0Response(BaseModel):
+    main: dict

@@ -81,6 +81,7 @@ from square_authentication.pydantic_models.core import (
     GenerateAccessTokenV0Response,
     UpdateUsernameV0Response,
     UpdateUsernameV0ResponseMain,
+    ValidateAndGetPayloadFromTokenV0Response,
 )
 from square_authentication.utils.core import generate_default_username_for_google_users
 from square_authentication.utils.token import get_jwt_payload
@@ -2178,11 +2179,17 @@ def util_validate_and_get_payload_from_token_v0(app_id, token, token_type):
         """
         return value
         """
+        data_pydantic = ValidateAndGetPayloadFromTokenV0Response(
+            main=local_dict_token_payload
+        )
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_READ_SUCCESSFUL"],
-            data={"main": local_dict_token_payload},
+            data=data_pydantic.model_dump(),
+            as_dict=False,
         )
-        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK, content=output_content.model_dump()
+        )
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
