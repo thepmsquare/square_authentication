@@ -87,6 +87,7 @@ from square_authentication.pydantic_models.core import (
     GenerateAccountBackupCodesV0ResponseMain,
     ResetPasswordAndLoginUsingBackupCodeV0Response,
     ResetPasswordAndLoginUsingBackupCodeV0ResponseMain,
+    SendResetPasswordEmailV0Response,
 )
 from square_authentication.utils.core import generate_default_username_for_google_users
 from square_authentication.utils.token import get_jwt_payload
@@ -2835,6 +2836,7 @@ def util_reset_password_and_login_using_backup_code_v0(
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_ACTION_SUCCESSFUL"],
             data=data_pydantic.model_dump(),
+            as_dict=False,
         )
 
         return JSONResponse(
@@ -3094,17 +3096,18 @@ def util_send_reset_password_email_v0(
         cooldown_reset_at = datetime.now(timezone.utc) + timedelta(
             seconds=RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
         )
-
+        data_pydantic = SendResetPasswordEmailV0Response(
+            expires_at=expires_at.isoformat(),
+            cooldown_reset_at=cooldown_reset_at.isoformat(),
+        )
         output_content = get_api_output_in_standard_format(
-            data={
-                "expires_at": expires_at.isoformat(),
-                "cooldown_reset_at": cooldown_reset_at.isoformat(),
-            },
+            data=data_pydantic.model_dump(),
             message=messages["GENERIC_ACTION_SUCCESSFUL"],
+            as_dict=False,
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=output_content,
+            content=output_content.model_dump(),
         )
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)

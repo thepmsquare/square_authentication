@@ -206,3 +206,8 @@ class ResetPasswordAndLoginUsingBackupCodeV0ResponseMain(BaseModel):
 
 class ResetPasswordAndLoginUsingBackupCodeV0Response(BaseModel):
     main: ResetPasswordAndLoginUsingBackupCodeV0ResponseMain
+
+
+class SendResetPasswordEmailV0Response(BaseModel):
+    expires_at: str
+    cooldown_reset_at: str
