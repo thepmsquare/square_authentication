@@ -27,6 +27,7 @@
         - DeleteUserV0Response.
         - UpdatePasswordV0Response.
         - ValidateAndGetPayloadFromTokenV0Response.
+        - UpdateUserRecoveryMethodsV0Response.
 - routes
     - add output format validation in the following in core:
         - register_username_v0
@@ -42,6 +43,7 @@
         - delete_user_v0.
         - update_password_v0.
         - validate_and_get_payload_from_token_v0.
+        - update_user_recovery_methods.
 - dependencies
     - update "square_commons>=3.1.0"
 

@@ -182,3 +182,7 @@ UpdatePasswordV0Response: TypeAlias = StandardResponse[None]
 
 class ValidateAndGetPayloadFromTokenV0Response(BaseModel):
     main: dict
+
+
+class UpdateUserRecoveryMethodsV0Response(BaseModel):
+    main: List[str]
