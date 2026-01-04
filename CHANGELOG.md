@@ -30,6 +30,8 @@
         - UpdateUserRecoveryMethodsV0Response.
         - GenerateAccountBackupCodesV0Response.
         - GenerateAccountBackupCodesV0ResponseMain.
+        - ResetPasswordAndLoginUsingBackupCodeV0Response.
+        - ResetPasswordAndLoginUsingBackupCodeV0ResponseMain.
 - routes
     - add output format validation in the following in core:
         - register_username_v0
@@ -46,7 +48,8 @@
         - update_password_v0.
         - validate_and_get_payload_from_token_v0.
         - update_user_recovery_methods_v0.
-        - generate_account_backup_codes_v0
+        - generate_account_backup_codes_v0.
+        - reset_password_and_login_using_backup_code_v0.
 - dependencies
     - update "square_commons>=3.1.0"
 

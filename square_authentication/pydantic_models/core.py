@@ -195,3 +195,14 @@ class GenerateAccountBackupCodesV0ResponseMain(BaseModel):
 
 class GenerateAccountBackupCodesV0Response(BaseModel):
     main: GenerateAccountBackupCodesV0ResponseMain
+
+
+class ResetPasswordAndLoginUsingBackupCodeV0ResponseMain(BaseModel):
+    user_id: str
+    access_token: str
+    refresh_token: str
+    refresh_token_expiry_time: str
+
+
+class ResetPasswordAndLoginUsingBackupCodeV0Response(BaseModel):
+    main: ResetPasswordAndLoginUsingBackupCodeV0ResponseMain
