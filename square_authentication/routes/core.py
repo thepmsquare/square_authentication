@@ -36,6 +36,7 @@ from square_authentication.pydantic_models.core import (
     UpdatePasswordV0Response,
     ValidateAndGetPayloadFromTokenV0Response,
     UpdateUserRecoveryMethodsV0Response,
+    GenerateAccountBackupCodesV0Response,
 )
 from square_authentication.utils.routes.core import (
     util_register_username_v0,
@@ -427,9 +428,11 @@ async def validate_and_get_payload_from_token_v0(
         )
 
 
-@router.patch("/update_user_recovery_methods/v0",
+@router.patch(
+    "/update_user_recovery_methods/v0",
     status_code=status.HTTP_200_OK,
-    response_model=StandardResponse[UpdateUserRecoveryMethodsV0Response],)
+    response_model=StandardResponse[UpdateUserRecoveryMethodsV0Response],
+)
 @global_object_square_logger.auto_logger()
 async def update_user_recovery_methods_v0(
     access_token: Annotated[str, Header()],
@@ -456,7 +459,11 @@ async def update_user_recovery_methods_v0(
         )
 
 
-@router.post("/generate_account_backup_codes/v0")
+@router.post(
+    "/generate_account_backup_codes/v0",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[GenerateAccountBackupCodesV0Response],
+)
 @global_object_square_logger.auto_logger()
 async def generate_account_backup_codes_v0(
     access_token: Annotated[str, Header()],

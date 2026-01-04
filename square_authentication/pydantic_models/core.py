@@ -186,3 +186,12 @@ class ValidateAndGetPayloadFromTokenV0Response(BaseModel):
 
 class UpdateUserRecoveryMethodsV0Response(BaseModel):
     main: List[str]
+
+
+class GenerateAccountBackupCodesV0ResponseMain(BaseModel):
+    user_id: str
+    backup_codes: List[str]
+
+
+class GenerateAccountBackupCodesV0Response(BaseModel):
+    main: GenerateAccountBackupCodesV0ResponseMain

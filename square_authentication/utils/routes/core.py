@@ -83,6 +83,8 @@ from square_authentication.pydantic_models.core import (
     UpdateUsernameV0ResponseMain,
     ValidateAndGetPayloadFromTokenV0Response,
     UpdateUserRecoveryMethodsV0Response,
+    GenerateAccountBackupCodesV0Response,
+    GenerateAccountBackupCodesV0ResponseMain,
 )
 from square_authentication.utils.core import generate_default_username_for_google_users
 from square_authentication.utils.token import get_jwt_payload
@@ -2542,16 +2544,20 @@ def util_generate_account_backup_codes_v0(access_token):
         """
         return value
         """
+        data_pydantic = GenerateAccountBackupCodesV0Response(
+            main=GenerateAccountBackupCodesV0ResponseMain(
+                user_id=user_id,
+                backup_codes=backup_codes,
+            )
+        )
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_CREATION_SUCCESSFUL"],
-            data={
-                "main": {
-                    "user_id": user_id,
-                    "backup_codes": backup_codes,
-                }
-            },
+            data=data_pydantic.model_dump(),
+            as_dict=False,
         )
-        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK, content=output_content.model_dump()
+        )
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(
