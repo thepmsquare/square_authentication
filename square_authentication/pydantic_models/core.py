@@ -211,3 +211,14 @@ class ResetPasswordAndLoginUsingBackupCodeV0Response(BaseModel):
 class SendResetPasswordEmailV0Response(BaseModel):
     expires_at: str
     cooldown_reset_at: str
+
+
+class ResetPasswordAndLoginUsingResetEmailCodeV0ResponseMain(BaseModel):
+    user_id: str
+    access_token: str
+    refresh_token: str
+    refresh_token_expiry_time: str
+
+
+class ResetPasswordAndLoginUsingResetEmailCodeV0Response(BaseModel):
+    main: ResetPasswordAndLoginUsingResetEmailCodeV0ResponseMain
