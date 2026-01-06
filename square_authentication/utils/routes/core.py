@@ -90,6 +90,7 @@ from square_authentication.pydantic_models.core import (
     SendResetPasswordEmailV0Response,
     ResetPasswordAndLoginUsingResetEmailCodeV0Response,
     ResetPasswordAndLoginUsingResetEmailCodeV0ResponseMain,
+    GetUserRecoveryMethodsV0Response,
 )
 from square_authentication.utils.core import generate_default_username_for_google_users
 from square_authentication.utils.token import get_jwt_payload
@@ -3505,12 +3506,16 @@ def util_get_user_recovery_methods_v0(username: str):
             for x in RecoveryMethodEnum.__members__.values()
         }
 
+        data_pydantic = GetUserRecoveryMethodsV0Response(main=return_this)
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_ACTION_SUCCESSFUL"],
-            data={"main": return_this},
+            data=data_pydantic.model_dump(),
+            as_dict=False,
         )
 
-        return JSONResponse(status_code=status.HTTP_200_OK, content=output_content)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK, content=output_content.model_dump()
+        )
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)
         return JSONResponse(

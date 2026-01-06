@@ -40,6 +40,7 @@ from square_authentication.pydantic_models.core import (
     ResetPasswordAndLoginUsingBackupCodeV0Response,
     SendResetPasswordEmailV0Response,
     ResetPasswordAndLoginUsingResetEmailCodeV0Response,
+    GetUserRecoveryMethodsV0Response,
 )
 from square_authentication.utils.routes.core import (
     util_register_username_v0,
@@ -585,7 +586,11 @@ async def reset_password_and_login_using_reset_email_code_v0(
         )
 
 
-@router.get("/get_user_recovery_methods/v0")
+@router.get(
+    "/get_user_recovery_methods/v0",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[GetUserRecoveryMethodsV0Response],
+)
 @global_object_square_logger.auto_logger()
 async def get_user_recovery_methods_v0(username: str):
 

@@ -222,3 +222,7 @@ class ResetPasswordAndLoginUsingResetEmailCodeV0ResponseMain(BaseModel):
 
 class ResetPasswordAndLoginUsingResetEmailCodeV0Response(BaseModel):
     main: ResetPasswordAndLoginUsingResetEmailCodeV0ResponseMain
+
+
+class GetUserRecoveryMethodsV0Response(BaseModel):
+    main: Dict[str, bool]
