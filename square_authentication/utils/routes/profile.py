@@ -36,6 +36,9 @@ from square_authentication.configuration import (
     global_object_square_file_store_helper,
 )
 from square_authentication.messages import messages
+from square_authentication.pydantic_models.profile import (
+    SendVerificationEmailV0Response,
+)
 from square_authentication.utils.token import get_jwt_payload
 
 
@@ -473,16 +476,18 @@ def util_send_verification_email_v0(access_token):
         cooldown_reset_at = email_verification_code_created_at + timedelta(
             seconds=RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS
         )
+        data_pydantic = SendVerificationEmailV0Response(
+            expires_at=expires_at.isoformat(),
+            cooldown_reset_at=cooldown_reset_at.isoformat(),
+        )
         output_content = get_api_output_in_standard_format(
-            data={
-                "expires_at": expires_at.isoformat(),
-                "cooldown_reset_at": cooldown_reset_at.isoformat(),
-            },
+            data=data_pydantic.model_dump(),
             message=messages["GENERIC_ACTION_SUCCESSFUL"],
+            as_dict=False,
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=output_content,
+            content=output_content.model_dump(),
         )
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)

@@ -36,6 +36,8 @@
         - ResetPasswordAndLoginUsingResetEmailCodeV0Response.
         - ResetPasswordAndLoginUsingResetEmailCodeV0ResponseMain.
         - GetUserRecoveryMethodsV0Response.
+    - add the following in profile:
+        - SendVerificationEmailV0Response.
 - routes
     - add output format validation in the following in core:
         - register_username_v0
@@ -56,7 +58,9 @@
         - reset_password_and_login_using_backup_code_v0.
         - send_reset_password_email_v0.
         - reset_password_and_login_using_reset_email_code_v0.
-        - get_user_recovery_methods.
+        - get_user_recovery_methods_v0.
+    - add output format validation in the following in profile:
+        - send_verification_email_v0.
 - dependencies
     - update "square_commons>=3.1.0"
 
