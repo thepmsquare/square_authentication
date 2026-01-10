@@ -4,6 +4,24 @@ from datetime import datetime, timedelta, timezone
 import bcrypt
 from fastapi import HTTPException, status
 from fastapi.responses import JSONResponse
+from square_authentication.configuration import (
+    EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
+    MAIL_GUN_API_KEY,
+    NUMBER_OF_DIGITS_IN_EMAIL_VERIFICATION_CODE,
+    RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
+    config_str_secret_key_for_access_token,
+    global_object_square_database_helper,
+    global_object_square_logger,
+)
+from square_authentication.configuration import (
+    global_object_square_file_store_helper,
+)
+from square_authentication.messages import messages
+from square_authentication.pydantic_models.profile import (
+    SendVerificationEmailV0Response,
+    UpdateProfilePhotoV0Response,
+)
+from square_authentication.utils.token import get_jwt_payload
 from square_commons import get_api_output_in_standard_format
 from square_commons.email import send_email_using_mailgun
 from square_database_helper import FiltersV0
@@ -22,24 +40,6 @@ from square_database_structure.square.email import (
 )
 from square_database_structure.square.email.enums import EmailStatusEnum, EmailTypeEnum
 from square_database_structure.square.email.tables import EmailLog
-
-from square_authentication.configuration import (
-    EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
-    MAIL_GUN_API_KEY,
-    NUMBER_OF_DIGITS_IN_EMAIL_VERIFICATION_CODE,
-    RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
-    config_str_secret_key_for_access_token,
-    global_object_square_database_helper,
-    global_object_square_logger,
-)
-from square_authentication.configuration import (
-    global_object_square_file_store_helper,
-)
-from square_authentication.messages import messages
-from square_authentication.pydantic_models.profile import (
-    SendVerificationEmailV0Response,
-)
-from square_authentication.utils.token import get_jwt_payload
 
 
 @global_object_square_logger.auto_logger()
@@ -153,13 +153,19 @@ def util_update_profile_photo_v0(access_token, profile_photo):
         """
         return value
         """
+        data_pydantic = UpdateProfilePhotoV0Response(
+            main=profile_update_response["data"]["main"][0][
+                UserProfile.user_profile_photo_storage_token.name
+            ]
+        )
         output_content = get_api_output_in_standard_format(
-            data=profile_update_response["data"],
+            data=data_pydantic.model_dump(),
             message=messages["GENERIC_UPDATE_SUCCESSFUL"],
+            as_dict=False,
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=output_content,
+            content=output_content.model_dump(),
         )
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)

@@ -8,3 +8,7 @@ class ValidateEmailVerificationCodeV0(BaseModel):
 class SendVerificationEmailV0Response(BaseModel):
     expires_at: str
     cooldown_reset_at: str
+
+
+class UpdateProfilePhotoV0Response(BaseModel):
+    main: str | None
