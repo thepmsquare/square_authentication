@@ -14,6 +14,7 @@ from square_authentication.pydantic_models.profile import (
     SendVerificationEmailV0Response,
     UpdateProfilePhotoV0Response,
     UpdateProfileDetailsV0Response,
+    ValidateEmailVerificationCodeV0Response,
 )
 from square_authentication.utils.routes.profile import (
     util_update_profile_photo_v0,
@@ -117,7 +118,11 @@ async def send_verification_email_v0(
         )
 
 
-@router.post("/validate_email_verification_code/v0")
+@router.post(
+    "/validate_email_verification_code/v0",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[ValidateEmailVerificationCodeV0Response],
+)
 @global_object_square_logger.auto_logger()
 async def validate_email_verification_code_v0(
     access_token: Annotated[str, Header()],

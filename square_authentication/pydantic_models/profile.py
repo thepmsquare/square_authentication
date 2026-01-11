@@ -29,3 +29,7 @@ class UpdateProfileDetailsV0ResponseMain(BaseModel):
 class UpdateProfileDetailsV0Response(BaseModel):
     main: list[UpdateProfileDetailsV0ResponseMain]
     affected_count: int
+
+
+class ValidateEmailVerificationCodeV0Response(BaseModel):
+    user_profile_email_verified: str

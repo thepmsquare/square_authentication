@@ -41,6 +41,7 @@ from square_authentication.pydantic_models.profile import (
     UpdateProfilePhotoV0Response,
     UpdateProfileDetailsV0Response,
     UpdateProfileDetailsV0ResponseMain,
+    ValidateEmailVerificationCodeV0Response,
 )
 from square_authentication.utils.token import get_jwt_payload
 
@@ -647,15 +648,17 @@ def util_validate_email_verification_code_v0(access_token, verification_code):
         """
         return value
         """
+        data_pydantic = ValidateEmailVerificationCodeV0Response(
+            user_profile_email_verified=email_verified_time.isoformat(),
+        )
         output_content = get_api_output_in_standard_format(
-            data={
-                UserProfile.user_profile_email_verified.name: email_verified_time.isoformat(),
-            },
+            data=data_pydantic.model_dump(),
             message=messages["GENERIC_ACTION_SUCCESSFUL"],
+            as_dict=False,
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=output_content,
+            content=output_content.model_dump(),
         )
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)
