@@ -38,6 +38,8 @@
         - GetUserRecoveryMethodsV0Response.
     - add the following in profile:
         - UpdateProfilePhotoV0Response.
+        - UpdateProfileDetailsV0Response.
+        - UpdateProfileDetailsV0ResponseMain.
         - SendVerificationEmailV0Response.
 - routes
     - add output format validation in the following in core:
@@ -61,7 +63,8 @@
         - reset_password_and_login_using_reset_email_code_v0.
         - get_user_recovery_methods_v0.
     - add output format validation in the following in profile:
-        - update_profile_photo_v0
+        - update_profile_photo_v0.
+        - update_profile_details_v0.
         - send_verification_email_v0.
 - dependencies
     - update "square_commons>=3.1.0"

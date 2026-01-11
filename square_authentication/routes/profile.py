@@ -2,6 +2,9 @@ from typing import Annotated, Optional
 
 from fastapi import APIRouter, Header, HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse
+from square_commons import get_api_output_in_standard_format
+from square_commons.api_utils import StandardResponse
+
 from square_authentication.configuration import (
     global_object_square_logger,
 )
@@ -10,6 +13,7 @@ from square_authentication.pydantic_models.profile import (
     ValidateEmailVerificationCodeV0,
     SendVerificationEmailV0Response,
     UpdateProfilePhotoV0Response,
+    UpdateProfileDetailsV0Response,
 )
 from square_authentication.utils.routes.profile import (
     util_update_profile_photo_v0,
@@ -17,8 +21,6 @@ from square_authentication.utils.routes.profile import (
     util_send_verification_email_v0,
     util_validate_email_verification_code_v0,
 )
-from square_commons import get_api_output_in_standard_format
-from square_commons.api_utils import StandardResponse
 
 router = APIRouter(
     tags=["profile"],
@@ -53,7 +55,11 @@ async def update_profile_photo_v0(
         )
 
 
-@router.patch("/update_profile_details/v0")
+@router.patch(
+    "/update_profile_details/v0",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[UpdateProfileDetailsV0Response],
+)
 @global_object_square_logger.auto_logger()
 async def update_profile_details_v0(
     access_token: Annotated[str, Header()],
