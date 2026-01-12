@@ -5,6 +5,7 @@ from square_commons import get_api_output_in_standard_format
 
 from square_authentication.configuration import global_object_square_logger
 from square_authentication.messages import messages
+from square_authentication.pydantic_models.internal import GetTextHashV0Response
 
 
 @global_object_square_logger.auto_logger()
@@ -23,13 +24,15 @@ def util_get_text_hash_v0(plain_text):
         """
         return value
         """
+        data_pydantic = GetTextHashV0Response(main=local_str_hashed_text)
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_READ_SUCCESSFUL"],
-            data={"main": local_str_hashed_text},
+            data=data_pydantic.model_dump(),
+            as_dict=False,
         )
         return JSONResponse(
             status_code=status.HTTP_200_OK,
-            content=output_content,
+            content=output_content.model_dump(),
         )
     except HTTPException as http_exception:
         global_object_square_logger.logger.error(http_exception, exc_info=True)

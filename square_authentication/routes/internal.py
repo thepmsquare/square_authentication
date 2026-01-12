@@ -1,9 +1,11 @@
 from fastapi import APIRouter, status, HTTPException
 from fastapi.responses import JSONResponse
 from square_commons import get_api_output_in_standard_format
+from square_commons.api_utils import StandardResponse
 
 from square_authentication.configuration import global_object_square_logger
 from square_authentication.messages import messages
+from square_authentication.pydantic_models.internal import GetTextHashV0Response
 from square_authentication.utils.routes.internal import util_get_text_hash_v0
 
 router = APIRouter(
@@ -11,7 +13,11 @@ router = APIRouter(
 )
 
 
-@router.get("/get_text_hash/v0")
+@router.get(
+    "/get_text_hash/v0",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[GetTextHashV0Response],
+)
 @global_object_square_logger.auto_logger()
 async def get_text_hash_v0(plain_text: str):
     try:

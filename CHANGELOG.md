@@ -1,6 +1,6 @@
 # changelog
 
-## v11.2.0 (in progress)
+## v11.2.0
 
 - models
     - add the following in core:
@@ -42,6 +42,8 @@
         - UpdateProfileDetailsV0ResponseMain.
         - SendVerificationEmailV0Response.
         - ValidateEmailVerificationCodeV0Response.
+    - add the following in internal:
+        - GetTextHashV0Response.
 - routes
     - add output format validation in the following in core:
         - register_username_v0
@@ -68,6 +70,8 @@
         - update_profile_details_v0.
         - send_verification_email_v0.
         - validate_email_verification_code_v0.
+    - add output format validation in the following in internal:
+        - get_text_hash_v0.
 - dependencies
     - update "square_commons>=3.1.0"
 
