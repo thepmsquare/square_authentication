@@ -1,5 +1,11 @@
 # changelog
 
+## v11.2.1 (in progress)
+
+- set response_as_pydantic True for all square_database_helper utils instead of dict, for better typehints.
+- dependencies
+    - update "square_database_helper>=2.7.1"
+
 ## v11.2.0
 
 - models

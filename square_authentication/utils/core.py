@@ -2,13 +2,12 @@ import random
 import string
 from typing import Optional
 
+from square_authentication.configuration import global_object_square_database_helper
 from square_database_helper import FiltersV0
 from square_database_helper.pydantic_models import FilterConditionsV0
 from square_database_structure.square import global_string_database_name
 from square_database_structure.square.authentication import global_string_schema_name
 from square_database_structure.square.authentication.tables import User
-
-from square_authentication.configuration import global_object_square_database_helper
 
 
 def generate_default_username_for_google_users(given_name: Optional[str], family_name: Optional[str]) -> str:
@@ -31,7 +30,8 @@ def generate_default_username_for_google_users(given_name: Optional[str], family
             schema_name=global_string_schema_name,
             table_name=User.__tablename__,
             filters=FiltersV0(root={User.user_username.name: FilterConditionsV0(eq=username_candidate)}),
-        )["data"]["main"]
+            response_as_pydantic=True
+        ).data.main
 
         if not existing:
             return username_candidate
