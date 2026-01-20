@@ -102,9 +102,10 @@ def util_update_profile_photo_v0(access_token, profile_photo):
                 root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
             ),
             apply_filters=True,
+            response_as_pydantic=True,
         )
-        old_profile_photo_token = old_profile_photo_response["data"]["main"][0][
-            "user_profile_photo_storage_token"
+        old_profile_photo_token = old_profile_photo_response.data.main[0][
+            UserProfile.user_profile_photo_storage_token.name
         ]
 
         if profile_photo:
