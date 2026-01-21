@@ -136,6 +136,7 @@ def util_update_profile_photo_v0(access_token, profile_photo):
                 schema_name=global_string_schema_name,
                 table_name=UserProfile.__tablename__,
                 apply_filters=True,
+                response_as_pydantic=True,
             )
         else:
             # updating user profile
@@ -148,6 +149,7 @@ def util_update_profile_photo_v0(access_token, profile_photo):
                 schema_name=global_string_schema_name,
                 table_name=UserProfile.__tablename__,
                 apply_filters=True,
+                response_as_pydantic=True,
             )
 
         if old_profile_photo_token:
@@ -159,7 +161,7 @@ def util_update_profile_photo_v0(access_token, profile_photo):
         return value
         """
         data_pydantic = UpdateProfilePhotoV0Response(
-            main=profile_update_response["data"]["main"][0][
+            main=profile_update_response.data.main[0][
                 UserProfile.user_profile_photo_storage_token.name
             ]
         )
@@ -279,6 +281,7 @@ def util_update_profile_details_v0(
             schema_name=global_string_schema_name,
             table_name=UserProfile.__tablename__,
             apply_filters=True,
+            response_as_pydantic=True,
         )
 
         """
@@ -287,10 +290,10 @@ def util_update_profile_details_v0(
         data_pydantic = UpdateProfileDetailsV0Response(
             main=[
                 UpdateProfileDetailsV0ResponseMain(
-                    **profile_update_response["data"]["main"][0]
+                    **profile_update_response.data.main[0]
                 )
             ],
-            affected_count=profile_update_response["data"]["affected_count"],
+            affected_count=profile_update_response.data.affected_count,
         )
         output_content = get_api_output_in_standard_format(
             data=data_pydantic.model_dump(),
