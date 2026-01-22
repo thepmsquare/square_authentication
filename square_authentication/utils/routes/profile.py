@@ -353,8 +353,9 @@ def util_send_verification_email_v0(access_token):
                 root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
             ),
             apply_filters=True,
+            response_as_pydantic=True,
         )
-        user_profile_data = user_profile_response["data"]["main"][0]
+        user_profile_data = user_profile_response.data.main[0]
         if not user_profile_data.get(UserProfile.user_profile_email.name):
             output_content = get_api_output_in_standard_format(
                 message=messages["GENERIC_MISSING_REQUIRED_FIELD"],
@@ -396,11 +397,12 @@ def util_send_verification_email_v0(access_token):
             ],
             limit=1,
             apply_filters=True,
+            response_as_pydantic=True,
         )
-        if len(existing_verification_code_response["data"]["main"]) > 0:
-            existing_verification_code_data = existing_verification_code_response[
-                "data"
-            ]["main"][0]
+        if len(existing_verification_code_response.data.main) > 0:
+            existing_verification_code_data = (
+                existing_verification_code_response.data.main[0]
+            )
             if (
                 datetime.now(timezone.utc)
                 - datetime.fromisoformat(
