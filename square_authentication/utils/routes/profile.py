@@ -449,6 +449,7 @@ def util_send_verification_email_v0(access_token):
                     ),
                 }
             ],
+            response_as_pydantic=True,
         )
         # send verification email
         if (
@@ -489,12 +490,13 @@ def util_send_verification_email_v0(access_token):
                     EmailLog.third_party_message_id.name: mailgun_response.get("id"),
                 }
             ],
+            response_as_pydantic=True,
         )
         """
         return value
         """
         email_verification_code_created_at = datetime.fromisoformat(
-            user_verification_insert_response["data"]["main"][0][
+            user_verification_insert_response.data.main[0][
                 UserVerificationCode.user_verification_code_created_at.name
             ]
         )
@@ -563,8 +565,9 @@ def util_validate_email_verification_code_v0(access_token, verification_code):
                 root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
             ),
             apply_filters=True,
+            response_as_pydantic=True,
         )
-        user_profile_data = user_profile_response["data"]["main"][0]
+        user_profile_data = user_profile_response.data.main[0]
         if not user_profile_data.get(UserProfile.user_profile_email.name):
             output_content = get_api_output_in_standard_format(
                 message=messages["GENERIC_MISSING_REQUIRED_FIELD"],
@@ -606,8 +609,9 @@ def util_validate_email_verification_code_v0(access_token, verification_code):
             ],
             limit=1,
             apply_filters=True,
+            response_as_pydantic=True,
         )
-        if len(verification_code_response["data"]["main"]) != 1:
+        if len(verification_code_response.data.main) != 1:
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_VERIFICATION_CODE"]
             )
@@ -620,7 +624,7 @@ def util_validate_email_verification_code_v0(access_token, verification_code):
         """
 
         # check if the latest verification code matches the provided code
-        latest_verification_code_data = verification_code_response["data"]["main"][0]
+        latest_verification_code_data = verification_code_response.data.main[0]
         latest_verification_code_hash = latest_verification_code_data[
             UserVerificationCode.user_verification_code_hash.name
         ]
@@ -650,6 +654,7 @@ def util_validate_email_verification_code_v0(access_token, verification_code):
                 ),
             },
             apply_filters=True,
+            response_as_pydantic=True,
         )
         """
         return value
