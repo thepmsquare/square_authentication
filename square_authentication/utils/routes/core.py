@@ -389,7 +389,8 @@ def util_register_login_google_v0(google_id, assign_app_id_if_missing, app_id):
                 filters=FiltersV0(
                     root={User.user_id.name: FilterConditionsV0(eq=local_str_user_id)}
                 ),
-            )["data"]["main"][0]
+                response_as_pydantic=True,
+            ).data.main[0]
             username = user_record[User.user_username.name]
             local_list_user_app_response = (
                 global_object_square_database_helper.get_rows_v0(
@@ -404,7 +405,8 @@ def util_register_login_google_v0(google_id, assign_app_id_if_missing, app_id):
                             UserApp.app_id.name: FilterConditionsV0(eq=app_id),
                         }
                     ),
-                )["data"]["main"]
+                    response_as_pydantic=True,
+                ).data.main
             )
             if len(local_list_user_app_response) == 0:
                 if assign_app_id_if_missing:
@@ -418,6 +420,7 @@ def util_register_login_google_v0(google_id, assign_app_id_if_missing, app_id):
                                 UserApp.app_id.name: app_id,
                             }
                         ],
+                        response_as_pydantic=True,
                     )
                 else:
                     output_content = get_api_output_in_standard_format(
@@ -444,7 +447,8 @@ def util_register_login_google_v0(google_id, assign_app_id_if_missing, app_id):
                         )
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
             if len(profile_rows) > 0:
                 output_content = get_api_output_in_standard_format(
                     message=messages["ACCOUNT_WITH_EMAIL_ALREADY_EXISTS"],
@@ -468,7 +472,8 @@ def util_register_login_google_v0(google_id, assign_app_id_if_missing, app_id):
                         User.user_username.name: username,
                     }
                 ],
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
             local_str_user_id = user_rows[0][User.user_id.name]
 
             # link to user_auth_provider
@@ -483,6 +488,7 @@ def util_register_login_google_v0(google_id, assign_app_id_if_missing, app_id):
                         UserAuthProvider.auth_provider_user_id.name: google_sub,
                     }
                 ],
+                response_as_pydantic=True,
             )
             # getting profile picture
             if profile_picture:
@@ -566,6 +572,7 @@ def util_register_login_google_v0(google_id, assign_app_id_if_missing, app_id):
                         UserProfile.user_profile_photo_storage_token.name: user_profile_photo_storage_token,
                     }
                 ],
+                response_as_pydantic=True,
             )
 
             # assign app if provided
@@ -580,6 +587,7 @@ def util_register_login_google_v0(google_id, assign_app_id_if_missing, app_id):
                             UserApp.app_id.name: app_id,
                         }
                     ],
+                    response_as_pydantic=True,
                 )
 
         # generate tokens
@@ -622,6 +630,7 @@ def util_register_login_google_v0(google_id, assign_app_id_if_missing, app_id):
                     ),
                 }
             ],
+            response_as_pydantic=True,
         )
         """
         return value
@@ -706,14 +715,16 @@ def util_get_user_details_v0(access_token):
                     User.user_id.name: FilterConditionsV0(eq=user_id),
                 }
             ),
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
         local_list_app = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_public_schema_name,
             table_name=App.__tablename__,
             apply_filters=False,
             filters=FiltersV0(root={}),
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
         local_list_response_user_app = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
@@ -721,7 +732,8 @@ def util_get_user_details_v0(access_token):
             filters=FiltersV0(
                 root={UserApp.user_id.name: FilterConditionsV0(eq=user_id)}
             ),
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
         local_list_response_user_profile = (
             global_object_square_database_helper.get_rows_v0(
                 database_name=global_string_database_name,
@@ -730,7 +742,8 @@ def util_get_user_details_v0(access_token):
                 filters=FiltersV0(
                     root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         local_list_response_user_sessions = (
             global_object_square_database_helper.get_rows_v0(
@@ -745,7 +758,8 @@ def util_get_user_details_v0(access_token):
                         ),
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         user_profile = copy.deepcopy(local_list_response_user_profile[0])
         del user_profile[UserProfile.user_id.name]
@@ -760,7 +774,8 @@ def util_get_user_details_v0(access_token):
                     }
                 ),
                 columns=[UserRecoveryMethod.user_recovery_method_name.name],
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         local_list_response_user_recovery_methods = [
             x[UserRecoveryMethod.user_recovery_method_name.name]
@@ -793,14 +808,19 @@ def util_get_user_details_v0(access_token):
             ],
             limit=1,
             apply_filters=True,
+            response_as_pydantic=True,
         )
-        if len(existing_verification_code_response["data"]["main"]) > 0:
-            existing_verification_expiry_time = existing_verification_code_response[
-                "data"
-            ]["main"][0][UserVerificationCode.user_verification_code_expires_at.name]
-            existing_verification_created_at = existing_verification_code_response[
-                "data"
-            ]["main"][0][UserVerificationCode.user_verification_code_created_at.name]
+        if len(existing_verification_code_response.data.main) > 0:
+            existing_verification_expiry_time = (
+                existing_verification_code_response.data.main[0][
+                    UserVerificationCode.user_verification_code_expires_at.name
+                ]
+            )
+            existing_verification_created_at = (
+                existing_verification_code_response.data.main[0][
+                    UserVerificationCode.user_verification_code_created_at.name
+                ]
+            )
             existing_verification_created_at_datetime = datetime.fromisoformat(
                 existing_verification_created_at
             )
@@ -832,7 +852,8 @@ def util_get_user_details_v0(access_token):
                         ),
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
             if codes:
                 backup_code_details = GetUserDetailsV0ResponseMainBackupCodes(
                     total=len(codes),
