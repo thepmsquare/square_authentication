@@ -128,7 +128,8 @@ def util_register_username_v0(username, password, app_id):
                 filters=FiltersV0(
                     root={User.user_username.name: FilterConditionsV0(eq=username)}
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         if len(local_list_response_user_creds) > 0:
             output_content = get_api_output_in_standard_format(
@@ -153,7 +154,8 @@ def util_register_username_v0(username, password, app_id):
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=User.__tablename__,
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
         local_str_user_id = local_list_response_user[0][User.user_id.name]
 
         # entry in user auth provider table
@@ -167,6 +169,7 @@ def util_register_username_v0(username, password, app_id):
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserAuthProvider.__tablename__,
+            response_as_pydantic=True,
         )
 
         # entry in user profile table
@@ -179,6 +182,7 @@ def util_register_username_v0(username, password, app_id):
                     UserProfile.user_id.name: local_str_user_id,
                 }
             ],
+            response_as_pydantic=True,
         )
 
         # entry in credential table
@@ -198,6 +202,7 @@ def util_register_username_v0(username, password, app_id):
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserCredential.__tablename__,
+            response_as_pydantic=True,
         )
         if app_id is not None:
             # assign app to user
@@ -211,6 +216,7 @@ def util_register_username_v0(username, password, app_id):
                         UserApp.app_id.name: app_id,
                     }
                 ],
+                response_as_pydantic=True,
             )
 
             # return new access token and refresh token
@@ -255,6 +261,7 @@ def util_register_username_v0(username, password, app_id):
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
                 table_name=UserSession.__tablename__,
+                response_as_pydantic=True,
             )
         """
         return value
@@ -296,6 +303,7 @@ def util_register_username_v0(username, password, app_id):
                 filters=FiltersV0(
                     root={User.user_id.name: FilterConditionsV0(eq=local_str_user_id)}
                 ),
+                response_as_pydantic=True,
             )
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_500"],
@@ -365,7 +373,8 @@ def util_register_login_google_v0(google_id, assign_app_id_if_missing, app_id):
                     ),
                 }
             ),
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
 
         if user_rows:
             # login
