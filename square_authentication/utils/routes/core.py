@@ -990,7 +990,8 @@ def util_update_user_app_ids_v0(access_token, app_ids_to_add, app_ids_to_remove)
             table_name=App.__tablename__,
             apply_filters=False,
             filters=FiltersV0(root={}),
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
         local_list_invalid_ids = [
             x
             for x in local_list_all_app_ids
@@ -1016,7 +1017,8 @@ def util_update_user_app_ids_v0(access_token, app_ids_to_add, app_ids_to_remove)
             filters=FiltersV0(
                 root={UserApp.user_id.name: FilterConditionsV0(eq=user_id)}
             ),
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
         local_list_new_app_ids = [
             {
                 UserApp.user_id.name: user_id,
@@ -1031,6 +1033,7 @@ def util_update_user_app_ids_v0(access_token, app_ids_to_add, app_ids_to_remove)
                 schema_name=global_string_schema_name,
                 table_name=UserApp.__tablename__,
                 data=local_list_new_app_ids,
+                response_as_pydantic=True,
             )
 
         # logic for removing app_ids
@@ -1045,6 +1048,7 @@ def util_update_user_app_ids_v0(access_token, app_ids_to_add, app_ids_to_remove)
                         UserApp.app_id.name: FilterConditionsV0(eq=app_id),
                     }
                 ),
+                response_as_pydantic=True,
             )
             # logout user from removed apps
             global_object_square_database_helper.delete_rows_v0(
@@ -1057,6 +1061,7 @@ def util_update_user_app_ids_v0(access_token, app_ids_to_add, app_ids_to_remove)
                         UserSession.app_id.name: FilterConditionsV0(eq=app_id),
                     }
                 ),
+                response_as_pydantic=True,
             )
 
         """
@@ -1070,7 +1075,8 @@ def util_update_user_app_ids_v0(access_token, app_ids_to_add, app_ids_to_remove)
             filters=FiltersV0(
                 root={UserApp.user_id.name: FilterConditionsV0(eq=user_id)}
             ),
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
         data_pydantic = UpdateUserAppIdsV0Response(
             main=[x[UserApp.app_id.name] for x in local_list_response_user_app]
         )
@@ -1118,7 +1124,8 @@ def util_login_username_v0(username, password, app_id, assign_app_id_if_missing)
             filters=FiltersV0(
                 root={User.user_username.name: FilterConditionsV0(eq=username)}
             ),
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
         if len(local_list_response_user) != 1:
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_USERNAME"],
@@ -1144,7 +1151,8 @@ def util_login_username_v0(username, password, app_id, assign_app_id_if_missing)
                         ),
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         if len(local_list_user_auth_provider_response) != 1:
             output_content = get_api_output_in_standard_format(
@@ -1168,7 +1176,8 @@ def util_login_username_v0(username, password, app_id, assign_app_id_if_missing)
                         )
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         if len(local_list_authentication_user_response) != 1:
             output_content = get_api_output_in_standard_format(
@@ -1193,7 +1202,8 @@ def util_login_username_v0(username, password, app_id, assign_app_id_if_missing)
                     UserApp.app_id.name: FilterConditionsV0(eq=app_id),
                 }
             ),
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
         if len(local_list_user_app_response) == 0:
             if assign_app_id_if_missing:
                 try:
@@ -1207,6 +1217,7 @@ def util_login_username_v0(username, password, app_id, assign_app_id_if_missing)
                                 UserApp.app_id.name: app_id,
                             }
                         ],
+                        response_as_pydantic=True,
                     )
                 except HTTPError as he:
                     output_content = get_api_output_in_standard_format(
@@ -1289,6 +1300,7 @@ def util_login_username_v0(username, password, app_id, assign_app_id_if_missing)
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
             table_name=UserSession.__tablename__,
+            response_as_pydantic=True,
         )
         """
         return value
@@ -1349,7 +1361,8 @@ def util_generate_access_token_v0(refresh_token):
                         ),
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
 
         if len(local_list_user_session_response) != 1:
@@ -1441,7 +1454,8 @@ def util_logout_v0(refresh_token):
                         ),
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
 
         if len(local_list_user_session_response) != 1:
@@ -1483,6 +1497,7 @@ def util_logout_v0(refresh_token):
                     ),
                 }
             ),
+            response_as_pydantic=True,
         )
         """
         return value
