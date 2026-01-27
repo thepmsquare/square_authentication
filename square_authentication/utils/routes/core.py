@@ -1849,6 +1849,7 @@ def util_delete_user_v0(access_token, password):
                 filters=FiltersV0(
                     root={UserCredential.user_id.name: FilterConditionsV0(eq=user_id)}
                 ),
+                response_as_pydantic=True,
             ).data.main
         )
         if len(local_list_authentication_user_response) != 1:
