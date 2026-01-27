@@ -1558,7 +1558,8 @@ def util_logout_apps_v0(access_token, app_ids):
                 }
             ),
             columns=[UserApp.app_id.name],
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
         local_list_user_app_ids = [
             x[UserApp.app_id.name] for x in local_list_response_user_app
         ]
@@ -1588,6 +1589,7 @@ def util_logout_apps_v0(access_token, app_ids):
                     UserSession.app_id.name: FilterConditionsV0(in_=app_ids),
                 }
             ),
+            response_as_pydantic=True,
         )
         """
         return value
@@ -1650,6 +1652,7 @@ def util_logout_all_v0(access_token):
                     UserSession.user_id.name: FilterConditionsV0(eq=user_id),
                 }
             ),
+            response_as_pydantic=True,
         )
         """
         return value
@@ -1716,16 +1719,18 @@ def util_update_username_v0(new_username, access_token):
             )
 
         # validate user_id
-        local_list_user_response = global_object_square_database_helper.get_rows_v0(
-            database_name=global_string_database_name,
-            schema_name=global_string_schema_name,
-            table_name=User.__tablename__,
-            filters=FiltersV0(
-                root={
-                    User.user_id.name: FilterConditionsV0(eq=user_id),
-                }
-            ),
-        )["data"]["main"]
+        if __name__ == "__main__":
+            local_list_user_response = global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=User.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        User.user_id.name: FilterConditionsV0(eq=user_id),
+                    }
+                ),
+                response_as_pydantic=True,
+            ).data.main
 
         if len(local_list_user_response) != 1:
             output_content = get_api_output_in_standard_format(
@@ -1748,7 +1753,8 @@ def util_update_username_v0(new_username, access_token):
                         User.user_username.name: FilterConditionsV0(eq=new_username),
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         if len(local_list_user_credentials_response) != 0:
             output_content = get_api_output_in_standard_format(
@@ -1775,6 +1781,7 @@ def util_update_username_v0(new_username, access_token):
             data={
                 User.user_username.name: new_username,
             },
+            response_as_pydantic=True,
         )
         """
         return value
@@ -1842,7 +1849,7 @@ def util_delete_user_v0(access_token, password):
                 filters=FiltersV0(
                     root={UserCredential.user_id.name: FilterConditionsV0(eq=user_id)}
                 ),
-            )["data"]["main"]
+            ).data.main
         )
         if len(local_list_authentication_user_response) != 1:
             output_content = get_api_output_in_standard_format(
@@ -1884,7 +1891,8 @@ def util_delete_user_v0(access_token, password):
                 root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
             ),
             columns=[UserProfile.user_profile_photo_storage_token.name],
-        )["data"]["main"][0][UserProfile.user_profile_photo_storage_token.name]
+            response_as_pydantic=True,
+        ).data.main[0][UserProfile.user_profile_photo_storage_token.name]
 
         # delete the user.
         global_object_square_database_helper.delete_rows_v0(
@@ -1896,6 +1904,7 @@ def util_delete_user_v0(access_token, password):
                     User.user_id.name: FilterConditionsV0(eq=user_id),
                 }
             ),
+            response_as_pydantic=True,
         )
         # delete profile photo if exists
         if user_profile_storage_token:
@@ -1975,7 +1984,8 @@ def util_update_password_v0(
                 filters=FiltersV0(
                     root={UserCredential.user_id.name: FilterConditionsV0(eq=user_id)}
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         if len(local_list_authentication_user_response) != 1:
             output_content = get_api_output_in_standard_format(
@@ -2000,7 +2010,8 @@ def util_update_password_v0(
                         ),
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         if len(local_list_response_user_auth_provider) != 1:
             output_content = get_api_output_in_standard_format(
