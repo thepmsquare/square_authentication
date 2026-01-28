@@ -2028,7 +2028,8 @@ def util_update_password_v0(
             schema_name=global_string_schema_name,
             table_name=User.__tablename__,
             filters=FiltersV0(root={User.user_id.name: FilterConditionsV0(eq=user_id)}),
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
         if len(local_list_response_user) != 1:
             output_content = get_api_output_in_standard_format(
                 message=messages["MALFORMED_USER"],
@@ -2073,11 +2074,8 @@ def util_update_password_v0(
                         ),
                     }
                 ),
-            )[
-                "data"
-            ][
-                "main"
-            ]
+                response_as_pydantic=True,
+            ).data.main
             if len(local_list_response_user_session) != 1:
                 output_content = get_api_output_in_standard_format(
                     message=messages["INCORRECT_REFRESH_TOKEN"],
@@ -2106,6 +2104,7 @@ def util_update_password_v0(
             data={
                 UserCredential.user_credential_hashed_password.name: local_str_hashed_password,
             },
+            response_as_pydantic=True,
         )
         if logout_other_sessions:
             if preserve_session_refresh_token:
@@ -2122,6 +2121,7 @@ def util_update_password_v0(
                             ),
                         }
                     ),
+                    response_as_pydantic=True,
                 )
             else:
                 # delete all sessions for user
@@ -2134,6 +2134,7 @@ def util_update_password_v0(
                             UserSession.user_id.name: FilterConditionsV0(eq=user_id),
                         }
                     ),
+                    response_as_pydantic=True,
                 )
         """
         return value
@@ -2196,11 +2197,8 @@ def util_validate_and_get_payload_from_token_v0(app_id, token, token_type):
                             ),
                         }
                     ),
-                )[
-                    "data"
-                ][
-                    "main"
-                ]
+                    response_as_pydantic=True,
+                ).data.main
                 if len(local_list_response_user_session) != 1:
                     output_content = get_api_output_in_standard_format(
                         message=messages["INCORRECT_REFRESH_TOKEN"],
@@ -2334,7 +2332,8 @@ def util_update_user_recovery_methods_v0(
                             UserProfile.user_id.name: FilterConditionsV0(eq=user_id),
                         }
                     ),
-                )["data"]["main"]
+                    response_as_pydantic=True,
+                ).data.main
             )
             if len(local_list_response_user_profile) != 1:
                 # maybe this should raise 500 as this error will not occur if code runs correctly.
@@ -2372,7 +2371,8 @@ def util_update_user_recovery_methods_v0(
                         UserRecoveryMethod.user_id.name: FilterConditionsV0(eq=user_id)
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         local_list_new_recovery_methods = [
             {
@@ -2392,6 +2392,7 @@ def util_update_user_recovery_methods_v0(
                 schema_name=global_string_schema_name,
                 table_name=UserRecoveryMethod.__tablename__,
                 data=local_list_new_recovery_methods,
+                response_as_pydantic=True,
             )
 
         # logic for removing recovery_methods
@@ -2416,7 +2417,8 @@ def util_update_user_recovery_methods_v0(
                     }
                 ),
                 columns=[UserVerificationCode.user_verification_code_hash.name],
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         global_object_square_database_helper.delete_rows_v0(
             database_name=global_string_database_name,
             schema_name=global_string_schema_name,
@@ -2429,6 +2431,7 @@ def util_update_user_recovery_methods_v0(
                     ),
                 }
             ),
+            response_as_pydantic=True,
         )
         if remove_old_backup_codes and old_backup_code_hashes:
             global_object_square_database_helper.delete_rows_v0(
@@ -2445,6 +2448,7 @@ def util_update_user_recovery_methods_v0(
                         ),
                     }
                 ),
+                response_as_pydantic=True,
             )
 
         """
@@ -2461,7 +2465,8 @@ def util_update_user_recovery_methods_v0(
                         UserRecoveryMethod.user_id.name: FilterConditionsV0(eq=user_id)
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         data_pydantic = UpdateUserRecoveryMethodsV0Response(
             main=[
