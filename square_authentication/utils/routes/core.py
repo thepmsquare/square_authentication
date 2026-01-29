@@ -2536,11 +2536,8 @@ def util_generate_account_backup_codes_v0(access_token):
                     ),
                 }
             ),
-        )[
-            "data"
-        ][
-            "main"
-        ]
+            response_as_pydantic=True,
+        ).data.main
         if len(local_list_response_user_recovery_methods) != 1:
             output_content = get_api_output_in_standard_format(
                 message=messages["RECOVERY_METHOD_NOT_ENABLED"],
@@ -2567,7 +2564,8 @@ def util_generate_account_backup_codes_v0(access_token):
                 }
             ),
             columns=[UserVerificationCode.user_verification_code_hash.name],
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
 
         # generate backup codes
         backup_codes = []
@@ -2593,6 +2591,7 @@ def util_generate_account_backup_codes_v0(access_token):
             schema_name=global_string_schema_name,
             table_name=UserVerificationCode.__tablename__,
             data=db_data,
+            response_as_pydantic=True,
         )
         global_object_square_database_helper.delete_rows_v0(
             database_name=global_string_database_name,
@@ -2608,6 +2607,7 @@ def util_generate_account_backup_codes_v0(access_token):
                     ),
                 }
             ),
+            response_as_pydantic=True,
         )
         """
         return value
@@ -2662,7 +2662,8 @@ def util_reset_password_and_login_using_backup_code_v0(
                 filters=FiltersV0(
                     root={User.user_username.name: FilterConditionsV0(eq=username)}
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         if len(local_list_authentication_user_response) != 1:
             output_content = get_api_output_in_standard_format(
@@ -2688,7 +2689,8 @@ def util_reset_password_and_login_using_backup_code_v0(
                         ),
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         if len(local_list_response_user_auth_provider) != 1:
             output_content = get_api_output_in_standard_format(
@@ -2712,11 +2714,8 @@ def util_reset_password_and_login_using_backup_code_v0(
                     ),
                 }
             ),
-        )[
-            "data"
-        ][
-            "main"
-        ]
+            response_as_pydantic=True,
+        ).data.main
         if len(local_list_response_user_recovery_methods) != 1:
             output_content = get_api_output_in_standard_format(
                 message=messages["RECOVERY_METHOD_NOT_ENABLED"],
@@ -2738,7 +2737,8 @@ def util_reset_password_and_login_using_backup_code_v0(
                     UserApp.app_id.name: FilterConditionsV0(eq=app_id),
                 }
             ),
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
         if len(local_list_response_user_app) == 0:
             output_content = get_api_output_in_standard_format(
                 message=messages["GENERIC_400"],
@@ -2771,11 +2771,8 @@ def util_reset_password_and_login_using_backup_code_v0(
                 }
             ),
             columns=[UserVerificationCode.user_verification_code_hash.name],
-        )[
-            "data"
-        ][
-            "main"
-        ]
+            response_as_pydantic=True,
+        ).data.main
         # find the backup code in the list
         local_list_response_user_verification_code = [
             x
@@ -2813,6 +2810,7 @@ def util_reset_password_and_login_using_backup_code_v0(
             data={
                 UserCredential.user_credential_hashed_password.name: local_str_hashed_password,
             },
+            response_as_pydantic=True,
         )
         # mark the backup code as used
         global_object_square_database_helper.edit_rows_v0(
@@ -2837,6 +2835,7 @@ def util_reset_password_and_login_using_backup_code_v0(
                     timezone.utc
                 ).strftime("%Y-%m-%d %H:%M:%S.%f+00"),
             },
+            response_as_pydantic=True,
         )
         if logout_other_sessions:
             # delete all sessions for user
@@ -2849,6 +2848,7 @@ def util_reset_password_and_login_using_backup_code_v0(
                         UserSession.user_id.name: FilterConditionsV0(eq=user_id),
                     }
                 ),
+                response_as_pydantic=True,
             )
         # generate access token and refresh token
         local_dict_access_token_payload = {
@@ -2886,6 +2886,7 @@ def util_reset_password_and_login_using_backup_code_v0(
                     ),
                 }
             ],
+            response_as_pydantic=True,
         )
         """
         return value
@@ -2943,7 +2944,8 @@ def util_send_reset_password_email_v0(
                 filters=FiltersV0(
                     root={User.user_username.name: FilterConditionsV0(eq=username)}
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         if len(local_list_authentication_user_response) != 1:
             output_content = get_api_output_in_standard_format(
@@ -2969,7 +2971,8 @@ def util_send_reset_password_email_v0(
                         ),
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         if len(local_list_response_user_auth_provider) != 1:
             output_content = get_api_output_in_standard_format(
@@ -2993,11 +2996,8 @@ def util_send_reset_password_email_v0(
                     ),
                 }
             ),
-        )[
-            "data"
-        ][
-            "main"
-        ]
+            response_as_pydantic=True,
+        ).data.main
         if len(local_list_response_user_recovery_methods) != 1:
             output_content = get_api_output_in_standard_format(
                 message=messages["RECOVERY_METHOD_NOT_ENABLED"],
