@@ -3016,8 +3016,9 @@ def util_send_reset_password_email_v0(
                 root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
             ),
             apply_filters=True,
+            response_as_pydantic=True,
         )
-        user_profile_data = user_profile_response["data"]["main"][0]
+        user_profile_data = user_profile_response.data.main[0]
         if not user_profile_data.get(UserProfile.user_profile_email.name):
             output_content = get_api_output_in_standard_format(
                 message=messages["GENERIC_MISSING_REQUIRED_FIELD"],
@@ -3060,11 +3061,8 @@ def util_send_reset_password_email_v0(
             ],
             limit=1,
             apply_filters=True,
-        )[
-            "data"
-        ][
-            "main"
-        ]
+            response_as_pydantic=True,
+        ).data.main
         if len(local_list_response_user_verification_code) > 0:
             existing_verification_code_data = (
                 local_list_response_user_verification_code[0]
@@ -3114,6 +3112,7 @@ def util_send_reset_password_email_v0(
                     ),
                 }
             ],
+            response_as_pydantic=True,
         )
         # send verification email
         if (
@@ -3154,6 +3153,7 @@ def util_send_reset_password_email_v0(
                     EmailLog.third_party_message_id.name: mailgun_response.get("id"),
                 }
             ],
+            response_as_pydantic=True,
         )
         """
         return value
@@ -3210,7 +3210,8 @@ def util_reset_password_and_login_using_reset_email_code_v0(
                 filters=FiltersV0(
                     root={User.user_username.name: FilterConditionsV0(eq=username)}
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         if len(local_list_authentication_user_response) != 1:
             output_content = get_api_output_in_standard_format(
@@ -3236,7 +3237,8 @@ def util_reset_password_and_login_using_reset_email_code_v0(
                         ),
                     }
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         if len(local_list_response_user_auth_provider) != 1:
             output_content = get_api_output_in_standard_format(
@@ -3260,11 +3262,8 @@ def util_reset_password_and_login_using_reset_email_code_v0(
                     ),
                 }
             ),
-        )[
-            "data"
-        ][
-            "main"
-        ]
+            response_as_pydantic=True,
+        ).data.main
         if len(local_list_response_user_recovery_methods) != 1:
             output_content = get_api_output_in_standard_format(
                 message=messages["RECOVERY_METHOD_NOT_ENABLED"],
@@ -3283,8 +3282,9 @@ def util_reset_password_and_login_using_reset_email_code_v0(
                 root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
             ),
             apply_filters=True,
+            response_as_pydantic=True,
         )
-        user_profile_data = user_profile_response["data"]["main"][0]
+        user_profile_data = user_profile_response.data.main[0]
         if not user_profile_data.get(UserProfile.user_profile_email.name):
             output_content = get_api_output_in_standard_format(
                 message=messages["GENERIC_MISSING_REQUIRED_FIELD"],
@@ -3313,7 +3313,8 @@ def util_reset_password_and_login_using_reset_email_code_v0(
                     UserApp.app_id.name: FilterConditionsV0(eq=app_id),
                 }
             ),
-        )["data"]["main"]
+            response_as_pydantic=True,
+        ).data.main
         if len(local_list_response_user_app) == 0:
             output_content = get_api_output_in_standard_format(
                 message=messages["GENERIC_400"],
@@ -3352,11 +3353,8 @@ def util_reset_password_and_login_using_reset_email_code_v0(
                 "-" + UserVerificationCode.user_verification_code_created_at.name
             ],
             limit=1,
-        )[
-            "data"
-        ][
-            "main"
-        ]
+            response_as_pydantic=True,
+        ).data.main
         if len(local_list_response_user_verification_code) != 1:
             output_content = get_api_output_in_standard_format(
                 message=messages["INCORRECT_VERIFICATION_CODE"],
@@ -3422,6 +3420,7 @@ def util_reset_password_and_login_using_reset_email_code_v0(
                     timezone.utc
                 ).strftime("%Y-%m-%d %H:%M:%S.%f+00"),
             },
+            response_as_pydantic=True,
         )
         if logout_other_sessions:
             # delete all sessions for user
@@ -3434,6 +3433,7 @@ def util_reset_password_and_login_using_reset_email_code_v0(
                         UserSession.user_id.name: FilterConditionsV0(eq=user_id),
                     }
                 ),
+                response_as_pydantic=True,
             )
         # generate access token and refresh token
         local_dict_access_token_payload = {
@@ -3471,6 +3471,7 @@ def util_reset_password_and_login_using_reset_email_code_v0(
                     ),
                 }
             ],
+            response_as_pydantic=True,
         )
         """
         return value
@@ -3526,7 +3527,8 @@ def util_get_user_recovery_methods_v0(username: str):
                 filters=FiltersV0(
                     root={User.user_username.name: FilterConditionsV0(eq=username)}
                 ),
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         if len(local_list_authentication_user_response) != 1:
             output_content = get_api_output_in_standard_format(
@@ -3553,7 +3555,8 @@ def util_get_user_recovery_methods_v0(username: str):
                     }
                 ),
                 columns=[UserRecoveryMethod.user_recovery_method_name.name],
-            )["data"]["main"]
+                response_as_pydantic=True,
+            ).data.main
         )
         local_list_response_user_recovery_methods = [
             x[UserRecoveryMethod.user_recovery_method_name.name]
