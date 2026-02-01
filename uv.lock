@@ -733,7 +733,7 @@ wheels = [
 
 [[package]]
 name = "square-authentication"
-version = "11.2.1"
+version = "11.2.2"
 source = { editable = "." }
 dependencies = [
     { name = "bcrypt" },
@@ -777,7 +777,7 @@ requires-dist = [
     { name = "square-commons", specifier = ">=3.1.0" },
     { name = "square-database-helper", specifier = ">=2.7.1" },
     { name = "square-database-structure", specifier = ">=2.6.0" },
-    { name = "square-file-store-helper", specifier = ">=3.0.0" },
+    { name = "square-file-store-helper", specifier = ">=3.1.1" },
     { name = "square-logger", specifier = ">=3.0.0" },
     { name = "uvicorn", specifier = ">=0.24.0.post1" },
 ]
@@ -826,16 +826,16 @@ wheels = [
 
 [[package]]
 name = "square-file-store-helper"
-version = "3.0.2"
+version = "3.1.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "kiss-headers" },
     { name = "requests" },
     { name = "square-commons" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/80/a6/995fcc7b8a492b6132419317cb32e2fb8e0653843f1abd4d17384ceadbc9/square_file_store_helper-3.0.2.tar.gz", hash = "sha256:3fac3477595ad814f8ea57a7b9ffd89c32dba43f44ca503790b988381683803e", size = 15499, upload-time = "2025-10-11T02:04:36.657Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d4/3b/328dfe652641324ba32e333928be92f34441c488e6a8efecd3517e4db9d3/square_file_store_helper-3.1.1.tar.gz", hash = "sha256:da1ef0a5eee3171fe61bb186d543ebe49e457fd617eaf8e778e0b4d743595d6b", size = 2591, upload-time = "2026-01-31T19:27:49.078Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/9a/c566450e3373b25001cc6d21c1d162799c518299249d868a0c06b8519b50/square_file_store_helper-3.0.2-py3-none-any.whl", hash = "sha256:976e2c87c48b878b9ae46449c5c5c9fdc550674dcd59857badeffe64cdf66cdc", size = 15275, upload-time = "2025-10-11T02:04:35.443Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/d8/682bb23a5fa3f1fe176a37a7b80c348aacf20aa9c5261171294dd3be17df/square_file_store_helper-3.1.1-py3-none-any.whl", hash = "sha256:334f1f4a0240fd5ccf5f58bd2821ea2ed0c2446a42af2c279e7aa9b0c802dda6", size = 3792, upload-time = "2026-01-31T19:27:47.871Z" },
 ]
 
 [[package]]

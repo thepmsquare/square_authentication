@@ -118,16 +118,13 @@ def util_update_profile_photo_v0(access_token, profile_photo):
                         profile_photo.content_type,
                     ),
                     system_relative_path="global/users/profile_photos",
+                    response_as_pydantic=True,
                 )
             )
             # updating user profile
             profile_update_response = global_object_square_database_helper.edit_rows_v0(
                 data={
-                    UserProfile.user_profile_photo_storage_token.name: file_upload_response[
-                        "data"
-                    ][
-                        "main"
-                    ]
+                    UserProfile.user_profile_photo_storage_token.name: file_upload_response.data.main
                 },
                 filters=FiltersV0(
                     root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
@@ -154,7 +151,8 @@ def util_update_profile_photo_v0(access_token, profile_photo):
 
         if old_profile_photo_token:
             global_object_square_file_store_helper.delete_file_v0(
-                [old_profile_photo_token]
+                list_file_storage_token=[old_profile_photo_token],
+                response_as_pydantic=True,
             )
 
         """

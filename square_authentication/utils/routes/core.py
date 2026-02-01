@@ -534,10 +534,9 @@ def util_register_login_google_v0(google_id, assign_app_id_if_missing, app_id):
                             content_type,
                         ),
                         system_relative_path="global/users/profile_photos",
+                        response_as_pydantic=True,
                     )
-                    user_profile_photo_storage_token = file_upload_response["data"][
-                        "main"
-                    ]
+                    user_profile_photo_storage_token = file_upload_response.data.main
                 except HTTPError:
                     global_object_square_logger.logger.error(
                         f"Failed to fetch profile picture for user_id {local_str_user_id} from google account.",
@@ -1911,7 +1910,8 @@ def util_delete_user_v0(access_token, password):
         if user_profile_storage_token:
             try:
                 global_object_square_file_store_helper.delete_file_v0(
-                    list_file_storage_token=[user_profile_storage_token]
+                    list_file_storage_token=[user_profile_storage_token],
+                    response_as_pydantic=True,
                 )
             except HTTPError as he:
                 global_object_square_logger.warning(

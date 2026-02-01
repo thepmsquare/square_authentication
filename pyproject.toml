@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "square_authentication"
-version = "11.2.1"
+version = "11.2.2"
 description = "authentication layer for my personal server."
 readme = "README.md"
 readme-content-type = "text/markdown"
@@ -28,7 +28,7 @@ dependencies = [
     "square_logger>=3.0.0",
     "square_database_helper>=2.7.1",
     "square_database_structure>=2.6.0",
-    "square_file_store_helper>=3.0.0",
+    "square_file_store_helper>=3.1.1",
     "httpx>=0.27.2",
     "google-auth>=2.40.3",
 ]

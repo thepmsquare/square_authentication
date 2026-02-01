@@ -1,5 +1,11 @@
 # changelog
 
+## v11.2.2
+
+- set response_as_pydantic True for all square_file_store_helper utils instead of dict, for better typehints.
+- dependencies
+    - update "square_file_store_helper>=3.1.1"
+
 ## v11.2.1
 
 - set response_as_pydantic True for all square_database_helper utils instead of dict, for better typehints.
