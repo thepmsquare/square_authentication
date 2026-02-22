@@ -1,5 +1,9 @@
 # changelog
 
+## v11.2.3
+
+- bugfix in update_username_v0.
+
 ## v11.2.2
 
 - set response_as_pydantic True for all square_file_store_helper utils instead of dict, for better typehints.

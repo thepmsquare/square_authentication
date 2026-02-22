@@ -1718,18 +1718,18 @@ def util_update_username_v0(new_username, access_token):
             )
 
         # validate user_id
-        if __name__ == "__main__":
-            local_list_user_response = global_object_square_database_helper.get_rows_v0(
-                database_name=global_string_database_name,
-                schema_name=global_string_schema_name,
-                table_name=User.__tablename__,
-                filters=FiltersV0(
-                    root={
-                        User.user_id.name: FilterConditionsV0(eq=user_id),
-                    }
-                ),
-                response_as_pydantic=True,
-            ).data.main
+
+        local_list_user_response = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=User.__tablename__,
+            filters=FiltersV0(
+                root={
+                    User.user_id.name: FilterConditionsV0(eq=user_id),
+                }
+            ),
+            response_as_pydantic=True,
+        ).data.main
 
         if len(local_list_user_response) != 1:
             output_content = get_api_output_in_standard_format(
