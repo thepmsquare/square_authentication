@@ -1,5 +1,9 @@
 # changelog
 
+## v12.0.0
+
+- **breaking change**: update UpdateProfileDetailsV0Response.
+
 ## v11.2.3
 
 - bugfix in update_username_v0.

@@ -286,12 +286,9 @@ def util_update_profile_details_v0(
         return value
         """
         data_pydantic = UpdateProfileDetailsV0Response(
-            main=[
-                UpdateProfileDetailsV0ResponseMain(
-                    **profile_update_response.data.main[0]
-                )
-            ],
-            affected_count=profile_update_response.data.affected_count,
+            main=UpdateProfileDetailsV0ResponseMain(
+                **profile_update_response.data.main[0]
+            ),
         )
         output_content = get_api_output_in_standard_format(
             data=data_pydantic.model_dump(),
