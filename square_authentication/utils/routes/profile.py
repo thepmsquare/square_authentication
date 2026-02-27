@@ -261,6 +261,36 @@ def util_update_profile_details_v0(
         if email is not None:
             profile_update_data[UserProfile.user_profile_email.name] = email
             profile_update_data[UserProfile.user_profile_email_verified.name] = None
+            current_time = datetime.now(timezone.utc)
+            global_object_square_database_helper.edit_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserVerificationCode.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserVerificationCode.user_id.name: FilterConditionsV0(
+                            eq=user_id
+                        ),
+                        UserVerificationCode.user_verification_code_type.name: FilterConditionsV0(
+                            eq=VerificationCodeTypeEnum.EMAIL_VERIFICATION.value
+                        ),
+                        UserVerificationCode.user_verification_code_used_at.name: FilterConditionsV0(
+                            is_null=True
+                        ),
+                        UserVerificationCode.user_verification_code_expires_at.name: FilterConditionsV0(
+                            gt=current_time.strftime("%Y-%m-%d %H:%M:%S.%f+00")
+                        ),
+                    }
+                ),
+                data={
+                    UserVerificationCode.user_verification_code_used_at.name: current_time.strftime(
+                        "%Y-%m-%d %H:%M:%S.%f+00"
+                    ),
+                },
+                apply_filters=True,
+                response_as_pydantic=True,
+            )
+
         if phone_number is not None and phone_number_country_code is not None:
             profile_update_data[UserProfile.user_profile_phone_number.name] = (
                 phone_number
@@ -651,6 +681,28 @@ def util_validate_email_verification_code_v0(access_token, verification_code):
             apply_filters=True,
             response_as_pydantic=True,
         )
+        global_object_square_database_helper.edit_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserVerificationCode.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserVerificationCode.user_verification_code_id.name: FilterConditionsV0(
+                        eq=latest_verification_code_data[
+                            UserVerificationCode.user_verification_code_id.name
+                        ]
+                    )
+                }
+            ),
+            data={
+                UserVerificationCode.user_verification_code_used_at.name: datetime.now(
+                    timezone.utc
+                ).strftime("%Y-%m-%d %H:%M:%S.%f+00"),
+            },
+            apply_filters=True,
+            response_as_pydantic=True,
+        )
+
         """
         return value
         """

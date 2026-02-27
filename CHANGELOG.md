@@ -1,5 +1,10 @@
 # changelog
 
+## v12.0.1
+
+- bug fix: mark UserVerificationCode as used on email change (to soft invalidate) and on validate email verification
+  function.
+
 ## v12.0.0
 
 - **breaking change**: update UpdateProfileDetailsV0Response.
