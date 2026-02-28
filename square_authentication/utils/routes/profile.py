@@ -12,10 +12,12 @@ from square_database_structure.square import global_string_database_name
 from square_database_structure.square.authentication import global_string_schema_name
 from square_database_structure.square.authentication.enums import (
     VerificationCodeTypeEnum,
+    RecoveryMethodEnum,
 )
 from square_database_structure.square.authentication.tables import (
     UserProfile,
     UserVerificationCode,
+    UserRecoveryMethod,
 )
 from square_database_structure.square.email import (
     global_string_schema_name as email_schema_name,
@@ -288,6 +290,20 @@ def util_update_profile_details_v0(
                     ),
                 },
                 apply_filters=True,
+                response_as_pydantic=True,
+            )
+            global_object_square_database_helper.delete_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserRecoveryMethod.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserRecoveryMethod.user_id.name: FilterConditionsV0(eq=user_id),
+                        UserRecoveryMethod.user_recovery_method_name.name: FilterConditionsV0(
+                            eq=RecoveryMethodEnum.EMAIL.value
+                        ),
+                    }
+                ),
                 response_as_pydantic=True,
             )
 

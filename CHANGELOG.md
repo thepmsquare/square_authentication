@@ -1,5 +1,9 @@
 # changelog
 
+## v12.0.2
+
+- bug fix: remove email recovery method for user on email change (until its verified).
+
 ## v12.0.1
 
 - bug fix: mark UserVerificationCode as used on email change (to soft invalidate) and on validate email verification
