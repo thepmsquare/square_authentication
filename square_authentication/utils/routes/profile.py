@@ -718,7 +718,19 @@ def util_validate_email_verification_code_v0(access_token, verification_code):
             apply_filters=True,
             response_as_pydantic=True,
         )
-
+        # auto add email as a recovery method
+        global_object_square_database_helper.insert_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserRecoveryMethod.__tablename__,
+            data=[
+                {
+                    UserRecoveryMethod.user_id.name: user_id,
+                    UserRecoveryMethod.user_recovery_method_name.name: RecoveryMethodEnum.EMAIL.value,
+                }
+            ],
+            response_as_pydantic=True,
+        )
         """
         return value
         """

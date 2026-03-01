@@ -1,5 +1,9 @@
 # changelog
 
+## v12.1.0
+
+- qol: auto add email as recovery method, on email verification.
+
 ## v12.0.2
 
 - bug fix: remove email recovery method for user on email change (until its verified).
