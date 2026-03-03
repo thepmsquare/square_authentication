@@ -1,5 +1,9 @@
 # changelog
 
+## v12.2.0
+
+- update GetUserRecoveryMethodsV0Response to include email_recovery_details and backup_code_details.
+
 ## v12.1.0
 
 - qol: auto add email as recovery method, on email verification.

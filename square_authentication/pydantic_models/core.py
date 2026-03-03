@@ -224,5 +224,18 @@ class ResetPasswordAndLoginUsingResetEmailCodeV0Response(BaseModel):
     main: ResetPasswordAndLoginUsingResetEmailCodeV0ResponseMain
 
 
+class GetUserRecoveryMethodsV0ResponseBackupCodes(BaseModel):
+    total: int
+    available: int
+    generated_at: str
+
+
+class GetUserRecoveryMethodsV0ResponseEmailRecovery(BaseModel):
+    expires_at: str
+    cooldown_reset_at: str
+
+
 class GetUserRecoveryMethodsV0Response(BaseModel):
     main: Dict[str, bool]
+    email_recovery_details: GetUserRecoveryMethodsV0ResponseEmailRecovery | None
+    backup_code_details: GetUserRecoveryMethodsV0ResponseBackupCodes | None

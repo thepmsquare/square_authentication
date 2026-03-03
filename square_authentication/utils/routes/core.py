@@ -91,6 +91,8 @@ from square_authentication.pydantic_models.core import (
     ResetPasswordAndLoginUsingResetEmailCodeV0Response,
     ResetPasswordAndLoginUsingResetEmailCodeV0ResponseMain,
     GetUserRecoveryMethodsV0Response,
+    GetUserRecoveryMethodsV0ResponseEmailRecovery,
+    GetUserRecoveryMethodsV0ResponseBackupCodes,
 )
 from square_authentication.utils.core import generate_default_username_for_google_users
 from square_authentication.utils.token import get_jwt_payload
@@ -3562,6 +3564,107 @@ def util_get_user_recovery_methods_v0(username: str):
             x[UserRecoveryMethod.user_recovery_method_name.name]
             for x in local_list_response_user_recovery_methods
         ]
+
+        # check if email recovery code already exists
+        if RecoveryMethodEnum.EMAIL.name in local_list_response_user_recovery_methods:
+            existing_recovery_code_response = global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserVerificationCode.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserVerificationCode.user_id.name: FilterConditionsV0(
+                            eq=user_id
+                        ),
+                        UserVerificationCode.user_verification_code_type.name: FilterConditionsV0(
+                            eq=VerificationCodeTypeEnum.EMAIL_RECOVERY.value
+                        ),
+                        UserVerificationCode.user_verification_code_used_at.name: FilterConditionsV0(
+                            is_null=True
+                        ),
+                        UserVerificationCode.user_verification_code_expires_at.name: FilterConditionsV0(
+                            gte=datetime.now(timezone.utc).strftime(
+                                "%Y-%m-%d %H:%M:%S.%f+00"
+                            )
+                        ),
+                    }
+                ),
+                order_by=[
+                    "-" + UserVerificationCode.user_verification_code_created_at.name
+                ],
+                limit=1,
+                apply_filters=True,
+                response_as_pydantic=True,
+            )
+            if len(existing_recovery_code_response.data.main) > 0:
+                existing_recovery_expiry_time = (
+                    existing_recovery_code_response.data.main[0][
+                        UserVerificationCode.user_verification_code_expires_at.name
+                    ]
+                )
+                existing_recovery_created_at = (
+                    existing_recovery_code_response.data.main[0][
+                        UserVerificationCode.user_verification_code_created_at.name
+                    ]
+                )
+                existing_recovery_created_at_datetime = datetime.fromisoformat(
+                    existing_recovery_created_at
+                )
+                cooldown_reset_at = existing_recovery_created_at_datetime + timedelta(
+                    seconds=RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS
+                )
+                email_recovery_details = GetUserRecoveryMethodsV0ResponseEmailRecovery(
+                    expires_at=existing_recovery_expiry_time,
+                    cooldown_reset_at=cooldown_reset_at.isoformat(),
+                )
+            else:
+                email_recovery_details = None
+        else:
+            email_recovery_details = None
+        # check for backup code.
+        if (
+            RecoveryMethodEnum.BACKUP_CODE.name
+            in local_list_response_user_recovery_methods
+        ):
+            codes = global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserVerificationCode.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserVerificationCode.user_id.name: FilterConditionsV0(
+                            eq=user_id
+                        ),
+                        UserVerificationCode.user_verification_code_type.name: FilterConditionsV0(
+                            eq=VerificationCodeTypeEnum.BACKUP_CODE_RECOVERY.value
+                        ),
+                    }
+                ),
+                response_as_pydantic=True,
+            ).data.main
+            if codes:
+                backup_code_details = GetUserRecoveryMethodsV0ResponseBackupCodes(
+                    total=len(codes),
+                    available=len(
+                        [
+                            c
+                            for c in codes
+                            if c["user_verification_code_used_at"] is None
+                        ]
+                    ),
+                    generated_at=(
+                        max(
+                            datetime.fromisoformat(
+                                c["user_verification_code_created_at"]
+                            )
+                            for c in codes
+                        ).isoformat()
+                    ),
+                )
+            else:
+                backup_code_details = None
+        else:
+            backup_code_details = None
         """
         return value
         """
@@ -3571,7 +3674,11 @@ def util_get_user_recovery_methods_v0(username: str):
             for x in RecoveryMethodEnum.__members__.values()
         }
 
-        data_pydantic = GetUserRecoveryMethodsV0Response(main=return_this)
+        data_pydantic = GetUserRecoveryMethodsV0Response(
+            main=return_this,
+            email_recovery_details=email_recovery_details,
+            backup_code_details=backup_code_details,
+        )
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_ACTION_SUCCESSFUL"],
             data=data_pydantic.model_dump(),
