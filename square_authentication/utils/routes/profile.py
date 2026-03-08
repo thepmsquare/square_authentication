@@ -255,12 +255,28 @@ def util_update_profile_details_v0(
         """
         main process
         """
+        # getting previous profile details
+        old_profile_details = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserProfile.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserProfile.user_id.name: FilterConditionsV0(eq=user_id),
+                }
+            ),
+            response_as_pydantic=True,
+        ).data.main[0]
         profile_update_data = {}
         if first_name is not None:
             profile_update_data[UserProfile.user_profile_first_name.name] = first_name
         if last_name is not None:
             profile_update_data[UserProfile.user_profile_last_name.name] = last_name
-        if email is not None:
+        # additional validation here to make sure that email does not get unverified unnecessarily.
+        if (
+            email is not None
+            and email != old_profile_details[UserProfile.user_profile_email.name]
+        ):
             profile_update_data[UserProfile.user_profile_email.name] = email
             profile_update_data[UserProfile.user_profile_email_verified.name] = None
             current_time = datetime.now(timezone.utc)

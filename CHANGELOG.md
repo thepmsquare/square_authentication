@@ -1,5 +1,9 @@
 # changelog
 
+## v12.2.1
+
+- add validation in update_profile_details_v0 to avoid unverifying email.
+
 ## v12.2.0
 
 - update GetUserRecoveryMethodsV0Response to include email_recovery_details and backup_code_details.
