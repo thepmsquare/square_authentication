@@ -1,5 +1,12 @@
 # changelog
 
+## v12.3.0
+
+- beautify emails
+    - add email html templates in data folder.
+- dependencies
+    - "square_commons>=3.2.0"
+
 ## v12.2.1
 
 - add validation in update_profile_details_v0 to avoid unverifying email.

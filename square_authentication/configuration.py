@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 
 from square_commons import ConfigReader
 from square_database_helper import SquareDatabaseHelper
@@ -167,6 +168,16 @@ try:
         param_str_square_file_store_ip=config_str_square_file_store_ip,
         param_int_square_file_store_port=config_int_square_file_store_port,
     )
+    # read email templates
+    email_folder_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "data", "emails"
+    )
+    email_verification_email_template = (
+        Path(email_folder_path) / "email_verification.html"
+    ).read_text()
+    password_reset_email_template = (
+        Path(email_folder_path) / "password_reset.html"
+    ).read_text()
 except Exception as e:
     print(
         "\033[91mMissing or incorrect config.ini file.\n"

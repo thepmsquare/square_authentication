@@ -33,6 +33,7 @@ from square_authentication.configuration import (
     config_str_secret_key_for_access_token,
     global_object_square_database_helper,
     global_object_square_logger,
+    email_verification_email_template,
 )
 from square_authentication.configuration import (
     global_object_square_file_store_helper,
@@ -521,13 +522,18 @@ def util_send_verification_email_v0(access_token):
         else:
             user_to_name = ""
 
+        expiry_minutes = EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS // 60
+        html_body = email_verification_email_template.format(
+            verification_code=verification_code, expiry_minutes=expiry_minutes
+        )
         mailgun_response = send_email_using_mailgun(
             from_email="auth@thepmsquare.com",
             from_name="square_authentication",
             to_email=user_profile_data[UserProfile.user_profile_email.name],
             to_name=user_to_name,
             subject="Email Verification",
-            body=f"Your verification code is {verification_code}. It will expire in {EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS / 60} minutes.",
+            body=f"Your verification code is {verification_code}. It will expire in {expiry_minutes} minutes.",
+            body_html=html_body,
             api_key=MAIL_GUN_API_KEY,
             domain_name="thepmsquare.com",
         )

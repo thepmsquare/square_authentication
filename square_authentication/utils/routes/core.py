@@ -46,6 +46,7 @@ from square_database_structure.square.public.tables import App
 from square_authentication.configuration import (
     GOOGLE_AUTH_PLATFORM_CLIENT_ID,
     RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
+    password_reset_email_template,
 )
 from square_authentication.configuration import (
     config_int_access_token_valid_minutes,
@@ -3129,13 +3130,19 @@ def util_send_reset_password_email_v0(
         else:
             user_to_name = ""
 
+        expiry_minutes = EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS // 60
+        html_body = password_reset_email_template.format(
+            verification_code=verification_code, expiry_minutes=expiry_minutes
+        )
         mailgun_response = send_email_using_mailgun(
             from_email="auth@thepmsquare.com",
             from_name="square_authentication",
             to_email=user_profile_data[UserProfile.user_profile_email.name],
             to_name=user_to_name,
             subject="Password Reset Verification Code",
-            body=f"Your Password Reset verification code is {verification_code}. It will expire in {EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS / 60} minutes.",
+            body="Your Password Reset verification code is "
+            f"{verification_code}. It expires in {expiry_minutes} minutes.",
+            body_html=html_body,
             api_key=MAIL_GUN_API_KEY,
             domain_name="thepmsquare.com",
         )
