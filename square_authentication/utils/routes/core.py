@@ -3131,9 +3131,10 @@ def util_send_reset_password_email_v0(
             user_to_name = ""
 
         expiry_minutes = EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS // 60
-        html_body = password_reset_email_template.format(
-            verification_code=verification_code, expiry_minutes=expiry_minutes
-        )
+        html_body = password_reset_email_template.replace(
+            "{verification_code}", str(verification_code)
+        ).replace("{expiry_minutes}", str(expiry_minutes))
+
         mailgun_response = send_email_using_mailgun(
             from_email="auth@thepmsquare.com",
             from_name="thepmsquare",

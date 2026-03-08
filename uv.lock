@@ -733,7 +733,7 @@ wheels = [
 
 [[package]]
 name = "square-authentication"
-version = "12.3.2"
+version = "12.3.3"
 source = { editable = "." }
 dependencies = [
     { name = "bcrypt" },
