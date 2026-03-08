@@ -3136,12 +3136,12 @@ def util_send_reset_password_email_v0(
         )
         mailgun_response = send_email_using_mailgun(
             from_email="auth@thepmsquare.com",
-            from_name="square_authentication",
+            from_name="thepmsquare",
             to_email=user_profile_data[UserProfile.user_profile_email.name],
             to_name=user_to_name,
-            subject="Password Reset Verification Code",
-            body="Your Password Reset verification code is "
-            f"{verification_code}. It expires in {expiry_minutes} minutes.",
+            subject=f"Your password reset code is {verification_code}",
+            body=f"Your password reset code is {verification_code}."
+            f" It expires in {expiry_minutes} minutes.",
             body_html=html_body,
             api_key=MAIL_GUN_API_KEY,
             domain_name="thepmsquare.com",

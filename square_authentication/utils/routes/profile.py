@@ -528,11 +528,12 @@ def util_send_verification_email_v0(access_token):
         )
         mailgun_response = send_email_using_mailgun(
             from_email="auth@thepmsquare.com",
-            from_name="square_authentication",
+            from_name="thepmsquare",
             to_email=user_profile_data[UserProfile.user_profile_email.name],
             to_name=user_to_name,
-            subject="Email Verification",
-            body=f"Your verification code is {verification_code}. It will expire in {expiry_minutes} minutes.",
+            subject=f"Your verification code is {verification_code}",
+            body=f"Your verification code is {verification_code}."
+            f" It expires in {expiry_minutes} minutes.",
             body_html=html_body,
             api_key=MAIL_GUN_API_KEY,
             domain_name="thepmsquare.com",

@@ -1,5 +1,12 @@
 # changelog
 
+## v12.3.2
+
+- beautify emails
+    - update subject to include the code.
+    - device theme?
+    - more selection friendly.
+
 ## v12.3.1
 
 - fix uv lock file.
