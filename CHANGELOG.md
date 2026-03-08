@@ -1,6 +1,10 @@
 # changelog
 
-## v12.3.0
+## v12.3.1
+
+- fix uv lock file.
+
+## v12.3.0 (unstable)
 
 - beautify emails
     - add email html templates in data folder.
