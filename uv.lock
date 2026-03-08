@@ -733,7 +733,7 @@ wheels = [
 
 [[package]]
 name = "square-authentication"
-version = "12.2.1"
+version = "12.3.0"
 source = { editable = "." }
 dependencies = [
     { name = "bcrypt" },
@@ -774,7 +774,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.3" },
     { name = "python-multipart", specifier = ">=0.0.6" },
     { name = "requests", specifier = ">=2.32.3" },
-    { name = "square-commons", specifier = ">=3.1.0" },
+    { name = "square-commons", specifier = ">=3.2.0" },
     { name = "square-database-helper", specifier = ">=2.7.1" },
     { name = "square-database-structure", specifier = ">=2.6.0" },
     { name = "square-file-store-helper", specifier = ">=3.1.1" },
@@ -785,7 +785,7 @@ provides-extras = ["all", "dev"]
 
 [[package]]
 name = "square-commons"
-version = "3.1.0"
+version = "3.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "configparser" },
@@ -793,9 +793,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bc/fe/273e4c00dba9b159bad1ab523511bf7df1d33b50a38f8202eceedb5f0486/square_commons-3.1.0.tar.gz", hash = "sha256:60a46a761ea3f8f32c9c76a4731dfc4e3ed1ba21933281c2cd6ca663b87c8295", size = 3581, upload-time = "2025-12-20T13:36:29.689Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5b/30/865c5342def047e88ef2e7e918e1efd3f740f31c342990d6d938afd09225/square_commons-3.2.0.tar.gz", hash = "sha256:2846c654e19b4e3ba11d59768cbf626ae12ea8a2c280784765bc20ce8274773e", size = 3609, upload-time = "2026-03-08T15:57:56.386Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/01/99/c86c006d1f187a9ca5916e9755280abd58ebdcdabf3e83fbef39d16dba34/square_commons-3.1.0-py3-none-any.whl", hash = "sha256:c1f2f69a87c5e521b9e807b63103a0cfd02aac3fb41f77dd1d414fd7555f4ea9", size = 4899, upload-time = "2025-12-20T13:36:28.606Z" },
+    { url = "https://files.pythonhosted.org/packages/00/69/9a8799d3a304318faef5a25a90b99ca08d279ea744717c8d87475e1f31ad/square_commons-3.2.0-py3-none-any.whl", hash = "sha256:9187f54477159ec3b64d97c17c32bbbe277f99eb4e2a7670417339384bb9daae", size = 4943, upload-time = "2026-03-08T15:57:55.305Z" },
 ]
 
 [[package]]
