@@ -33,6 +33,7 @@ from square_authentication.configuration import (
     config_str_secret_key_for_access_token,
     global_object_square_database_helper,
     global_object_square_logger,
+    email_verification_email_template,
 )
 from square_authentication.configuration import (
     global_object_square_file_store_helper,
@@ -522,7 +523,7 @@ def util_send_verification_email_v0(access_token):
             user_to_name = ""
 
         expiry_minutes = EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS // 60
-        html_body = password_reset_email_template.replace(
+        html_body = email_verification_email_template.replace(
             "{verification_code}", str(verification_code)
         ).replace("{expiry_minutes}", str(expiry_minutes))
         mailgun_response = send_email_using_mailgun(

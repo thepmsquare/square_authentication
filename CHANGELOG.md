@@ -1,5 +1,9 @@
 # changelog
 
+## v12.3.4
+
+- bug fix in loading html template.
+
 ## v12.3.3
 
 - bug fix in loading html template.
