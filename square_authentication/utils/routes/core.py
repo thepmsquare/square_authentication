@@ -3140,9 +3140,9 @@ def util_send_reset_password_email_v0(
             from_name="thepmsquare",
             to_email=user_profile_data[UserProfile.user_profile_email.name],
             to_name=user_to_name,
-            subject=f"Your password reset code is {verification_code}",
-            body=f"Your password reset code is {verification_code}."
-            f" It expires in {expiry_minutes} minutes.",
+            subject=f"your password reset code is {verification_code}",
+            body=f"your password reset code is {verification_code}."
+            f" it expires in {expiry_minutes} minutes.",
             body_html=html_body,
             api_key=MAIL_GUN_API_KEY,
             domain_name="thepmsquare.com",

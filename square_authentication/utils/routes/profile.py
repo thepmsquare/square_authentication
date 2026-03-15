@@ -531,9 +531,9 @@ def util_send_verification_email_v0(access_token):
             from_name="thepmsquare",
             to_email=user_profile_data[UserProfile.user_profile_email.name],
             to_name=user_to_name,
-            subject=f"Your verification code is {verification_code}",
-            body=f"Your verification code is {verification_code}."
-            f" It expires in {expiry_minutes} minutes.",
+            subject=f"your verification code is {verification_code}",
+            body=f"your verification code is {verification_code}."
+            f" it expires in {expiry_minutes} minutes.",
             body_html=html_body,
             api_key=MAIL_GUN_API_KEY,
             domain_name="thepmsquare.com",
