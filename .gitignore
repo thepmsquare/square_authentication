@@ -6,3 +6,4 @@ logs
 temp
 config.ini
 config.testing.ini
+.coverage
