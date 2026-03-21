@@ -1,4 +1,9 @@
 # changelog
+ 
+## v12.4.0
+ 
+- update `GetUserDetailsV0ResponseMain` to include `auth_providers`.
+ 
 
 ## v12.3.5
 

@@ -784,6 +784,23 @@ def util_get_user_details_v0(access_token):
             for x in local_list_response_user_recovery_methods
         ]
 
+        local_list_response_user_auth_providers = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserAuthProvider.__tablename__,
+                filters=FiltersV0(
+                    root={UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id)}
+                ),
+                columns=[UserAuthProvider.auth_provider.name],
+                response_as_pydantic=True,
+            ).data.main
+        )
+        local_list_response_user_auth_providers = [
+            x[UserAuthProvider.auth_provider.name]
+            for x in local_list_response_user_auth_providers
+        ]
+
         # check if email verification code already exists
         existing_verification_code_response = global_object_square_database_helper.get_rows_v0(
             database_name=global_string_database_name,
@@ -916,6 +933,7 @@ def util_get_user_details_v0(access_token):
                 },
                 email_verification_details=email_verification_details,
                 backup_code_details=backup_code_details,
+                auth_providers=local_list_response_user_auth_providers,
             )
         )
         output_content = get_api_output_in_standard_format(

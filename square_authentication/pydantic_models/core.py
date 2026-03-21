@@ -148,6 +148,7 @@ class GetUserDetailsV0ResponseMain(BaseModel):
     recovery_methods: Dict[str, bool]
     email_verification_details: GetUserDetailsV0ResponseMainEmailVerification | None
     backup_code_details: GetUserDetailsV0ResponseMainBackupCodes | None
+    auth_providers: List[str]
 
 
 class GetUserDetailsV0Response(BaseModel):
