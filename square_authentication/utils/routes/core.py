@@ -19,24 +19,24 @@ from square_database_helper.pydantic_models import FilterConditionsV0, FiltersV0
 from square_database_structure.square import global_string_database_name
 from square_database_structure.square.authentication import global_string_schema_name
 from square_database_structure.square.authentication.enums import (
-    RecoveryMethodEnum,
     AuthProviderEnum,
+    RecoveryMethodEnum,
     VerificationCodeTypeEnum,
 )
 from square_database_structure.square.authentication.tables import (
     User,
     UserApp,
+    UserAuthProvider,
     UserCredential,
-    UserSession,
     UserProfile,
     UserRecoveryMethod,
-    UserAuthProvider,
+    UserSession,
     UserVerificationCode,
 )
 from square_database_structure.square.email import (
     global_string_schema_name as email_schema_name,
 )
-from square_database_structure.square.email.enums import EmailTypeEnum, EmailStatusEnum
+from square_database_structure.square.email.enums import EmailStatusEnum, EmailTypeEnum
 from square_database_structure.square.email.tables import EmailLog
 from square_database_structure.square.public import (
     global_string_schema_name as global_string_public_schema_name,
@@ -44,59 +44,84 @@ from square_database_structure.square.public import (
 from square_database_structure.square.public.tables import App
 
 from square_authentication.configuration import (
+    EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
     GOOGLE_AUTH_PLATFORM_CLIENT_ID,
+    MAIL_GUN_API_KEY,
+    NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE,
+    NUMBER_OF_RECOVERY_CODES,
+    RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
     RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
-    password_reset_email_template,
-)
-from square_authentication.configuration import (
     config_int_access_token_valid_minutes,
     config_int_refresh_token_valid_minutes,
     config_str_secret_key_for_access_token,
     config_str_secret_key_for_refresh_token,
-    global_object_square_logger,
     global_object_square_database_helper,
-    MAIL_GUN_API_KEY,
-    NUMBER_OF_RECOVERY_CODES,
-    NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE,
-    EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
     global_object_square_file_store_helper,
-    RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
+    global_object_square_logger,
+    password_reset_email_template,
 )
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.core import (
-    TokenType,
-    RegisterUsernameV0Response,
-    RegisterUsernameV0ResponseMain,
-    RegisterLoginGoogleV0Response,
-    RegisterLoginGoogleV0ResponseMain,
-    UpdateUserAppIdsV0Response,
-    GetUserDetailsV0Response,
-    GetUserDetailsV0ResponseMain,
-    GetUserDetailsV0ResponseMainProfile,
-    GetUserDetailsV0ResponseMainSession,
-    GetUserDetailsV0ResponseMainEmailVerification,
-    GetUserDetailsV0ResponseMainBackupCodes,
-    LoginUsernameV0Response,
-    LoginUsernameV0ResponseMain,
-    GenerateAccessTokenV0ResponseMain,
+    AddSelfAuthProviderV0Response,
+    AddSelfAuthProviderV0ResponseMain,
     GenerateAccessTokenV0Response,
-    UpdateUsernameV0Response,
-    UpdateUsernameV0ResponseMain,
-    ValidateAndGetPayloadFromTokenV0Response,
-    UpdateUserRecoveryMethodsV0Response,
+    GenerateAccessTokenV0ResponseMain,
     GenerateAccountBackupCodesV0Response,
     GenerateAccountBackupCodesV0ResponseMain,
+    GetUserDetailsV0Response,
+    GetUserDetailsV0ResponseMain,
+    GetUserDetailsV0ResponseMainBackupCodes,
+    GetUserDetailsV0ResponseMainEmailVerification,
+    GetUserDetailsV0ResponseMainProfile,
+    GetUserDetailsV0ResponseMainSession,
+    GetUserRecoveryMethodsV0Response,
+    GetUserRecoveryMethodsV0ResponseBackupCodes,
+    GetUserRecoveryMethodsV0ResponseEmailRecovery,
+    LoginUsernameV0Response,
+    LoginUsernameV0ResponseMain,
+    RegisterLoginGoogleV0Response,
+    RegisterLoginGoogleV0ResponseMain,
+    RegisterUsernameV0Response,
+    RegisterUsernameV0ResponseMain,
     ResetPasswordAndLoginUsingBackupCodeV0Response,
     ResetPasswordAndLoginUsingBackupCodeV0ResponseMain,
-    SendResetPasswordEmailV0Response,
     ResetPasswordAndLoginUsingResetEmailCodeV0Response,
     ResetPasswordAndLoginUsingResetEmailCodeV0ResponseMain,
-    GetUserRecoveryMethodsV0Response,
-    GetUserRecoveryMethodsV0ResponseEmailRecovery,
-    GetUserRecoveryMethodsV0ResponseBackupCodes,
+    SendResetPasswordEmailV0Response,
+    TokenType,
+    UpdateUserAppIdsV0Response,
+    UpdateUsernameV0Response,
+    UpdateUsernameV0ResponseMain,
+    UpdateUserRecoveryMethodsV0Response,
+    ValidateAndGetPayloadFromTokenV0Response,
 )
 from square_authentication.utils.core import generate_default_username_for_google_users
 from square_authentication.utils.token import get_jwt_payload
+
+
+def _validate_username(username: str):
+    """
+    validation for username
+    """
+    username_pattern = re.compile(r"^[a-z0-9._-]{2,20}$")
+    if not username_pattern.match(username):
+        output_content = get_api_output_in_standard_format(
+            message=messages["USERNAME_INVALID"],
+            log=f"username '{username}' is invalid. it must start and end with a letter, "
+            f"contain only lowercase letters, numbers, underscores, or hyphens, "
+            f"and not have consecutive separators.",
+        )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=output_content,
+        )
+
+
+def _hash_password(password: str) -> str:
+    """
+    hash password
+    """
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 @global_object_square_logger.auto_logger()
@@ -110,19 +135,7 @@ def util_register_username_v0(username, password, app_id):
         """
         validation
         """
-        # validation for username
-        username_pattern = re.compile(r"^[a-z0-9._-]{2,20}$")
-        if not username_pattern.match(username):
-            output_content = get_api_output_in_standard_format(
-                message=messages["USERNAME_INVALID"],
-                log=f"username '{username}' is invalid. it must start and end with a letter, "
-                f"contain only lowercase letters, numbers, underscores, or hyphens, "
-                f"and not have consecutive separators.",
-            )
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=output_content,
-            )
+        _validate_username(username)
         local_list_response_user_creds = (
             global_object_square_database_helper.get_rows_v0(
                 database_name=global_string_database_name,
@@ -191,9 +204,7 @@ def util_register_username_v0(username, password, app_id):
         # entry in credential table
 
         # hash password
-        local_str_hashed_password = bcrypt.hashpw(
-            password.encode("utf-8"), bcrypt.gensalt()
-        ).decode("utf-8")
+        local_str_hashed_password = _hash_password(password)
 
         global_object_square_database_helper.insert_rows_v0(
             data=[
@@ -3723,6 +3734,123 @@ def util_get_user_recovery_methods_v0(username: str):
         """
         rollback logic
         """
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
+        )
+
+
+@global_object_square_logger.auto_logger()
+def util_add_self_auth_provider_v0(access_token, password):
+    try:
+        """
+        validation
+        """
+        # validate access token
+        try:
+            local_dict_access_token_payload = get_jwt_payload(
+                access_token, config_str_secret_key_for_access_token
+            )
+        except Exception as error:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        user_id = local_dict_access_token_payload["user_id"]
+
+        # check if user has SELF provider
+        local_list_response_user_auth_providers = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserAuthProvider.__tablename__,
+                filters=FiltersV0(
+                    root={UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id)}
+                ),
+                columns=[UserAuthProvider.auth_provider.name],
+                response_as_pydantic=True,
+            ).data.main
+        )
+        auth_providers = [
+            x[UserAuthProvider.auth_provider.name]
+            for x in local_list_response_user_auth_providers
+        ]
+
+        if AuthProviderEnum.SELF.value in auth_providers:
+            output_content = get_api_output_in_standard_format(
+                message=messages["GENERIC_400"],
+                log=f"user {user_id} already has SELF auth provider.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+
+        """
+        main process
+        """
+        # entry in user auth provider table
+        global_object_square_database_helper.insert_rows_v0(
+            data=[
+                {
+                    UserAuthProvider.user_id.name: user_id,
+                    UserAuthProvider.auth_provider.name: AuthProviderEnum.SELF.value,
+                }
+            ],
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserAuthProvider.__tablename__,
+            response_as_pydantic=True,
+        )
+
+        # entry in credential table
+        local_str_hashed_password = _hash_password(password)
+
+        global_object_square_database_helper.insert_rows_v0(
+            data=[
+                {
+                    UserCredential.user_id.name: user_id,
+                    UserCredential.user_credential_hashed_password.name: local_str_hashed_password,
+                }
+            ],
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserCredential.__tablename__,
+            response_as_pydantic=True,
+        )
+
+        # get updated auth providers
+        auth_providers.append(AuthProviderEnum.SELF.value)
+
+        """
+        return value
+        """
+        data_pydantic = AddSelfAuthProviderV0Response(
+            main=AddSelfAuthProviderV0ResponseMain(auth_providers=auth_providers)
+        )
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_ACTION_SUCCESSFUL"],
+            data=data_pydantic.model_dump(),
+            as_dict=False,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=output_content.model_dump(),
+        )
+
+    except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
+        return JSONResponse(
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
         global_object_square_logger.logger.error(e, exc_info=True)
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_500"],

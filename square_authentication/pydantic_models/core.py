@@ -240,3 +240,15 @@ class GetUserRecoveryMethodsV0Response(BaseModel):
     main: Dict[str, bool]
     email_recovery_details: GetUserRecoveryMethodsV0ResponseEmailRecovery | None
     backup_code_details: GetUserRecoveryMethodsV0ResponseBackupCodes | None
+
+
+class AddSelfAuthProviderV0(BaseModel):
+    password: str
+
+
+class AddSelfAuthProviderV0ResponseMain(BaseModel):
+    auth_providers: List[str]
+
+
+class AddSelfAuthProviderV0Response(BaseModel):
+    main: AddSelfAuthProviderV0ResponseMain

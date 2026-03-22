@@ -41,6 +41,8 @@ from square_authentication.pydantic_models.core import (
     SendResetPasswordEmailV0Response,
     ResetPasswordAndLoginUsingResetEmailCodeV0Response,
     GetUserRecoveryMethodsV0Response,
+    AddSelfAuthProviderV0,
+    AddSelfAuthProviderV0Response,
 )
 from square_authentication.utils.routes.core import (
     util_register_username_v0,
@@ -62,6 +64,7 @@ from square_authentication.utils.routes.core import (
     util_send_reset_password_email_v0,
     util_reset_password_and_login_using_reset_email_code_v0,
     util_get_user_recovery_methods_v0,
+    util_add_self_auth_provider_v0,
 )
 
 router = APIRouter(
@@ -596,6 +599,34 @@ async def get_user_recovery_methods_v0(username: str):
 
     try:
         return util_get_user_recovery_methods_v0(username=username)
+    except HTTPException as he:
+        global_object_square_logger.logger.error(he, exc_info=True)
+        return JSONResponse(status_code=he.status_code, content=he.detail)
+    except Exception as e:
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"], log=str(e)
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
+        )
+
+
+@router.post(
+    "/add_self_auth_provider/v0",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[AddSelfAuthProviderV0Response],
+)
+@global_object_square_logger.auto_logger()
+async def add_self_auth_provider_v0(
+    access_token: Annotated[str, Header()],
+    body: AddSelfAuthProviderV0,
+):
+    try:
+        return util_add_self_auth_provider_v0(
+            access_token=access_token,
+            password=body.password,
+        )
     except HTTPException as he:
         global_object_square_logger.logger.error(he, exc_info=True)
         return JSONResponse(status_code=he.status_code, content=he.detail)
