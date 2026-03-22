@@ -3,6 +3,7 @@
 ## v12.5.0 (in progress)
 
 - add `add_self_auth_provider/v0` endpoint to core (enables adding SELF auth provider for existing users).
+- add `add_google_auth_provider/v0` endpoint to core (enables adding GOOGLE auth provider for existing users).
 - refactor: extract common username validation and password hashing logic.
 
 ## v12.4.0

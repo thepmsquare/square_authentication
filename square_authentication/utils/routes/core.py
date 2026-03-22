@@ -62,6 +62,8 @@ from square_authentication.configuration import (
 )
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.core import (
+    AddGoogleAuthProviderV0Response,
+    AddGoogleAuthProviderV0ResponseMain,
     AddSelfAuthProviderV0Response,
     AddSelfAuthProviderV0ResponseMain,
     GenerateAccessTokenV0Response,
@@ -3837,6 +3839,367 @@ def util_add_self_auth_provider_v0(access_token, password):
         )
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_ACTION_SUCCESSFUL"],
+            data=data_pydantic.model_dump(),
+            as_dict=False,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=output_content.model_dump(),
+        )
+
+    except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
+        return JSONResponse(
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
+        )
+
+@global_object_square_logger.auto_logger()
+def util_add_google_auth_provider_v0(access_token, google_id_token):
+    try:
+        """
+        validation
+        """
+        # validate access token
+        try:
+            local_dict_access_token_payload = get_jwt_payload(
+                access_token, config_str_secret_key_for_access_token
+            )
+        except Exception as error:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
+            )
+            # noinspection PyTypeChecker
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        user_id = local_dict_access_token_payload["user_id"]
+
+        # verify google id token
+        try:
+            id_info = id_token.verify_oauth2_token(
+                google_id_token,
+                google_requests.Request(),
+                GOOGLE_AUTH_PLATFORM_CLIENT_ID,
+            )
+        except Exception as error:
+            output_content = get_api_output_in_standard_format(
+                message=messages["GENERIC_400"],
+                log=f"Google id token is invalid: {str(error)}",
+            )
+            # noinspection PyTypeChecker
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+
+        # validate if email is verified
+        if id_info.get("email_verified") is not True:
+            output_content = get_api_output_in_standard_format(
+                message=messages["EMAIL_NOT_VERIFIED"],
+                log="Google account email is not verified.",
+            )
+            # noinspection PyTypeChecker
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+
+        google_sub = id_info["sub"]
+        google_email = id_info.get("email")
+        google_given_name = id_info.get("given_name")
+        google_family_name = id_info.get("family_name")
+        google_picture = id_info.get("picture")
+
+        """
+        provider consistency & idempotency
+        """
+        # check if this google account is already linked
+        existing_google_link = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserAuthProvider.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserAuthProvider.auth_provider.name: FilterConditionsV0(
+                        eq=AuthProviderEnum.GOOGLE.value
+                    ),
+                    UserAuthProvider.auth_provider_user_id.name: FilterConditionsV0(
+                        eq=google_sub
+                    ),
+                }
+            ),
+            response_as_pydantic=True,
+        ).data.main
+
+        if existing_google_link:
+            linked_user_id = existing_google_link[0][UserAuthProvider.user_id.name]
+            if linked_user_id == user_id:
+                # idempotent success
+                local_list_response_user_auth_providers = (
+                    global_object_square_database_helper.get_rows_v0(
+                        database_name=global_string_database_name,
+                        schema_name=global_string_schema_name,
+                        table_name=UserAuthProvider.__tablename__,
+                        filters=FiltersV0(
+                            root={
+                                UserAuthProvider.user_id.name: FilterConditionsV0(
+                                    eq=user_id
+                                )
+                            }
+                        ),
+                        response_as_pydantic=True,
+                    ).data.main
+                )
+                data_pydantic = AddGoogleAuthProviderV0ResponseMain(
+                    auth_providers=[
+                        x[UserAuthProvider.auth_provider.name]
+                        for x in local_list_response_user_auth_providers
+                    ]
+                )
+                output_content = get_api_output_in_standard_format(
+                    message=messages["GENERIC_SUCCESSFUL"],
+                    data=data_pydantic.model_dump(),
+                    as_dict=False,
+                )
+                return JSONResponse(
+                    status_code=status.HTTP_200_OK,
+                    content=output_content.model_dump(),
+                )
+            else:
+                # linked to another user
+                output_content = get_api_output_in_standard_format(
+                    message=messages["GENERIC_409"],
+                    log="This Google account is already linked to another user.",
+                )
+                # noinspection PyTypeChecker
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=output_content,
+                )
+
+        # check if current user already has a google account linked
+        user_google_provider = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserAuthProvider.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserAuthProvider.auth_provider.name: FilterConditionsV0(
+                        eq=AuthProviderEnum.GOOGLE.value
+                    ),
+                }
+            ),
+            response_as_pydantic=True,
+        ).data.main
+
+        if user_google_provider:
+            output_content = get_api_output_in_standard_format(
+                message=messages["GENERIC_409"],
+                log="User already has a Google account linked.",
+            )
+            # noinspection PyTypeChecker
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=output_content,
+            )
+
+        """
+        profile merging
+        """
+        current_profile = global_object_square_database_helper.get_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserProfile.__tablename__,
+            filters=FiltersV0(
+                root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
+            ),
+            response_as_pydantic=True,
+        ).data.main[0]
+
+        profile_update_data = {}
+
+        # email check
+        current_email = current_profile.get(UserProfile.user_profile_email.name)
+        if current_email:
+            if current_email.lower() != google_email.lower():
+                output_content = get_api_output_in_standard_format(
+                    message=messages["GENERIC_409"],
+                    log=f"Email mismatch: profile has {current_email}, but Google account has {google_email}.",
+                )
+                # noinspection PyTypeChecker
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=output_content,
+                )
+        else:
+            # check if google email is already used by another user
+            existing_email_profile = global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserProfile.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserProfile.user_profile_email.name: FilterConditionsV0(
+                            eq=google_email
+                        )
+                    }
+                ),
+                response_as_pydantic=True,
+            ).data.main
+            if existing_email_profile:
+                existing_user_id = existing_email_profile[0][UserProfile.user_id.name]
+                existing_user_record = global_object_square_database_helper.get_rows_v0(
+                    database_name=global_string_database_name,
+                    schema_name=global_string_schema_name,
+                    table_name=User.__tablename__,
+                    filters=FiltersV0(
+                        root={
+                            User.user_id.name: FilterConditionsV0(eq=existing_user_id)
+                        }
+                    ),
+                    response_as_pydantic=True,
+                ).data.main[0]
+                existing_username = existing_user_record[User.user_username.name]
+
+                output_content = get_api_output_in_standard_format(
+                    message=messages["ACCOUNT_WITH_EMAIL_ALREADY_EXISTS"],
+                    log=f"Email {google_email} is already verified for another account (user_id: {existing_user_id}, username: {existing_username}).",
+                )
+                # noinspection PyTypeChecker
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=output_content,
+                )
+
+            profile_update_data[UserProfile.user_profile_email.name] = google_email
+            profile_update_data[
+                UserProfile.user_profile_email_verified.name
+            ] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%f+00")
+
+        # first name
+        if not current_profile.get(UserProfile.user_profile_first_name.name):
+            profile_update_data[
+                UserProfile.user_profile_first_name.name
+            ] = google_given_name
+
+        # last name
+        if not current_profile.get(UserProfile.user_profile_last_name.name):
+            profile_update_data[
+                UserProfile.user_profile_last_name.name
+            ] = google_family_name
+
+        # photo
+        if (
+            not current_profile.get(UserProfile.user_profile_photo_storage_token.name)
+            and google_picture
+        ):
+            try:
+                profile_picture_response = make_request(
+                    "GET", google_picture, return_type="response"
+                )
+                headers = profile_picture_response.headers
+                content_type = headers.get("Content-Type", "application/octet-stream")
+                content_disposition = headers.get("Content-Disposition", "")
+
+                filename = None
+                if content_disposition:
+                    match = re.search(r'filename="([^"]+)"', content_disposition)
+                    if match:
+                        filename = match.group(1)
+
+                if filename is None:
+                    ext = (
+                        mimetypes.guess_extension(content_type.split(";")[0].strip())
+                        or ""
+                    )
+                    filename = f"profile_photo{ext}"
+                    if not ext:
+                        filename += ".bin"
+
+                file_upload_response = global_object_square_file_store_helper.upload_file_using_tuple_v0(
+                    file=(
+                        filename,
+                        io.BytesIO(profile_picture_response.content),
+                        content_type,
+                    ),
+                    system_relative_path="global/users/profile_photos",
+                    response_as_pydantic=True,
+                )
+                profile_update_data[
+                    UserProfile.user_profile_photo_storage_token.name
+                ] = file_upload_response.data.main
+            except Exception as e:
+                global_object_square_logger.logger.error(
+                    f"Error fetching/uploading Google profile picture for user_id {user_id}: {str(e)}",
+                    exc_info=True,
+                )
+
+        """
+        main process
+        """
+        # update profile if any changes
+        if profile_update_data:
+            global_object_square_database_helper.update_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserProfile.__tablename__,
+                filters=FiltersV0(
+                    root={UserProfile.user_id.name: FilterConditionsV0(eq=user_id)}
+                ),
+                data=profile_update_data,
+                response_as_pydantic=True,
+            )
+
+        # link google provider
+        global_object_square_database_helper.insert_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserAuthProvider.__tablename__,
+            data=[
+                {
+                    UserAuthProvider.user_id.name: user_id,
+                    UserAuthProvider.auth_provider.name: AuthProviderEnum.GOOGLE.value,
+                    UserAuthProvider.auth_provider_user_id.name: google_sub,
+                }
+            ],
+            response_as_pydantic=True,
+        )
+
+        """
+        return value
+        """
+        local_list_response_user_auth_providers = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserAuthProvider.__tablename__,
+                filters=FiltersV0(
+                    root={
+                        UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id)
+                    }
+                ),
+                response_as_pydantic=True,
+            ).data.main
+        )
+        data_pydantic = AddGoogleAuthProviderV0ResponseMain(
+            auth_providers=[
+                x[UserAuthProvider.auth_provider.name]
+                for x in local_list_response_user_auth_providers
+            ]
+        )
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_SUCCESSFUL"],
             data=data_pydantic.model_dump(),
             as_dict=False,
         )

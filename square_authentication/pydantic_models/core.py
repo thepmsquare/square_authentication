@@ -252,3 +252,15 @@ class AddSelfAuthProviderV0ResponseMain(BaseModel):
 
 class AddSelfAuthProviderV0Response(BaseModel):
     main: AddSelfAuthProviderV0ResponseMain
+
+
+class AddGoogleAuthProviderV0(BaseModel):
+    google_id_token: str
+
+
+class AddGoogleAuthProviderV0ResponseMain(BaseModel):
+    auth_providers: List[str]
+
+
+class AddGoogleAuthProviderV0Response(BaseModel):
+    main: AddGoogleAuthProviderV0ResponseMain
