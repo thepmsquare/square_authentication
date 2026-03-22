@@ -97,7 +97,11 @@ from square_authentication.pydantic_models.core import (
     UpdateUserRecoveryMethodsV0Response,
     ValidateAndGetPayloadFromTokenV0Response,
 )
-from square_authentication.utils.core import generate_default_username_for_google_users
+from square_authentication.utils.core import (
+    USERNAME_MAX_LENGTH,
+    USERNAME_RE,
+    generate_default_username_for_google_users,
+)
 from square_authentication.utils.token import get_jwt_payload
 
 
@@ -105,8 +109,7 @@ def _validate_username(username: str):
     """
     validation for username
     """
-    username_pattern = re.compile(r"^[a-z0-9._-]{2,20}$")
-    if not username_pattern.match(username):
+    if not USERNAME_RE.match(username):
         output_content = get_api_output_in_standard_format(
             message=messages["USERNAME_INVALID"],
             log=f"username '{username}' is invalid. it must start and end with a letter, "
@@ -1738,8 +1741,7 @@ def util_update_username_v0(new_username, access_token):
 
         # validation for username
         new_username = new_username.lower()
-        username_pattern = re.compile(r"^[a-z0-9._-]{2,20}$")
-        if not username_pattern.match(new_username):
+        if not USERNAME_RE.match(new_username):
             output_content = get_api_output_in_standard_format(
                 message=messages["USERNAME_INVALID"],
                 log=f"username '{new_username}' is invalid. it must start and end with a letter, "
