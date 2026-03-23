@@ -93,6 +93,7 @@ class ResetPasswordAndLoginUsingBackupCodeV0(BaseModel):
 
 class SendResetPasswordEmailV0(BaseModel):
     username: str
+    redirect_url: str | None = None
 
 
 class ResetPasswordAndLoginUsingResetEmailCodeV0(BaseModel):

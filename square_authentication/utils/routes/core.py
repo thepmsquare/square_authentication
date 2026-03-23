@@ -102,6 +102,7 @@ from square_authentication.utils.core import (
     USERNAME_RE,
     generate_default_username_for_google_users,
 )
+from square_authentication.utils.redirect import construct_clickable_link
 from square_authentication.utils.token import get_jwt_payload
 
 
@@ -2964,9 +2965,7 @@ def util_reset_password_and_login_using_backup_code_v0(
 
 
 @global_object_square_logger.auto_logger()
-def util_send_reset_password_email_v0(
-    username,
-):
+def util_send_reset_password_email_v0(username, redirect_url=None):
     try:
         """
         validation
@@ -3122,13 +3121,13 @@ def util_send_reset_password_email_v0(
         """
         main process
         """
-        verification_code = random.randint(
+        reset_code = random.randint(
             10 ** (NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE - 1),
             10**NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE - 1,
         )
         # hash the verification code
         hashed_verification_code = bcrypt.hashpw(
-            str(verification_code).encode("utf-8"), bcrypt.gensalt()
+            str(reset_code).encode("utf-8"), bcrypt.gensalt()
         ).decode("utf-8")
         expires_at = datetime.now(timezone.utc) + timedelta(
             seconds=EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS
@@ -3164,18 +3163,45 @@ def util_send_reset_password_email_v0(
             user_to_name = ""
 
         expiry_minutes = EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS // 60
-        html_body = password_reset_email_template.replace(
-            "{verification_code}", str(verification_code)
-        ).replace("{expiry_minutes}", str(expiry_minutes))
+        clickable_link = (
+            construct_clickable_link(
+                redirect_url, {"code": reset_code, "username": username}
+            )
+            if redirect_url
+            else ""
+        )
+        clickable_link_section = f"""
+        <p style="font-size:16px; line-height:1.6;">
+            you can also reset your password by clicking the button below:
+        </p>
+        <div style="text-align:center; margin:20px 0;">
+            <a href="{clickable_link}" style="
+                background-color: #007bff;
+                color: white;
+                padding: 12px 24px;
+                text-decoration: none;
+                border-radius: 5px;
+                font-family: 'Outfit', Arial, sans-serif;
+                font-weight: 600;
+                display: inline-block;
+            ">reset password</a>
+        </div>
+        """ if clickable_link else ""
 
+        html_body = (
+            password_reset_email_template.replace("{reset_code}", str(reset_code))
+            .replace("{expiry_minutes}", str(expiry_minutes))
+            .replace("{clickable_link_section}", clickable_link_section)
+        )
         mailgun_response = send_email_using_mailgun(
             from_email="auth@thepmsquare.com",
             from_name="thepmsquare",
             to_email=user_profile_data[UserProfile.user_profile_email.name],
             to_name=user_to_name,
-            subject=f"your password reset code is {verification_code}",
-            body=f"your password reset code is {verification_code}."
-            f" it expires in {expiry_minutes} minutes.",
+            subject=f"your password reset code is {reset_code}",
+            body=f"your password reset code is {reset_code}."
+            f" it expires in {expiry_minutes} minutes."
+            + (f" you can also reset using this link: {clickable_link}" if clickable_link else ""),
             body_html=html_body,
             api_key=MAIL_GUN_API_KEY,
             domain_name="thepmsquare.com",

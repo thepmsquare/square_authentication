@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 
 
+class SendVerificationEmailV0(BaseModel):
+    redirect_url: str | None = None
+
+
 class ValidateEmailVerificationCodeV0(BaseModel):
     verification_code: str
 

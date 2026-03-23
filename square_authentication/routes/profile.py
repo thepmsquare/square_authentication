@@ -15,6 +15,7 @@ from square_authentication.pydantic_models.profile import (
     UpdateProfilePhotoV0Response,
     UpdateProfileDetailsV0Response,
     ValidateEmailVerificationCodeV0Response,
+    SendVerificationEmailV0,
 )
 from square_authentication.utils.routes.profile import (
     util_update_profile_photo_v0,
@@ -99,11 +100,13 @@ async def update_profile_details_v0(
 )
 @global_object_square_logger.auto_logger()
 async def send_verification_email_v0(
-    access_token: Annotated[str, Header()],
+    body: SendVerificationEmailV0,
+    access_token: Annotated[str, Header(alias="Authorization")],
 ):
     try:
         return util_send_verification_email_v0(
             access_token=access_token,
+            redirect_url=body.redirect_url,
         )
     except HTTPException as he:
         global_object_square_logger.logger.error(he, exc_info=True)

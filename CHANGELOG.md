@@ -4,8 +4,13 @@
 
 - add `add_self_auth_provider/v0` endpoint to core (enables adding SELF auth provider for existing users).
 - add `add_google_auth_provider/v0` endpoint to core (enables adding GOOGLE auth provider for existing users).
+- add support for dynamic clickable links in OTP emails (verification and password reset).
+- implement a secure whitelist-based mechanism for redirect URLs.
+- update `SendVerificationEmailV0` and `SendResetPasswordEmailV0` models to accept an optional `redirect_url`.
 - refactor: extract common username validation and password hashing logic.
 - bug fix: enforce 20-character limit for usernames generated during Google registration.
+- env
+  - add ALLOWED_REDIRECT_URLS in LOGIC section.
 
 ## v12.4.0
 

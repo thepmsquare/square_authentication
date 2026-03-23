@@ -47,6 +47,7 @@ from square_authentication.pydantic_models.profile import (
     ValidateEmailVerificationCodeV0Response,
 )
 from square_authentication.utils.token import get_jwt_payload
+from square_authentication.utils.redirect import construct_clickable_link
 
 
 @global_object_square_logger.auto_logger()
@@ -382,7 +383,7 @@ def util_update_profile_details_v0(
 
 
 @global_object_square_logger.auto_logger()
-def util_send_verification_email_v0(access_token):
+def util_send_verification_email_v0(access_token, redirect_url=None):
     try:
         """
         validation
@@ -523,9 +524,38 @@ def util_send_verification_email_v0(access_token):
             user_to_name = ""
 
         expiry_minutes = EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS // 60
-        html_body = email_verification_email_template.replace(
-            "{verification_code}", str(verification_code)
-        ).replace("{expiry_minutes}", str(expiry_minutes))
+        clickable_link = (
+            construct_clickable_link(
+                redirect_url, {"code": verification_code, "user_id": user_id}
+            )
+            if redirect_url
+            else ""
+        )
+        clickable_link_section = f"""
+        <p style="font-size:16px; line-height:1.6;">
+            you can also verify by clicking the button below:
+        </p>
+        <div style="text-align:center; margin:20px 0;">
+            <a href="{clickable_link}" style="
+                background-color: #007bff;
+                color: white;
+                padding: 12px 24px;
+                text-decoration: none;
+                border-radius: 5px;
+                font-family: 'Outfit', Arial, sans-serif;
+                font-weight: 600;
+                display: inline-block;
+            ">verify now</a>
+        </div>
+        """ if clickable_link else ""
+
+        html_body = (
+            email_verification_email_template.replace(
+                "{verification_code}", str(verification_code)
+            )
+            .replace("{expiry_minutes}", str(expiry_minutes))
+            .replace("{clickable_link_section}", clickable_link_section)
+        )
         mailgun_response = send_email_using_mailgun(
             from_email="auth@thepmsquare.com",
             from_name="thepmsquare",
@@ -533,7 +563,8 @@ def util_send_verification_email_v0(access_token):
             to_name=user_to_name,
             subject=f"your verification code is {verification_code}",
             body=f"your verification code is {verification_code}."
-            f" it expires in {expiry_minutes} minutes.",
+            f" it expires in {expiry_minutes} minutes."
+            + (f" you can also verify using this link: {clickable_link}" if clickable_link else ""),
             body_html=html_body,
             api_key=MAIL_GUN_API_KEY,
             domain_name="thepmsquare.com",

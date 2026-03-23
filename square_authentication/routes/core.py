@@ -543,6 +543,7 @@ async def send_reset_password_email_v0(
     try:
         return util_send_reset_password_email_v0(
             username=username,
+            redirect_url=body.redirect_url,
         )
     except HTTPException as he:
         global_object_square_logger.logger.error(he, exc_info=True)
