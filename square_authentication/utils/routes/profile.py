@@ -46,8 +46,8 @@ from square_authentication.pydantic_models.profile import (
     UpdateProfileDetailsV0ResponseMain,
     ValidateEmailVerificationCodeV0Response,
 )
-from square_authentication.utils.token import get_jwt_payload
 from square_authentication.utils.redirect import construct_clickable_link
+from square_authentication.utils.token import get_jwt_payload
 
 
 @global_object_square_logger.auto_logger()
@@ -531,7 +531,8 @@ def util_send_verification_email_v0(access_token, redirect_url=None):
             if redirect_url
             else ""
         )
-        clickable_link_section = f"""
+        clickable_link_section = (
+            f"""
         <p style="font-size:16px; line-height:1.6;">
             you can also verify by clicking the button below:
         </p>
@@ -547,7 +548,10 @@ def util_send_verification_email_v0(access_token, redirect_url=None):
                 display: inline-block;
             ">verify now</a>
         </div>
-        """ if clickable_link else ""
+        """
+            if clickable_link
+            else ""
+        )
 
         html_body = (
             email_verification_email_template.replace(
@@ -564,7 +568,11 @@ def util_send_verification_email_v0(access_token, redirect_url=None):
             subject=f"your verification code is {verification_code}",
             body=f"your verification code is {verification_code}."
             f" it expires in {expiry_minutes} minutes."
-            + (f" you can also verify using this link: {clickable_link}" if clickable_link else ""),
+            + (
+                f" you can also verify using this link: {clickable_link}"
+                if clickable_link
+                else ""
+            ),
             body_html=html_body,
             api_key=MAIL_GUN_API_KEY,
             domain_name="thepmsquare.com",

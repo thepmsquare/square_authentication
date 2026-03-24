@@ -1,26 +1,24 @@
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Header, HTTPException, UploadFile, status
+from fastapi import APIRouter, Header, HTTPException, UploadFile, status, Body
 from fastapi.responses import JSONResponse
 from square_commons import get_api_output_in_standard_format
 from square_commons.api_utils import StandardResponse
 
-from square_authentication.configuration import (
-    global_object_square_logger,
-)
+from square_authentication.configuration import global_object_square_logger
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.profile import (
-    ValidateEmailVerificationCodeV0,
-    SendVerificationEmailV0Response,
-    UpdateProfilePhotoV0Response,
-    UpdateProfileDetailsV0Response,
-    ValidateEmailVerificationCodeV0Response,
     SendVerificationEmailV0,
+    SendVerificationEmailV0Response,
+    UpdateProfileDetailsV0Response,
+    UpdateProfilePhotoV0Response,
+    ValidateEmailVerificationCodeV0,
+    ValidateEmailVerificationCodeV0Response,
 )
 from square_authentication.utils.routes.profile import (
-    util_update_profile_photo_v0,
-    util_update_profile_details_v0,
     util_send_verification_email_v0,
+    util_update_profile_details_v0,
+    util_update_profile_photo_v0,
     util_validate_email_verification_code_v0,
 )
 
@@ -100,13 +98,13 @@ async def update_profile_details_v0(
 )
 @global_object_square_logger.auto_logger()
 async def send_verification_email_v0(
-    body: SendVerificationEmailV0,
-    access_token: Annotated[str, Header(alias="Authorization")],
+    access_token: Annotated[str, Header()],
+    body: Optional[SendVerificationEmailV0] = Body(None),
 ):
     try:
         return util_send_verification_email_v0(
             access_token=access_token,
-            redirect_url=body.redirect_url,
+            redirect_url=body.redirect_url if body else None,
         )
     except HTTPException as he:
         global_object_square_logger.logger.error(he, exc_info=True)

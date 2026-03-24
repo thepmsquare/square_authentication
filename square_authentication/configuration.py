@@ -147,7 +147,6 @@ try:
             "RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS"
         ]
     )
-    ALLOWED_REDIRECT_URLS = eval(ldict_configuration["LOGIC"]["ALLOWED_REDIRECT_URLS"])
     # ===========================================
 
     # Initialize logger

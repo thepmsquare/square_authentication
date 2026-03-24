@@ -62,7 +62,6 @@ from square_authentication.configuration import (
 )
 from square_authentication.messages import messages
 from square_authentication.pydantic_models.core import (
-    AddGoogleAuthProviderV0Response,
     AddGoogleAuthProviderV0ResponseMain,
     AddSelfAuthProviderV0Response,
     AddSelfAuthProviderV0ResponseMain,
@@ -98,7 +97,6 @@ from square_authentication.pydantic_models.core import (
     ValidateAndGetPayloadFromTokenV0Response,
 )
 from square_authentication.utils.core import (
-    USERNAME_MAX_LENGTH,
     USERNAME_RE,
     generate_default_username_for_google_users,
 )
@@ -3170,7 +3168,8 @@ def util_send_reset_password_email_v0(username, redirect_url=None):
             if redirect_url
             else ""
         )
-        clickable_link_section = f"""
+        clickable_link_section = (
+            f"""
         <p style="font-size:16px; line-height:1.6;">
             you can also reset your password by clicking the button below:
         </p>
@@ -3186,7 +3185,10 @@ def util_send_reset_password_email_v0(username, redirect_url=None):
                 display: inline-block;
             ">reset password</a>
         </div>
-        """ if clickable_link else ""
+        """
+            if clickable_link
+            else ""
+        )
 
         html_body = (
             password_reset_email_template.replace("{reset_code}", str(reset_code))
@@ -3201,7 +3203,11 @@ def util_send_reset_password_email_v0(username, redirect_url=None):
             subject=f"your password reset code is {reset_code}",
             body=f"your password reset code is {reset_code}."
             f" it expires in {expiry_minutes} minutes."
-            + (f" you can also reset using this link: {clickable_link}" if clickable_link else ""),
+            + (
+                f" you can also reset using this link: {clickable_link}"
+                if clickable_link
+                else ""
+            ),
             body_html=html_body,
             api_key=MAIL_GUN_API_KEY,
             domain_name="thepmsquare.com",
@@ -3890,6 +3896,7 @@ def util_add_self_auth_provider_v0(access_token, password):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
         )
 
+
 @global_object_square_logger.auto_logger()
 def util_add_google_auth_provider_v0(access_token, google_id_token):
     try:
@@ -4111,21 +4118,21 @@ def util_add_google_auth_provider_v0(access_token, google_id_token):
                 )
 
             profile_update_data[UserProfile.user_profile_email.name] = google_email
-            profile_update_data[
-                UserProfile.user_profile_email_verified.name
-            ] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%f+00")
+            profile_update_data[UserProfile.user_profile_email_verified.name] = (
+                datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%f+00")
+            )
 
         # first name
         if not current_profile.get(UserProfile.user_profile_first_name.name):
-            profile_update_data[
-                UserProfile.user_profile_first_name.name
-            ] = google_given_name
+            profile_update_data[UserProfile.user_profile_first_name.name] = (
+                google_given_name
+            )
 
         # last name
         if not current_profile.get(UserProfile.user_profile_last_name.name):
-            profile_update_data[
-                UserProfile.user_profile_last_name.name
-            ] = google_family_name
+            profile_update_data[UserProfile.user_profile_last_name.name] = (
+                google_family_name
+            )
 
         # photo
         if (
@@ -4155,14 +4162,16 @@ def util_add_google_auth_provider_v0(access_token, google_id_token):
                     if not ext:
                         filename += ".bin"
 
-                file_upload_response = global_object_square_file_store_helper.upload_file_using_tuple_v0(
-                    file=(
-                        filename,
-                        io.BytesIO(profile_picture_response.content),
-                        content_type,
-                    ),
-                    system_relative_path="global/users/profile_photos",
-                    response_as_pydantic=True,
+                file_upload_response = (
+                    global_object_square_file_store_helper.upload_file_using_tuple_v0(
+                        file=(
+                            filename,
+                            io.BytesIO(profile_picture_response.content),
+                            content_type,
+                        ),
+                        system_relative_path="global/users/profile_photos",
+                        response_as_pydantic=True,
+                    )
                 )
                 profile_update_data[
                     UserProfile.user_profile_photo_storage_token.name
@@ -4213,9 +4222,7 @@ def util_add_google_auth_provider_v0(access_token, google_id_token):
                 schema_name=global_string_schema_name,
                 table_name=UserAuthProvider.__tablename__,
                 filters=FiltersV0(
-                    root={
-                        UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id)
-                    }
+                    root={UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id)}
                 ),
                 response_as_pydantic=True,
             ).data.main

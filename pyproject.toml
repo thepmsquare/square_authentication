@@ -25,14 +25,14 @@ dependencies = [
     "requests>=2.32.3",
     "cryptography>=42.0.7",
     "square_commons>=3.2.0",
-    "square_logger>=3.0.0",
+    "square_logger>=3.0.2",
     "square_database_helper>=2.7.1",
-    "square_database_structure>=2.6.0",
+    "square_database_structure>=2.8.1",
     "square_file_store_helper>=3.1.1",
     "httpx>=0.27.2",
     "google-auth>=2.40.3",
 ]
-optional-dependencies = { all = ["pytest>=8.3.3"], dev = ["pytest>=8.3.3"] }
+optional-dependencies = { all = ["pytest>=8.3.3", "black"], dev = ["pytest>=8.3.3", "black"] }
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
