@@ -1,6 +1,6 @@
 # changelog
 
-## v12.5.0 (in progress)
+## v12.5.0
 
 - add `add_self_auth_provider/v0` endpoint to core (enables adding SELF auth provider for existing users).
 - add `add_google_auth_provider/v0` endpoint to core (enables adding GOOGLE auth provider for existing users).
