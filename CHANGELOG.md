@@ -1,6 +1,10 @@
 # changelog
 
-## v12.6.0
+## v12.6.1
+
+- fix uv lock.
+
+## v12.6.0 (unstable)
 
 - add `unlink_auth_provider/v0` endpoint to core (enables unlinking an auth provider if multiple exist).
 
