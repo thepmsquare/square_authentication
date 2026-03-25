@@ -1,5 +1,9 @@
 # changelog
 
+## v12.6.0
+
+- add `unlink_auth_provider/v0` endpoint to core (enables unlinking an auth provider if multiple exist).
+
 ## v12.5.0
 
 - add `add_self_auth_provider/v0` endpoint to core (enables adding SELF auth provider for existing users).

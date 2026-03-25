@@ -45,6 +45,8 @@ from square_authentication.pydantic_models.core import (
     AddSelfAuthProviderV0Response,
     AddGoogleAuthProviderV0,
     AddGoogleAuthProviderV0Response,
+    UnlinkAuthProviderV0,
+    UnlinkAuthProviderV0Response,
 )
 from square_authentication.utils.routes.core import (
     util_register_username_v0,
@@ -68,6 +70,7 @@ from square_authentication.utils.routes.core import (
     util_get_user_recovery_methods_v0,
     util_add_self_auth_provider_v0,
     util_add_google_auth_provider_v0,
+    util_unlink_auth_provider_v0,
 )
 
 router = APIRouter(
@@ -667,6 +670,43 @@ async def add_google_auth_provider_v0(
         return util_add_google_auth_provider_v0(
             access_token=access_token,
             google_id_token=body.google_id_token,
+        )
+    except HTTPException as he:
+        global_object_square_logger.logger.error(he, exc_info=True)
+        return JSONResponse(status_code=he.status_code, content=he.detail)
+    except Exception as e:
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"], log=str(e)
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
+        )
+
+
+@router.post(
+    "/unlink_auth_provider/v0",
+    status_code=status.HTTP_200_OK,
+    response_model=StandardResponse[UnlinkAuthProviderV0Response],
+)
+@global_object_square_logger.auto_logger()
+async def unlink_auth_provider_v0(
+    body: UnlinkAuthProviderV0,
+    access_token: Annotated[str | None, Header()] = None,
+):
+    try:
+        if access_token is None:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_ACCESS_TOKEN"],
+                log="access_token header is missing.",
+            )
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        return util_unlink_auth_provider_v0(
+            access_token=access_token,
+            auth_provider=body.auth_provider,
         )
     except HTTPException as he:
         global_object_square_logger.logger.error(he, exc_info=True)

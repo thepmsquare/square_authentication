@@ -90,6 +90,7 @@ from square_authentication.pydantic_models.core import (
     ResetPasswordAndLoginUsingResetEmailCodeV0ResponseMain,
     SendResetPasswordEmailV0Response,
     TokenType,
+    UnlinkAuthProviderV0ResponseMain,
     UpdateUserAppIdsV0Response,
     UpdateUsernameV0Response,
     UpdateUsernameV0ResponseMain,
@@ -4235,6 +4236,166 @@ def util_add_google_auth_provider_v0(access_token, google_id_token):
         )
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_SUCCESSFUL"],
+            data=data_pydantic.model_dump(),
+            as_dict=False,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=output_content.model_dump(),
+        )
+
+    except HTTPException as http_exception:
+        global_object_square_logger.logger.error(http_exception, exc_info=True)
+        return JSONResponse(
+            status_code=http_exception.status_code, content=http_exception.detail
+        )
+    except Exception as e:
+        global_object_square_logger.logger.error(e, exc_info=True)
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_500"],
+            log=str(e),
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=output_content
+        )
+
+
+@global_object_square_logger.auto_logger()
+def util_unlink_auth_provider_v0(access_token, auth_provider):
+    try:
+        """
+        validation
+        """
+        # validate access token
+        try:
+            local_dict_access_token_payload = get_jwt_payload(
+                access_token, config_str_secret_key_for_access_token
+            )
+        except Exception as error:
+            output_content = get_api_output_in_standard_format(
+                message=messages["INCORRECT_ACCESS_TOKEN"], log=str(error)
+            )
+            # noinspection PyTypeChecker
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+        user_id = local_dict_access_token_payload["user_id"]
+
+        # check auth provider input
+        if auth_provider not in [
+            AuthProviderEnum.SELF.value,
+            AuthProviderEnum.GOOGLE.value,
+        ]:
+            output_content = get_api_output_in_standard_format(
+                message=messages["GENERIC_400"],
+                log=f"Invalid auth provider: {auth_provider}.",
+            )
+            # noinspection PyTypeChecker
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+
+        # get all auth providers for user
+        local_list_response_user_auth_providers = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserAuthProvider.__tablename__,
+                filters=FiltersV0(
+                    root={UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id)}
+                ),
+                response_as_pydantic=True,
+            ).data.main
+        )
+
+        current_providers = [
+            x[UserAuthProvider.auth_provider.name]
+            for x in local_list_response_user_auth_providers
+        ]
+
+        # check if requested provider exists for user (idempotency)
+        if auth_provider not in current_providers:
+            data_pydantic = UnlinkAuthProviderV0ResponseMain(
+                auth_providers=current_providers
+            )
+            output_content = get_api_output_in_standard_format(
+                message=messages["GENERIC_UPDATE_SUCCESSFUL"],
+                data=data_pydantic.model_dump(),
+                as_dict=False,
+            )
+            return JSONResponse(
+                status_code=status.HTTP_200_OK,
+                content=output_content.model_dump(),
+            )
+
+        # check if it's the last provider
+        if len(current_providers) <= 1:
+            output_content = get_api_output_in_standard_format(
+                message=messages["GENERIC_400"],
+                log="Cannot unlink the last authentication provider.",
+            )
+            # noinspection PyTypeChecker
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=output_content,
+            )
+
+        """
+        main process
+        """
+        # delete from user_auth_provider
+        global_object_square_database_helper.delete_rows_v0(
+            database_name=global_string_database_name,
+            schema_name=global_string_schema_name,
+            table_name=UserAuthProvider.__tablename__,
+            filters=FiltersV0(
+                root={
+                    UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id),
+                    UserAuthProvider.auth_provider.name: FilterConditionsV0(
+                        eq=auth_provider
+                    ),
+                }
+            ),
+            response_as_pydantic=True,
+        )
+
+        # if unlinking SELF, also remove credentials
+        if auth_provider == AuthProviderEnum.SELF.value:
+            global_object_square_database_helper.delete_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserCredential.__tablename__,
+                filters=FiltersV0(
+                    root={UserCredential.user_id.name: FilterConditionsV0(eq=user_id)}
+                ),
+                response_as_pydantic=True,
+            )
+
+        """
+        return value
+        """
+        # get latest list of providers
+        local_list_response_user_auth_providers = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserAuthProvider.__tablename__,
+                filters=FiltersV0(
+                    root={UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id)}
+                ),
+                response_as_pydantic=True,
+            ).data.main
+        )
+        data_pydantic = UnlinkAuthProviderV0ResponseMain(
+            auth_providers=[
+                x[UserAuthProvider.auth_provider.name]
+                for x in local_list_response_user_auth_providers
+            ]
+        )
+        output_content = get_api_output_in_standard_format(
+            message=messages["GENERIC_UPDATE_SUCCESSFUL"],
             data=data_pydantic.model_dump(),
             as_dict=False,
         )

@@ -265,3 +265,15 @@ class AddGoogleAuthProviderV0ResponseMain(BaseModel):
 
 class AddGoogleAuthProviderV0Response(BaseModel):
     main: AddGoogleAuthProviderV0ResponseMain
+
+
+class UnlinkAuthProviderV0(BaseModel):
+    auth_provider: str
+
+
+class UnlinkAuthProviderV0ResponseMain(BaseModel):
+    auth_providers: List[str]
+
+
+class UnlinkAuthProviderV0Response(BaseModel):
+    main: UnlinkAuthProviderV0ResponseMain
