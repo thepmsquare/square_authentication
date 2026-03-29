@@ -3192,7 +3192,7 @@ def util_send_reset_password_email_v0(username, redirect_url=None):
         )
 
         html_body = (
-            password_reset_email_template.replace("{reset_code}", str(reset_code))
+            password_reset_email_template.replace("{verification_code}", str(reset_code))
             .replace("{expiry_minutes}", str(expiry_minutes))
             .replace("{clickable_link_section}", clickable_link_section)
         )
@@ -4003,7 +4003,7 @@ def util_add_google_auth_provider_v0(access_token, google_id_token):
                     ]
                 )
                 output_content = get_api_output_in_standard_format(
-                    message=messages["GENERIC_SUCCESSFUL"],
+                    message=messages["GENERIC_ACTION_SUCCESSFUL"],
                     data=data_pydantic.model_dump(),
                     as_dict=False,
                 )
@@ -4235,7 +4235,7 @@ def util_add_google_auth_provider_v0(access_token, google_id_token):
             ]
         )
         output_content = get_api_output_in_standard_format(
-            message=messages["GENERIC_SUCCESSFUL"],
+            message=messages["GENERIC_ACTION_SUCCESSFUL"],
             data=data_pydantic.model_dump(),
             as_dict=False,
         )

@@ -15,6 +15,7 @@ messages = {
     "GENERIC_DELETE_SUCCESSFUL": "your records have been deleted successfully.",
     "GENERIC_ACTION_SUCCESSFUL": "the action was completed successfully.",
     "GENERIC_400": "the request is invalid or cannot be processed.",
+    "GENERIC_409": "the request could not be completed due to a conflict with the current state of the resource.",
     "GENERIC_500": "an internal server error occurred. please try again later.",
     "INVALID_FILE_FORMAT": "the file format is not supported. please upload a valid file.",
     "FILE_SIZE_EXCEEDS_LIMIT": "the file size exceeds the limit. please upload a smaller file.",
