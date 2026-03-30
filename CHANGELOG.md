@@ -1,5 +1,9 @@
 # changelog
 
+## v12.6.3 (in progress)
+
+- add_self_auth_provider: re-fetch auth providers from database for better response consistency.
+
 ## v12.6.2
 
 - bug fix: fix placeholder mismatch in password reset email template.
@@ -23,9 +27,9 @@
 - refactor: extract common username validation and password hashing logic.
 - bug fix: enforce 20-character limit for usernames generated during Google registration.
 - dependencies
-    - "square_logger>=3.0.2"
-    - "square_database_structure>=2.8.1"
-    - all, dev -> "black"
+  - "square_logger>=3.0.2"
+  - "square_database_structure>=2.8.1"
+  - all, dev -> "black"
 
 ## v12.4.0
 
@@ -34,7 +38,7 @@
 ## v12.3.5
 
 - beautify emails
-    - lowercase letters.
+  - lowercase letters.
 
 ## v12.3.4
 
@@ -47,9 +51,9 @@
 ## v12.3.2
 
 - beautify emails
-    - update subject to include the code.
-    - device theme?
-    - more selection friendly.
+  - update subject to include the code.
+  - device theme?
+  - more selection friendly.
 
 ## v12.3.1
 
@@ -58,9 +62,9 @@
 ## v12.3.0 (unstable)
 
 - beautify emails
-    - add email html templates in data folder.
+  - add email html templates in data folder.
 - dependencies
-    - "square_commons>=3.2.0"
+  - "square_commons>=3.2.0"
 
 ## v12.2.1
 
@@ -95,88 +99,88 @@
 
 - set response_as_pydantic True for all square_file_store_helper utils instead of dict, for better typehints.
 - dependencies
-    - update "square_file_store_helper>=3.1.1"
+  - update "square_file_store_helper>=3.1.1"
 
 ## v11.2.1
 
 - set response_as_pydantic True for all square_database_helper utils instead of dict, for better typehints.
 - dependencies
-    - update "square_database_helper>=2.7.1"
+  - update "square_database_helper>=2.7.1"
 
 ## v11.2.0
 
 - models
-    - add the following in core:
-        - RegisterUsernameV0Response.
-        - RegisterUsernameV0ResponseMain.
-        - RegisterLoginGoogleV0Response.
-        - RegisterLoginGoogleV0ResponseMain.
-        - UpdateUserAppIdsV0Response.
-        - GetUserDetailsV0Response.
-        - GetUserDetailsV0ResponseMain.
-        - GetUserDetailsV0ResponseMainBackupCodes.
-        - GetUserDetailsV0ResponseMainEmailVerification.
-        - GetUserDetailsV0ResponseMainSession.
-        - GetUserDetailsV0ResponseMainProfile.
-        - LoginUsernameV0Response.
-        - LoginUsernameV0ResponseMain.
-        - GenerateAccessTokenV0Response.
-        - GenerateAccessTokenV0ResponseMain.
-        - LogoutV0Response.
-        - LogoutAppsV0Response.
-        - LogoutAllV0Response.
-        - UpdateUsernameV0Response.
-        - UpdateUsernameV0ResponseMain.
-        - DeleteUserV0Response.
-        - UpdatePasswordV0Response.
-        - ValidateAndGetPayloadFromTokenV0Response.
-        - UpdateUserRecoveryMethodsV0Response.
-        - GenerateAccountBackupCodesV0Response.
-        - GenerateAccountBackupCodesV0ResponseMain.
-        - ResetPasswordAndLoginUsingBackupCodeV0Response.
-        - ResetPasswordAndLoginUsingBackupCodeV0ResponseMain.
-        - SendResetPasswordEmailV0Response.
-        - ResetPasswordAndLoginUsingResetEmailCodeV0Response.
-        - ResetPasswordAndLoginUsingResetEmailCodeV0ResponseMain.
-        - GetUserRecoveryMethodsV0Response.
-    - add the following in profile:
-        - UpdateProfilePhotoV0Response.
-        - UpdateProfileDetailsV0Response.
-        - UpdateProfileDetailsV0ResponseMain.
-        - SendVerificationEmailV0Response.
-        - ValidateEmailVerificationCodeV0Response.
-    - add the following in internal:
-        - GetTextHashV0Response.
+  - add the following in core:
+    - RegisterUsernameV0Response.
+    - RegisterUsernameV0ResponseMain.
+    - RegisterLoginGoogleV0Response.
+    - RegisterLoginGoogleV0ResponseMain.
+    - UpdateUserAppIdsV0Response.
+    - GetUserDetailsV0Response.
+    - GetUserDetailsV0ResponseMain.
+    - GetUserDetailsV0ResponseMainBackupCodes.
+    - GetUserDetailsV0ResponseMainEmailVerification.
+    - GetUserDetailsV0ResponseMainSession.
+    - GetUserDetailsV0ResponseMainProfile.
+    - LoginUsernameV0Response.
+    - LoginUsernameV0ResponseMain.
+    - GenerateAccessTokenV0Response.
+    - GenerateAccessTokenV0ResponseMain.
+    - LogoutV0Response.
+    - LogoutAppsV0Response.
+    - LogoutAllV0Response.
+    - UpdateUsernameV0Response.
+    - UpdateUsernameV0ResponseMain.
+    - DeleteUserV0Response.
+    - UpdatePasswordV0Response.
+    - ValidateAndGetPayloadFromTokenV0Response.
+    - UpdateUserRecoveryMethodsV0Response.
+    - GenerateAccountBackupCodesV0Response.
+    - GenerateAccountBackupCodesV0ResponseMain.
+    - ResetPasswordAndLoginUsingBackupCodeV0Response.
+    - ResetPasswordAndLoginUsingBackupCodeV0ResponseMain.
+    - SendResetPasswordEmailV0Response.
+    - ResetPasswordAndLoginUsingResetEmailCodeV0Response.
+    - ResetPasswordAndLoginUsingResetEmailCodeV0ResponseMain.
+    - GetUserRecoveryMethodsV0Response.
+  - add the following in profile:
+    - UpdateProfilePhotoV0Response.
+    - UpdateProfileDetailsV0Response.
+    - UpdateProfileDetailsV0ResponseMain.
+    - SendVerificationEmailV0Response.
+    - ValidateEmailVerificationCodeV0Response.
+  - add the following in internal:
+    - GetTextHashV0Response.
 - routes
-    - add output format validation in the following in core:
-        - register_username_v0
-        - register_login_google_v0.
-        - update_user_app_ids_v0.
-        - update get_user_details_v0.
-        - login_username_v0.
-        - generate_access_token_v0.
-        - logout_v0.
-        - logout_apps_v0.
-        - logout_all_v0.
-        - update_username_v0.
-        - delete_user_v0.
-        - update_password_v0.
-        - validate_and_get_payload_from_token_v0.
-        - update_user_recovery_methods_v0.
-        - generate_account_backup_codes_v0.
-        - reset_password_and_login_using_backup_code_v0.
-        - send_reset_password_email_v0.
-        - reset_password_and_login_using_reset_email_code_v0.
-        - get_user_recovery_methods_v0.
-    - add output format validation in the following in profile:
-        - update_profile_photo_v0.
-        - update_profile_details_v0.
-        - send_verification_email_v0.
-        - validate_email_verification_code_v0.
-    - add output format validation in the following in internal:
-        - get_text_hash_v0.
+  - add output format validation in the following in core:
+    - register_username_v0
+    - register_login_google_v0.
+    - update_user_app_ids_v0.
+    - update get_user_details_v0.
+    - login_username_v0.
+    - generate_access_token_v0.
+    - logout_v0.
+    - logout_apps_v0.
+    - logout_all_v0.
+    - update_username_v0.
+    - delete_user_v0.
+    - update_password_v0.
+    - validate_and_get_payload_from_token_v0.
+    - update_user_recovery_methods_v0.
+    - generate_account_backup_codes_v0.
+    - reset_password_and_login_using_backup_code_v0.
+    - send_reset_password_email_v0.
+    - reset_password_and_login_using_reset_email_code_v0.
+    - get_user_recovery_methods_v0.
+  - add output format validation in the following in profile:
+    - update_profile_photo_v0.
+    - update_profile_details_v0.
+    - send_verification_email_v0.
+    - validate_email_verification_code_v0.
+  - add output format validation in the following in internal:
+    - get_text_hash_v0.
 - dependencies
-    - update "square_commons>=3.1.0"
+  - update "square_commons>=3.1.0"
 
 ## v11.1.1
 
@@ -189,29 +193,29 @@
 ## v11.0.1
 
 - core
-    - **bug fix**: fix cooldown time return value in send_reset_password_email_v0.
+  - **bug fix**: fix cooldown time return value in send_reset_password_email_v0.
 
 ## v11.0.0
 
 - core
-    - **breaking change**: update_user_recovery_methods_v0 input passed in as request body instead of query parameters.
+  - **breaking change**: update_user_recovery_methods_v0 input passed in as request body instead of query parameters.
 
 ## v10.3.2
 
 - core
-    - bugfix in update_user_recovery_methods_v0 default parameters.
+  - bugfix in update_user_recovery_methods_v0 default parameters.
 
 ## v10.3.1
 
 - profile
-    - bugfix in sending cooldown_reset_at datetime in response.
+  - bugfix in sending cooldown_reset_at datetime in response.
 
 ## v10.3.0
 
 - profile
-    - mark email as not verified when updating it in update_profile_details_v0.
+  - mark email as not verified when updating it in update_profile_details_v0.
 - core
-    - add get_user_recovery_methods_v0.
+  - add get_user_recovery_methods_v0.
 
 ## v10.2.0
 
@@ -235,7 +239,7 @@
 ## v10.0.5
 
 - dependencies
-    - create all and dev sections for pytest dependencies.
+  - create all and dev sections for pytest dependencies.
 
 ## v10.0.4
 
@@ -244,9 +248,9 @@
 ## v10.0.3
 
 - env
-    - SQUARE_LOGGER -> FORMATTER_CHOICE + ENABLE_REDACTION
+  - SQUARE_LOGGER -> FORMATTER_CHOICE + ENABLE_REDACTION
 - dependencies
-    - square_logger>=3.0.0.
+  - square_logger>=3.0.0.
 
 ## v10.0.2
 
@@ -255,78 +259,78 @@
 ## v10.0.1
 
 - core
-    - add username in get_user_details_v0 output.
+  - add username in get_user_details_v0 output.
 
 ## v10.0.0
 
 - core
-    - **breaking change**: logout_apps_v0 is now a POST method instead of DELETE.
+  - **breaking change**: logout_apps_v0 is now a POST method instead of DELETE.
 - docs
-    - add GNU license v3.0.
-    - update README.md.
-    - move CHANGELOG to a separate file.
+  - add GNU license v3.0.
+  - update README.md.
+  - move CHANGELOG to a separate file.
 - tests
-    - fix bugs in test cases.
+  - fix bugs in test cases.
 - dependencies
-    - square_database_structure >= 2.6.0.
-    - square_database_helper>=2.6.1.
+  - square_database_structure >= 2.6.0.
+  - square_database_helper>=2.6.1.
 
 ## v9.0.1
 
 - env
-    - add RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS and
-      RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS in LOGIC section.
+  - add RESEND_COOL_DOWN_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS and
+    RESEND_COOL_DOWN_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS in LOGIC section.
 - profile
-    - add validation for email verification code already sent in send_verification_email_v0.
-    - add cooldown_reset_at in send_verification_email_v0 output.
+  - add validation for email verification code already sent in send_verification_email_v0.
+  - add cooldown_reset_at in send_verification_email_v0 output.
 - core
-    - add validation for email password reset code already sent in send_reset_password_email_v0.
-    - add cooldown_reset_at in send_reset_password_email_v0 output.
+  - add validation for email password reset code already sent in send_reset_password_email_v0.
+  - add cooldown_reset_at in send_reset_password_email_v0 output.
 
 ## v9.0.0
 
 - core
-    - **breaking change**: new mandatory parameter `app_id` in validate_and_get_payload_from_token_v0.
+  - **breaking change**: new mandatory parameter `app_id` in validate_and_get_payload_from_token_v0.
 
 ## v8.0.2
 
 - core
-    - add refresh_token_expiry_time in output for reset_password_and_login_using_backup_code_v0 and
-      reset_password_and_login_using_reset_email_code_v0.
+  - add refresh_token_expiry_time in output for reset_password_and_login_using_backup_code_v0 and
+    reset_password_and_login_using_reset_email_code_v0.
 
 ## v8.0.1
 
 - core
-    - add make recovery_methods_to_add and recovery_methods_to_remove parameters optional in
-      update_user_recovery_methods_v0.
+  - add make recovery_methods_to_add and recovery_methods_to_remove parameters optional in
+    update_user_recovery_methods_v0.
 
 ## v8.0.0
 
 - env
-    - add GOOGLE section and GOOGLE_AUTH_PLATFORM_CLIENT_ID variable.
-    - add LOGIC section with NUMBER_OF_RECOVERY_CODES, EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
-      NUMBER_OF_DIGITS_IN_EMAIL_VERIFICATION_CODE, EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
-      NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE variables.
+  - add GOOGLE section and GOOGLE_AUTH_PLATFORM_CLIENT_ID variable.
+  - add LOGIC section with NUMBER_OF_RECOVERY_CODES, EXPIRY_TIME_FOR_EMAIL_VERIFICATION_CODE_IN_SECONDS,
+    NUMBER_OF_DIGITS_IN_EMAIL_VERIFICATION_CODE, EXPIRY_TIME_FOR_EMAIL_PASSWORD_RESET_CODE_IN_SECONDS,
+    NUMBER_OF_DIGITS_IN_EMAIL_PASSWORD_RESET_CODE variables.
 - dependencies
-    - add google-auth>=2.40.3.
-    - update square_commons to >=3.0.0.
+  - add google-auth>=2.40.3.
+  - update square_commons to >=3.0.0.
 - core
-    - add reset_password_and_login_using_reset_email_code_v0.
-    - **breaking change**: remove app_id from send_reset_password_email_v0.
-    - implement deletion of existing backup codes before generating new ones (generate_account_backup_codes_v0).
-    - implement deletion of existing backup codes before removing recovery method (update_user_recovery_methods_v0).
-    - implement logout_other_sessions in update_password_v0, reset_password_and_login_using_backup_code_v0 and
-      reset_password_and_login_using_reset_email_code_v0
-        - in update_password_v0, it will log out all other sessions except the current one if valid (optional)
-          refresh_token is passed in.
-    - add register_login_google_v0, **finally**.
-    - add validation in update_password_v0, reset_password_and_login_using_backup_code_v0, send_reset_password_email_v0,
-      reset_password_and_login_using_reset_email_code_v0 to check if user has credentials and has self as auth provider.
-    - remove profile_photo from file_store when user is deleted in delete_user_v0.
+  - add reset_password_and_login_using_reset_email_code_v0.
+  - **breaking change**: remove app_id from send_reset_password_email_v0.
+  - implement deletion of existing backup codes before generating new ones (generate_account_backup_codes_v0).
+  - implement deletion of existing backup codes before removing recovery method (update_user_recovery_methods_v0).
+  - implement logout_other_sessions in update_password_v0, reset_password_and_login_using_backup_code_v0 and
+    reset_password_and_login_using_reset_email_code_v0
+    - in update_password_v0, it will log out all other sessions except the current one if valid (optional)
+      refresh_token is passed in.
+  - add register_login_google_v0, **finally**.
+  - add validation in update_password_v0, reset_password_and_login_using_backup_code_v0, send_reset_password_email_v0,
+    reset_password_and_login_using_reset_email_code_v0 to check if user has credentials and has self as auth provider.
+  - remove profile_photo from file_store when user is deleted in delete_user_v0.
 - utils
-    - add new core file with generate_default_username_for_google_users function.
+  - add new core file with generate_default_username_for_google_users function.
 - tests
-    - add test_login_fail_v0.
+  - add test_login_fail_v0.
 
 ## v7.0.0
 
@@ -334,24 +338,24 @@
 - internal support for username shifted from UserProfile to User.
 - internal support for phone number country code in UserProfile.
 - core
-    - register_username_v0 fixed to account for changes mentioned above and creates empty profile.
-    - login_username_v0 fixed to account for changes mentioned above.
-    - update_username_v0 fixed to account for changes mentioned above.
-    - **breaking change**: delete_user_v0 is now a POST method instead of DELETE.
-    - add generate_account_backup_codes_v0.
-    - add reset_password_and_login_using_backup_code_v0.
-    - add validation for email verification when adding email as recovery method in update_user_recovery_methods_v0.
-    - add send_reset_password_email_v0.
+  - register_username_v0 fixed to account for changes mentioned above and creates empty profile.
+  - login_username_v0 fixed to account for changes mentioned above.
+  - update_username_v0 fixed to account for changes mentioned above.
+  - **breaking change**: delete_user_v0 is now a POST method instead of DELETE.
+  - add generate_account_backup_codes_v0.
+  - add reset_password_and_login_using_backup_code_v0.
+  - add validation for email verification when adding email as recovery method in update_user_recovery_methods_v0.
+  - add send_reset_password_email_v0.
 - profile
-    - add update_profile_details_v0.
-    - add send_verification_email_v0.
-    - add validate_email_verification_code_v0.
+  - add update_profile_details_v0.
+  - add send_verification_email_v0.
+  - add validate_email_verification_code_v0.
 - tests
-    - add test cases and fixtures for login_username_v0.
-    - add test cases and fixtures for delete_user_v0.
-    - add test cases and fixtures for update_profile_details_v0.
+  - add test cases and fixtures for login_username_v0.
+  - add test cases and fixtures for delete_user_v0.
+  - add test cases and fixtures for update_profile_details_v0.
 - env
-    - add EMAIL section and MAIL_GUN_API_KEY variable.
+  - add EMAIL section and MAIL_GUN_API_KEY variable.
 
 ## v6.2.2
 
@@ -360,12 +364,12 @@
 ## v6.2.1
 
 - core
-    - tweak validation for username in register_username_v0 and update_username_v0.
+  - tweak validation for username in register_username_v0 and update_username_v0.
 
 ## v6.2.0
 
 - core
-    - add update_user_recovery_methods_v0.
+  - add update_user_recovery_methods_v0.
 
 ## v6.1.0
 
@@ -375,7 +379,7 @@
 ## v6.0.5
 
 - env
-    - add ALLOW_ORIGINS
+  - add ALLOW_ORIGINS
 
 ## v6.0.4
 
@@ -403,11 +407,11 @@
 - add temp folder to .gitignore.
 - add square_file_store_helper as a dependency.
 - config
-    - add config section for file store helper.
+  - add config section for file store helper.
 - initialize file store helper and database helper in config.py
 - add profile router
 - profile
-    - add update_profile_photo/v0
+  - add update_profile_photo/v0
 - update messages.
 
 ## v5.1.5
@@ -435,8 +439,8 @@
 ## v5.1.0
 
 - Core
-    - add logout/apps/v0.
-    - add logout/all/v0.
+  - add logout/apps/v0.
+  - add logout/all/v0.
 
 ## v5.0.1
 
@@ -459,7 +463,7 @@
 ## v4.4.0
 
 - core
-    - add refresh_token_expiry_time in register_username_v0, login_username_v0.
+  - add refresh_token_expiry_time in register_username_v0, login_username_v0.
 
 ## v4.3.0
 
@@ -491,9 +495,9 @@
 ## v3.0.0
 
 - added new endpoints
-    - /update_username/v0
-    - /delete_user/v0
-    - /update_password/v0
+  - /update_username/v0
+  - /delete_user/v0
+  - /update_password/v0
 - move data in password related endpoints to request body from params.
 - /register_username/v0 now takes in app_id as optional parameter to assign user to that app and create session for it.
 - /generate_access_token/v0 now only needs refresh token (removed validation).
@@ -504,13 +508,13 @@
 ## v2.0.0
 
 - authentication module needs to be used across applications so
-    - register_username: will not create sessions and therefore will not auto login.
-    - login: added validation if app is assigned to user before assigning it and added app_id in session row.
-    - logout: added app_id as new parameter and validation for that.
-    - generate_access_token: added app_id as new parameter and validation for that.
+  - register_username: will not create sessions and therefore will not auto login.
+  - login: added validation if app is assigned to user before assigning it and added app_id in session row.
+  - logout: added app_id as new parameter and validation for that.
+  - generate_access_token: added app_id as new parameter and validation for that.
 - added 2 new endpoints
-    - get user app ids: **access token validation pending**.
-    - change user app ids: **access token validation pending**.
+  - get user app ids: **access token validation pending**.
+  - change user app ids: **access token validation pending**.
 - add versions for all endpoint paths.
 - make it compatible with square_database_helper 2.x.
 - username in database will always be lowercase.

@@ -3863,8 +3863,23 @@ def util_add_self_auth_provider_v0(access_token, password):
             response_as_pydantic=True,
         )
 
-        # get updated auth providers
-        auth_providers.append(AuthProviderEnum.SELF.value)
+        # get updated auth providers from database
+        local_list_response_user_auth_providers = (
+            global_object_square_database_helper.get_rows_v0(
+                database_name=global_string_database_name,
+                schema_name=global_string_schema_name,
+                table_name=UserAuthProvider.__tablename__,
+                filters=FiltersV0(
+                    root={UserAuthProvider.user_id.name: FilterConditionsV0(eq=user_id)}
+                ),
+                columns=[UserAuthProvider.auth_provider.name],
+                response_as_pydantic=True,
+            ).data.main
+        )
+        auth_providers = [
+            x[UserAuthProvider.auth_provider.name]
+            for x in local_list_response_user_auth_providers
+        ]
 
         """
         return value
