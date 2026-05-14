@@ -1,5 +1,9 @@
 # changelog
 
+## v12.6.4
+
+- test release.
+
 ## v12.6.3
 
 - add_self_auth_provider: re-fetch auth providers from database for better response consistency.
