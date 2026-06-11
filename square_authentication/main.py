@@ -1,4 +1,5 @@
 import os.path
+from importlib.metadata import version
 
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -17,7 +18,7 @@ from square_authentication.configuration import (
 )
 from square_authentication.routes import core, internal, profile
 
-app = FastAPI()
+app = FastAPI(title=config_str_module_name, version=version(config_str_module_name))
 
 app.add_middleware(
     CORSMiddleware,

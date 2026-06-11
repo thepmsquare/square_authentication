@@ -1,5 +1,9 @@
 # changelog
 
+## v12.6.5
+
+- update app title and version in fastapi.
+
 ## v12.6.4
 
 - test release.
