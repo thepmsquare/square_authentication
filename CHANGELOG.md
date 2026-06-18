@@ -1,5 +1,9 @@
 # changelog
 
+## v12.6.6
+
+- bug fix in /add_google_auth_provider/v0.
+
 ## v12.6.5
 
 - update app title and version in fastapi.

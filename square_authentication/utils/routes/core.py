@@ -3192,7 +3192,9 @@ def util_send_reset_password_email_v0(username, redirect_url=None):
         )
 
         html_body = (
-            password_reset_email_template.replace("{verification_code}", str(reset_code))
+            password_reset_email_template.replace(
+                "{verification_code}", str(reset_code)
+            )
             .replace("{expiry_minutes}", str(expiry_minutes))
             .replace("{clickable_link_section}", clickable_link_section)
         )
@@ -4203,7 +4205,7 @@ def util_add_google_auth_provider_v0(access_token, google_id_token):
         """
         # update profile if any changes
         if profile_update_data:
-            global_object_square_database_helper.update_rows_v0(
+            global_object_square_database_helper.edit_rows_v0(
                 database_name=global_string_database_name,
                 schema_name=global_string_schema_name,
                 table_name=UserProfile.__tablename__,
