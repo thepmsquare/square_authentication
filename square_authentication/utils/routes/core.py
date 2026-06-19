@@ -96,6 +96,7 @@ from square_authentication.pydantic_models.core import (
     UpdateUsernameV0ResponseMain,
     UpdateUserRecoveryMethodsV0Response,
     ValidateAndGetPayloadFromTokenV0Response,
+    AddGoogleAuthProviderV0Response,
 )
 from square_authentication.utils.core import (
     USERNAME_RE,
@@ -4013,11 +4014,13 @@ def util_add_google_auth_provider_v0(access_token, google_id_token):
                         response_as_pydantic=True,
                     ).data.main
                 )
-                data_pydantic = AddGoogleAuthProviderV0ResponseMain(
-                    auth_providers=[
-                        x[UserAuthProvider.auth_provider.name]
-                        for x in local_list_response_user_auth_providers
-                    ]
+                data_pydantic = AddGoogleAuthProviderV0Response(
+                    main=AddGoogleAuthProviderV0ResponseMain(
+                        auth_providers=[
+                            x[UserAuthProvider.auth_provider.name]
+                            for x in local_list_response_user_auth_providers
+                        ]
+                    )
                 )
                 output_content = get_api_output_in_standard_format(
                     message=messages["GENERIC_ACTION_SUCCESSFUL"],
@@ -4245,11 +4248,13 @@ def util_add_google_auth_provider_v0(access_token, google_id_token):
                 response_as_pydantic=True,
             ).data.main
         )
-        data_pydantic = AddGoogleAuthProviderV0ResponseMain(
-            auth_providers=[
-                x[UserAuthProvider.auth_provider.name]
-                for x in local_list_response_user_auth_providers
-            ]
+        data_pydantic = AddGoogleAuthProviderV0Response(
+            main=AddGoogleAuthProviderV0ResponseMain(
+                auth_providers=[
+                    x[UserAuthProvider.auth_provider.name]
+                    for x in local_list_response_user_auth_providers
+                ]
+            )
         )
         output_content = get_api_output_in_standard_format(
             message=messages["GENERIC_ACTION_SUCCESSFUL"],

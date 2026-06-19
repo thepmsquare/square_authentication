@@ -1,5 +1,9 @@
 # changelog
 
+## v12.6.7
+
+- bug fix related to models in /add_google_auth_provider/v0.
+
 ## v12.6.6
 
 - bug fix in /add_google_auth_provider/v0.
